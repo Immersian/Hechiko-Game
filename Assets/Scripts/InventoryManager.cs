@@ -84,8 +84,10 @@ public class InventoryManager : MonoBehaviour
         {
             player.EnableMovement();
         }
+        CameraFollowObject cameraFollow = FindObjectOfType<CameraFollowObject>();
+        if (cameraFollow != null) cameraFollow.EnableLookUpDown();
 
-        GetComponent<CameraFollowObject>().EnableLookUpDown();
+        //GetComponent<CameraFollowObject>().EnableLookUpDown();
 
         InputManager.instance.SetGameplayInputEnabled(true);
         EventSystem.current.SetSelectedGameObject(null);
