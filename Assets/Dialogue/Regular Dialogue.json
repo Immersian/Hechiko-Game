@@ -1,0 +1,1 @@
+﻿{"inkVersion":21,"root":[["^This is a test for regular dialogue","\n","^It works","\n","^go away now","\n","end",["done",{"#f":5,"#n":"g-0"}],null],"done",{"global decl":["ev",0,{"VAR=":"interaction_count"},"/ev","end",null],"#f":1}],"listDefs":{}}
