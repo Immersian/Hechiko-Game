@@ -45,6 +45,11 @@ namespace SupanthaPaul
 		public Vector2 wallClimbForce = new Vector2(4f, 14f);
         [SerializeField] private float wallSlideCoyoteTime = 0.1f;
 
+		[Header("Camera Shake Parameters")]
+		[SerializeField] private CameraShake cameraShake;
+		[SerializeField] private float shakeIntensity = 5;
+		[SerializeField] private float shakeTime = 1;
+
         private Rigidbody2D m_rb;
 		private ParticleSystem m_dustParticle;
 		public bool m_facingRight = true;
@@ -260,8 +265,10 @@ namespace SupanthaPaul
 					isDashing = true;
                     // dash effect
                     PoolManager.instance.ReuseObject(dashEffect, transform.position, Quaternion.identity);
-					// if player in air while dashing
-					if(!isGrounded)
+					cameraShake.ShakeCamera(shakeIntensity, shakeTime);
+                    //RumbleManager.instance.RumblePulse(0.01f, 0.01f, 0.05f);
+                    // if player in air while dashing
+                    if (!isGrounded)
 					{
 						m_hasDashedInAir = true;
 					}
