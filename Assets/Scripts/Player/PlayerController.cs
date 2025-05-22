@@ -266,9 +266,9 @@ namespace SupanthaPaul
                     // dash effect
                     PoolManager.instance.ReuseObject(dashEffect, transform.position, Quaternion.identity);
 					cameraShake.ShakeCamera(shakeIntensity, shakeTime);
-                    //RumbleManager.instance.RumblePulse(0.01f, 0.01f, 0.05f);
-                    // if player in air while dashing
-                    if (!isGrounded)
+					RumbleManager.instance.RumblePulse(0.01f, 0f, 0.05f);
+					// if player in air while dashing
+					if (!isGrounded)
 					{
 						m_hasDashedInAir = true;
 					}
