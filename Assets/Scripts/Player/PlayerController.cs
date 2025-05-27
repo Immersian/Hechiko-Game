@@ -5,76 +5,114 @@ namespace SupanthaPaul
 {
     [RequireComponent(typeof(PlayerInput))]
     public class PlayerController : MonoBehaviour
-	{
-		[SerializeField] private float speed;
-		[Header("Jumping")]
-		[SerializeField] private float jumpForce;
-		[SerializeField] private float fallMultiplier;
-		[SerializeField] private Transform groundCheck;
-		[SerializeField] private float groundCheckRadius;
-		[SerializeField] private LayerMask whatIsGround;
-		[SerializeField] private int extraJumpCount = 1;
-		[SerializeField] private GameObject jumpEffect;
-		[Header("Dashing")]
-		[SerializeField] private float dashSpeed = 30f;
-		[Tooltip("Amount of time (in seconds) the player will be in the dashing speed")]
-		[SerializeField] private float startDashTime = 0.1f;
-		[Tooltip("Time (in seconds) between dashes")]
-		[SerializeField] private float dashCooldown = 0.2f;
-		[SerializeField] private GameObject dashEffect;
+    {
+        public enum DashDirection
+        {
+            Horizontal,
+            Up,
+            Down,
+            UpForward,
+            DownForward
+        }
+        [SerializeField] private float speed;
+        [Header("Jumping")]
+        [SerializeField] private float jumpForce;
+        [SerializeField] private float fallMultiplier;
+        [SerializeField] private Transform groundCheck;
+        [SerializeField] private float groundCheckRadius;
+        [SerializeField] private LayerMask whatIsGround;
+        [SerializeField] private int extraJumpCount = 1;
+        [SerializeField] private GameObject jumpEffect;
 
-		// Access needed for handling animation in Player script and other uses
-		[HideInInspector] public bool isGrounded;
-		[HideInInspector] public float moveInput;
-		[HideInInspector] public bool canMove = true;
+        [Header("Dashing")]
+        [SerializeField] private float dashSpeed = 30f;
+
+        [Tooltip("Amount of time (in seconds) the player will be in the dashing speed")]
+        [SerializeField] private float startDashTime = 0.1f;
+
+        [Tooltip("Time (in seconds) between dashes")]
+        [SerializeField] private float dashCooldown = 0.2f;
+        [SerializeField] private GameObject dashEffect;
+
+        [Header("Post-Dash Momentum (Celeste-style)")]
+        [SerializeField] private float postDashMomentumMultiplier = 0.4f;
+        [Tooltip("How long the post-dash momentum lasts")]
+        [SerializeField] private float postDashMomentumTime = 0.15f;
+        private Vector2 postDashMomentum;
+        private float postDashMomentumTimer;
+
+        [Header("Stamina Settings")]
+        public float maxStamina = 100f;
+        public float currentStamina;
+        public float dashCost = 30f; // Stamina consumed per dash
+        public float staminaRegenRate = 15f; // Stamina regained per second
+        public float staminaRegenDelay = 1f; // Time after dash before regen starts
+        private float lastDashTime;
+
+        [Header("Stamina Bar UI")]
+        public RectTransform staminaBar; // Assign in Inspector
+        private float staminaBarFullWidth;
+
+        // Access needed for handling animation in Player script and other uses
+        [HideInInspector] public bool isGrounded;
+        [HideInInspector] public float moveInput;
+        [HideInInspector] public bool canMove = true;
         [HideInInspector] public bool canFlip = true;
         [HideInInspector] public bool canJump = true;
         [HideInInspector] public bool canDash = true;
         [HideInInspector] public bool isDashing = false;
-		[HideInInspector] public bool actuallyWallGrabbing = false;
-		// controls whether this instance is currently playable or not
-		[HideInInspector] public bool isCurrentlyPlayable = false;
+        [HideInInspector] public bool actuallyWallGrabbing = false;
+        // controls whether this instance is currently playable or not
+        [HideInInspector] public bool isCurrentlyPlayable = false;
 
-		[Header("Wall grab & jump")]
-		[Tooltip("Right offset of the wall detection sphere")]
-		public Vector2 grabRightOffset = new Vector2(0.16f, 0f);
-		public Vector2 grabLeftOffset = new Vector2(-0.16f, 0f);
-		public float grabCheckRadius = 0.24f;
-		public float slideSpeed = 2.5f;
-		public Vector2 wallJumpForce = new Vector2(10.5f, 18f);
-		public Vector2 wallClimbForce = new Vector2(4f, 14f);
+        [Header("Wall grab & jump")]
+        [Tooltip("Right offset of the wall detection sphere")]
+        public Vector2 grabRightOffset = new Vector2(0.16f, 0f);
+        public Vector2 grabLeftOffset = new Vector2(-0.16f, 0f);
+        public float grabCheckRadius = 0.24f;
+        public float slideSpeed = 2.5f;
+        public Vector2 wallJumpForce = new Vector2(10.5f, 18f);
+        public Vector2 wallClimbForce = new Vector2(4f, 14f);
         [SerializeField] private float wallSlideCoyoteTime = 0.1f;
 
-		[Header("Camera Shake Parameters")]
-		[SerializeField] private CameraShake cameraShake;
-		[SerializeField] private float shakeIntensity = 5;
-		[SerializeField] private float shakeTime = 1;
+        [Header("Camera Shake Parameters")]
+        [SerializeField] private CameraShake cameraShake;
+        [SerializeField] private float shakeIntensity = 5;
+        [SerializeField] private float shakeTime = 1;
+
+        [Header("Multi-Directional Dash")]
+        [SerializeField] private float upwardDashSpeed = 25f;
+        [SerializeField] private float downwardDashSpeed = 25f;
+        [Tooltip("Multiplier for diagonal dash speeds - 1.0 = 45 degrees, higher = more vertical")]
+        [SerializeField] private float diagonalDashMultiplier = 1.0f;
+        private Vector2 lastMoveInput;
+        private Vector2 currentDashVelocity; // Store the dash velocity for momentum
 
         private Rigidbody2D m_rb;
-		private ParticleSystem m_dustParticle;
-		public bool m_facingRight = true;
-		private readonly float m_groundedRememberTime = 0.25f;
-		private float m_groundedRemember = 0f;
-		private int m_extraJumps;
-		private float m_extraJumpForce;
-		private float m_dashTime;
-		private bool m_hasDashedInAir = false;
-		private bool m_onWall = false;
-		private bool m_onRightWall = false;
-		private bool m_onLeftWall = false;
-		private bool m_wallGrabbing = false;
-		private readonly float m_wallStickTime = 0.25f;
-		private float m_wallStick = 0f;
-		private bool m_wallJumping = false;
-		private float m_dashCooldown;
+        private ParticleSystem m_dustParticle;
+        public bool m_facingRight = true;
+        private readonly float m_groundedRememberTime = 0.25f;
+        private float m_groundedRemember = 0f;
+        private int m_extraJumps;
+        private float m_extraJumpForce;
+        private float m_dashTime;
+        private bool m_hasDashedInAir = false;
+        private bool m_onWall = false;
+        private bool m_onRightWall = false;
+        private bool m_onLeftWall = false;
+        private bool m_wallGrabbing = false;
+        private readonly float m_wallStickTime = 0.25f;
+        private float m_wallStick = 0f;
+        private bool m_wallJumping = false;
+        private float m_dashCooldown;
         private float m_wallSlideCoyoteTimer;
 
         // 0 -> none, 1 -> right, -1 -> left
         private int m_onWallSide = 0;
-		private int m_playerSide = 1;
+        private int m_playerSide = 1;
 
         private CameraFollowObject _cameraFollowObject;
-		[SerializeField] private GameObject _cameraFollowGO;
+        [SerializeField] private GameObject _cameraFollowGO;
 
         // Input System
         private PlayerInput playerInput;
@@ -85,7 +123,7 @@ namespace SupanthaPaul
 
 
         void Start()
-		{
+        {
             playerInput = GetComponent<PlayerInput>();
             inputControl = new Controller(); // Creates instance of your "Control" class
             inputControl.Enable();
@@ -97,229 +135,330 @@ namespace SupanthaPaul
 
             // create pools for particles
             PoolManager.instance.CreatePool(dashEffect, 2);
-			PoolManager.instance.CreatePool(jumpEffect, 2);
+            PoolManager.instance.CreatePool(jumpEffect, 2);
 
-			// if it's the player, make this instance currently playable
-			if (transform.CompareTag("Player"))
-				isCurrentlyPlayable = true;
+            // if it's the player, make this instance currently playable
+            if (transform.CompareTag("Player"))
+                isCurrentlyPlayable = true;
+            currentStamina = maxStamina;
+            if (staminaBar != null)
+            {
+                staminaBarFullWidth = staminaBar.sizeDelta.x;
+                UpdateStaminaBar();
+            }
+            m_extraJumps = extraJumpCount;
+            m_dashTime = startDashTime;
+            m_dashCooldown = dashCooldown;
+            m_extraJumpForce = jumpForce * 0.7f;
 
-			m_extraJumps = extraJumpCount;
-			m_dashTime = startDashTime;
-			m_dashCooldown = dashCooldown;
-			m_extraJumpForce = jumpForce * 0.7f;
-
-			m_rb = GetComponent<Rigidbody2D>();
+            m_rb = GetComponent<Rigidbody2D>();
             m_rb.interpolation = RigidbodyInterpolation2D.Interpolate;
             m_dustParticle = GetComponentInChildren<ParticleSystem>();
             _cameraFollowObject = _cameraFollowGO.GetComponent<CameraFollowObject>();
         }
 
-		private void FixedUpdate()
-		{
-			// check if grounded
-			isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, whatIsGround);
-			var position = transform.position;
-			// check if on wall
-			m_onWall = Physics2D.OverlapCircle((Vector2)position + grabRightOffset, grabCheckRadius, whatIsGround)
-			          || Physics2D.OverlapCircle((Vector2)position + grabLeftOffset, grabCheckRadius, whatIsGround);
-			m_onRightWall = Physics2D.OverlapCircle((Vector2)position + grabRightOffset, grabCheckRadius, whatIsGround);
-			m_onLeftWall = Physics2D.OverlapCircle((Vector2)position + grabLeftOffset, grabCheckRadius, whatIsGround);
+        private void FixedUpdate()
+        {
+            // check if grounded
+            isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, whatIsGround);
+            var position = transform.position;
+            // check if on wall
+            m_onWall = Physics2D.OverlapCircle((Vector2)position + grabRightOffset, grabCheckRadius, whatIsGround)
+                      || Physics2D.OverlapCircle((Vector2)position + grabLeftOffset, grabCheckRadius, whatIsGround);
+            m_onRightWall = Physics2D.OverlapCircle((Vector2)position + grabRightOffset, grabCheckRadius, whatIsGround);
+            m_onLeftWall = Physics2D.OverlapCircle((Vector2)position + grabLeftOffset, grabCheckRadius, whatIsGround);
 
-			// calculate player and wall sides as integers
-			CalculateSides();
+            // calculate player and wall sides as integers
+            CalculateSides();
 
-			if((m_wallGrabbing || isGrounded) && m_wallJumping)
-			{
-				m_wallJumping = false;
-			}
-			// if this instance is currently playable
-			if (isCurrentlyPlayable)
-			{
-				// horizontal movement
-				if(m_wallJumping)
-				{
-					m_rb.velocity = Vector2.Lerp(m_rb.velocity, (new Vector2(moveInput * speed, m_rb.velocity.y)), 1.5f * Time.fixedDeltaTime);
-				}
-				else
-				{
-					if(canMove && !m_wallGrabbing)
-						m_rb.velocity = new Vector2(moveInput * speed, m_rb.velocity.y);
-					else if(!canMove)
-						m_rb.velocity = new Vector2(0f, m_rb.velocity.y);
-				}
-				// better jump physics
-				if (m_rb.velocity.y < 0f)
-				{
-					m_rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
-				}
-
-				// Flipping
-				if (canFlip)
-				{
-					if (!m_facingRight && moveInput > 0f)
-						Flip();
-					else if (m_facingRight && moveInput < 0f)
-						Flip();
-				}
-
-				// Dashing logic
-				if (canDash && isDashing)
-				{
-					if (m_dashTime <= 0f)
-					{
-						isDashing = false;
-						m_dashCooldown = dashCooldown;
-						m_dashTime = startDashTime;
-						m_rb.velocity = Vector2.zero;
-					}
-					else
-					{
-						m_dashTime -= Time.deltaTime;
-						if(m_facingRight)
-							m_rb.velocity = Vector2.right * dashSpeed;
-						else
-							m_rb.velocity = Vector2.left * dashSpeed;
-					}
-				}
-
-                // wall grab
-                bool shouldHoldWall = (m_onRightWall && moveInput > 0) || (m_onLeftWall && moveInput < 0);
-
-                if (m_onWall && !isGrounded && m_rb.velocity.y <= 0f && m_playerSide == m_onWallSide)
+            if ((m_wallGrabbing || isGrounded) && m_wallJumping)
+            {
+                m_wallJumping = false;
+            }
+            // if this instance is currently playable
+            if (isCurrentlyPlayable)
+            {
+                // Dashing logic (handle first to prevent movement interference)
+                if (canDash && isDashing)
                 {
-                    if (shouldHoldWall)
+                    if (m_dashTime <= 0f)
                     {
-                        // Reset coyote timer while holding input
-                        m_wallSlideCoyoteTimer = wallSlideCoyoteTime;
-                        actuallyWallGrabbing = true;
-                        m_wallGrabbing = true;
-                        m_rb.velocity = new Vector2(moveInput * speed, -slideSpeed);
-                        m_wallStick = m_wallStickTime;
-                    }
-                    else if (m_wallSlideCoyoteTimer > 0f)
-                    {
-                        // Still in coyote time - continue sliding
-                        m_wallSlideCoyoteTimer -= Time.fixedDeltaTime;
-                        actuallyWallGrabbing = true;
-                        m_wallGrabbing = true;
-                        m_rb.velocity = new Vector2(0f, -slideSpeed); // No horizontal movement during coyote time
+                        // Dash completed - apply post-dash momentum
+                        isDashing = false;
+                        m_dashCooldown = dashCooldown;
+                        m_dashTime = startDashTime;
+
+                        // Calculate post-dash momentum (Celeste-style)
+                        postDashMomentum = currentDashVelocity * postDashMomentumMultiplier;
+                        postDashMomentumTimer = postDashMomentumTime;
+
+                        // Don't set velocity to zero immediately - let momentum take over
                     }
                     else
                     {
-                        // Coyote time expired - start falling
-                        actuallyWallGrabbing = false;
-                        m_wallGrabbing = false;
+                        m_dashTime -= Time.deltaTime;
+                        DashDirection direction = GetDashDirection();
+
+                        // Calculate and apply dash velocity
+                        switch (direction)
+                        {
+                            case DashDirection.Up:
+                                currentDashVelocity = Vector2.up * upwardDashSpeed;
+                                break;
+                            case DashDirection.Down:
+                                currentDashVelocity = Vector2.down * downwardDashSpeed;
+                                break;
+                            case DashDirection.UpForward:
+                                currentDashVelocity = new Vector2(
+                                    (m_facingRight ? 1 : -1) * dashSpeed,
+                                    upwardDashSpeed
+                                ).normalized * dashSpeed * diagonalDashMultiplier;
+                                break;
+                            case DashDirection.DownForward:
+                                currentDashVelocity = new Vector2(
+                                    (m_facingRight ? 1 : -1) * dashSpeed,
+                                    -downwardDashSpeed
+                                ).normalized * dashSpeed * diagonalDashMultiplier;
+                                break;
+                            default: // Horizontal
+                                currentDashVelocity = (m_facingRight ? Vector2.right : Vector2.left) * dashSpeed;
+                                break;
+                        }
+
+                        m_rb.velocity = currentDashVelocity;
                     }
                 }
                 else
                 {
-                    m_wallStick -= Time.fixedDeltaTime;
-                    actuallyWallGrabbing = false;
-                    if (m_wallStick <= 0f)
+                    // Handle post-dash momentum
+                    if (postDashMomentumTimer > 0f)
+                    {
+                        postDashMomentumTimer -= Time.fixedDeltaTime;
+                        float momentumStrength = postDashMomentumTimer / postDashMomentumTime;
+
+                        // Apply momentum with decay
+                        Vector2 momentumVelocity = postDashMomentum * momentumStrength;
+
+                        // Only apply horizontal momentum if not wall jumping and can move
+                        if (canMove && !m_wallJumping && !m_wallGrabbing)
+                        {
+                            m_rb.velocity = new Vector2(
+                                momentumVelocity.x + (moveInput * speed * (1f - momentumStrength)),
+                                m_rb.velocity.y + momentumVelocity.y
+                            );
+                        }
+                        else if (!canMove)
+                        {
+                            m_rb.velocity = new Vector2(momentumVelocity.x, m_rb.velocity.y + momentumVelocity.y);
+                        }
+                    }
+                    else
+                    {
+                        // Normal movement (only when not dashing and no momentum)
+                        if (m_wallJumping)
+                        {
+                            m_rb.velocity = Vector2.Lerp(m_rb.velocity, (new Vector2(moveInput * speed, m_rb.velocity.y)), 1.5f * Time.fixedDeltaTime);
+                        }
+                        else
+                        {
+                            if (canMove && !m_wallGrabbing)
+                            {
+                                m_rb.velocity = new Vector2(moveInput * speed, m_rb.velocity.y);
+                                Debug.Log("walking " + speed);
+                            }
+                            else if (!canMove)
+                            {
+                                m_rb.velocity = new Vector2(0f, m_rb.velocity.y);
+                            }
+                        }
+                    }
+                }
+
+                // better jump physics (don't interfere with dashing)
+                if (m_rb.velocity.y < 0f && !isDashing)
+                {
+                    m_rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
+                }
+
+                // Flipping (only when not dashing)
+                if (canFlip && !isDashing)
+                {
+                    if (!m_facingRight && moveInput > 0f)
+                        Flip();
+                    else if (m_facingRight && moveInput < 0f)
+                        Flip();
+                }
+
+                // wall grab (only when not dashing)
+                if (!isDashing)
+                {
+                    bool shouldHoldWall = (m_onRightWall && moveInput > 0) || (m_onLeftWall && moveInput < 0);
+
+                    if (m_onWall && !isGrounded && m_rb.velocity.y <= 0f && m_playerSide == m_onWallSide)
+                    {
+                        if (shouldHoldWall)
+                        {
+                            // Reset coyote timer while holding input
+                            m_wallSlideCoyoteTimer = wallSlideCoyoteTime;
+                            actuallyWallGrabbing = true;
+                            m_wallGrabbing = true;
+                            m_rb.velocity = new Vector2(moveInput * speed, -slideSpeed);
+                            m_wallStick = m_wallStickTime;
+
+                            // Cancel post-dash momentum when wall grabbing
+                            postDashMomentumTimer = 0f;
+                        }
+                        else if (m_wallSlideCoyoteTimer > 0f)
+                        {
+                            // Still in coyote time - continue sliding
+                            m_wallSlideCoyoteTimer -= Time.fixedDeltaTime;
+                            actuallyWallGrabbing = true;
+                            m_wallGrabbing = true;
+                            m_rb.velocity = new Vector2(0f, -slideSpeed); // No horizontal movement during coyote time
+
+                            // Cancel post-dash momentum when wall grabbing
+                            postDashMomentumTimer = 0f;
+                        }
+                        else
+                        {
+                            // Coyote time expired - start falling
+                            actuallyWallGrabbing = false;
+                            m_wallGrabbing = false;
+                        }
+                    }
+                    else
+                    {
+                        m_wallStick -= Time.fixedDeltaTime;
+                        actuallyWallGrabbing = false;
+                        if (m_wallStick <= 0f)
+                            m_wallGrabbing = false;
+                    }
+                    // Reset coyote time when grabbing a new wall
+                    if ((m_onRightWall && moveInput > 0) || (m_onLeftWall && moveInput < 0))
+                    {
+                        m_wallSlideCoyoteTimer = wallSlideCoyoteTime;
+                    }
+                    if (m_wallGrabbing && isGrounded)
                         m_wallGrabbing = false;
                 }
-                // Reset coyote time when grabbing a new wall
-                if ((m_onRightWall && moveInput > 0) || (m_onLeftWall && moveInput < 0))
+
+                // enable/disable dust particles
+                float playerVelocityMag = m_rb.velocity.sqrMagnitude;
+                if (m_dustParticle.isPlaying && playerVelocityMag == 0f)
                 {
-                    m_wallSlideCoyoteTimer = wallSlideCoyoteTime;
+                    m_dustParticle.Stop();
                 }
-                if (m_wallGrabbing && isGrounded)
-					m_wallGrabbing = false;
+                else if (!m_dustParticle.isPlaying && playerVelocityMag > 0f)
+                {
+                    m_dustParticle.Play();
+                }
 
-				// enable/disable dust particles
-				float playerVelocityMag = m_rb.velocity.sqrMagnitude;
-				if(m_dustParticle.isPlaying && playerVelocityMag == 0f)
-				{
-					m_dustParticle.Stop();
-				}
-				else if(!m_dustParticle.isPlaying && playerVelocityMag > 0f)
-				{
-					m_dustParticle.Play();
-				}
+            }
+        }
 
-			}
-		}
-
-		private void Update()
-		{
+        private void Update()
+        {
             // horizontal input
             moveInput = moveAction.ReadValue<Vector2>().x;
 
             if (isGrounded)
-			{
-				m_extraJumps = extraJumpCount;
-			}
+            {
+                m_extraJumps = extraJumpCount;
+            }
+            Vector2 currentMoveInput = moveAction.ReadValue<Vector2>();
+            if (currentMoveInput != Vector2.zero)
+            {
+                lastMoveInput = currentMoveInput;
+            }
+            moveInput = currentMoveInput.x;
+            // grounded remember offset (for more responsive jump)
+            m_groundedRemember -= Time.deltaTime;
+            if (isGrounded)
+                m_groundedRemember = m_groundedRememberTime;
 
-			// grounded remember offset (for more responsive jump)
-			m_groundedRemember -= Time.deltaTime;
-			if (isGrounded)
-				m_groundedRemember = m_groundedRememberTime;
+            if (!isCurrentlyPlayable) return;
+            if (!isDashing && Time.time > lastDashTime + staminaRegenDelay)
+            {
+                currentStamina = Mathf.Min(maxStamina, currentStamina + staminaRegenRate * Time.deltaTime);
+                UpdateStaminaBar();
+            }
+            // if not currently dashing and hasn't already dashed in air once
+            if (canDash && !isDashing && !m_hasDashedInAir && m_dashCooldown <= 0f)
+            {
+                // dash input (left shift)
+                if (dashAction.triggered && currentStamina >= dashCost)
+                {
+                    currentStamina -= dashCost;
+                    lastDashTime = Time.time;
+                    UpdateStaminaBar();
 
-			if (!isCurrentlyPlayable) return;
-			// if not currently dashing and hasn't already dashed in air once
-			if (canDash && !isDashing && !m_hasDashedInAir && m_dashCooldown <= 0f)
-			{
-				// dash input (left shift)
-				if (dashAction.triggered)
-				{
-					isDashing = true;
-                    // dash effect
+                    isDashing = true;
+
+                    // Cancel any existing momentum when starting a new dash
+                    postDashMomentumTimer = 0f;
+
                     PoolManager.instance.ReuseObject(dashEffect, transform.position, Quaternion.identity);
-					cameraShake.ShakeCamera(shakeIntensity, shakeTime);
-					RumbleManager.instance.RumblePulse(0.01f, 0f, 0.05f);
-					// if player in air while dashing
-					if (!isGrounded)
-					{
-						m_hasDashedInAir = true;
-					}
-					// dash logic is in FixedUpdate
-				}
-			}
-			m_dashCooldown -= Time.deltaTime;
-			
-			// if has dashed in air once but now grounded
-			if (m_hasDashedInAir && isGrounded)
-				m_hasDashedInAir = false;
+                    cameraShake.ShakeCamera(shakeIntensity, shakeTime);
+                    RumbleManager.instance.RumblePulse(0.01f, 0f, 0.05f);
 
-			// Jumping
-			if (canJump)
-			{
-				if (jumpAction.triggered && m_extraJumps > 0 && !isGrounded && !m_wallGrabbing)
-				{
-					m_rb.velocity = new Vector2(m_rb.velocity.x, m_extraJumpForce); ;
-					m_extraJumps--;
-					// jumpEffect
-					PoolManager.instance.ReuseObject(jumpEffect, groundCheck.position, Quaternion.identity);
-				}
-				else if (jumpAction.triggered && (isGrounded || m_groundedRemember > 0f))   // normal single jumping
-				{
-					m_rb.velocity = new Vector2(m_rb.velocity.x, jumpForce);
-					// jumpEffect
-					PoolManager.instance.ReuseObject(jumpEffect, groundCheck.position, Quaternion.identity);
-				}
-				else if (jumpAction.triggered && m_wallGrabbing && moveInput != m_onWallSide)       // wall jumping off the wall
-				{
-					m_wallGrabbing = false;
-					m_wallJumping = true;
-					Debug.Log("Wall jumped");
-					if (m_playerSide == m_onWallSide)
-						Flip();
-					m_rb.AddForce(new Vector2(-m_onWallSide * wallJumpForce.x, wallJumpForce.y), ForceMode2D.Impulse);
-				}
-				else if (jumpAction.triggered && m_wallGrabbing && moveInput != 0 && (moveInput == m_onWallSide))      // wall climbing jump
-				{
-					m_wallGrabbing = false;
-					m_wallJumping = true;
-					Debug.Log("Wall climbed");
-					if (m_playerSide == m_onWallSide)
-						Flip();
-					m_rb.AddForce(new Vector2(-m_onWallSide * wallClimbForce.x, wallClimbForce.y), ForceMode2D.Impulse);
-				}
-			}
+                    if (!isGrounded)
+                    {
+                        m_hasDashedInAir = true;
+                    }
+                }
+            }
+            m_dashCooldown -= Time.deltaTime;
 
-		}
+            // if has dashed in air once but now grounded
+            if (m_hasDashedInAir && isGrounded)
+                m_hasDashedInAir = false;
 
-			void Flip()
+            // Jumping (only when not dashing)
+            if (canJump && !isDashing)
+            {
+                if (jumpAction.triggered && m_extraJumps > 0 && !isGrounded && !m_wallGrabbing)
+                {
+                    m_rb.velocity = new Vector2(m_rb.velocity.x, m_extraJumpForce); ;
+                    m_extraJumps--;
+                    // Cancel post-dash momentum when jumping
+                    postDashMomentumTimer = 0f;
+                    // jumpEffect
+                    PoolManager.instance.ReuseObject(jumpEffect, groundCheck.position, Quaternion.identity);
+                }
+                else if (jumpAction.triggered && (isGrounded || m_groundedRemember > 0f))   // normal single jumping
+                {
+                    m_rb.velocity = new Vector2(m_rb.velocity.x, jumpForce);
+                    // Cancel post-dash momentum when jumping
+                    postDashMomentumTimer = 0f;
+                    // jumpEffect
+                    PoolManager.instance.ReuseObject(jumpEffect, groundCheck.position, Quaternion.identity);
+                }
+                else if (jumpAction.triggered && m_wallGrabbing && moveInput != m_onWallSide)       // wall jumping off the wall
+                {
+                    m_wallGrabbing = false;
+                    m_wallJumping = true;
+                    // Cancel post-dash momentum when wall jumping
+                    postDashMomentumTimer = 0f;
+                    Debug.Log("Wall jumped");
+                    if (m_playerSide == m_onWallSide)
+                        Flip();
+                    m_rb.AddForce(new Vector2(-m_onWallSide * wallJumpForce.x, wallJumpForce.y), ForceMode2D.Impulse);
+                }
+                else if (jumpAction.triggered && m_wallGrabbing && moveInput != 0 && (moveInput == m_onWallSide))      // wall climbing jump
+                {
+                    m_wallGrabbing = false;
+                    m_wallJumping = true;
+                    // Cancel post-dash momentum when wall jumping
+                    postDashMomentumTimer = 0f;
+                    Debug.Log("Wall climbed");
+                    if (m_playerSide == m_onWallSide)
+                        Flip();
+                    m_rb.AddForce(new Vector2(-m_onWallSide * wallClimbForce.x, wallClimbForce.y), ForceMode2D.Impulse);
+                }
+            }
+
+        }
+        void Flip()
         {
             m_facingRight = !m_facingRight;
 
@@ -333,27 +472,27 @@ namespace SupanthaPaul
         }
 
         void CalculateSides()
-		{
-			if (m_onRightWall)
-				m_onWallSide = 1;
-			else if (m_onLeftWall)
-				m_onWallSide = -1;
-			else
-				m_onWallSide = 0;
+        {
+            if (m_onRightWall)
+                m_onWallSide = 1;
+            else if (m_onLeftWall)
+                m_onWallSide = -1;
+            else
+                m_onWallSide = 0;
 
-			if (m_facingRight)
-				m_playerSide = 1;
-			else
-				m_playerSide = -1;
-		}
+            if (m_facingRight)
+                m_playerSide = 1;
+            else
+                m_playerSide = -1;
+        }
 
-		private void OnDrawGizmosSelected()
-		{
-			Gizmos.color = Color.red;
-			Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
-			Gizmos.DrawWireSphere((Vector2)transform.position + grabRightOffset, grabCheckRadius);
-			Gizmos.DrawWireSphere((Vector2)transform.position + grabLeftOffset, grabCheckRadius);
-		}
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
+            Gizmos.DrawWireSphere((Vector2)transform.position + grabRightOffset, grabCheckRadius);
+            Gizmos.DrawWireSphere((Vector2)transform.position + grabLeftOffset, grabCheckRadius);
+        }
 
         /// <summary>
         /// Disables player movement while maintaining gravity and falling
@@ -374,6 +513,7 @@ namespace SupanthaPaul
                 isDashing = false;
                 m_dashTime = startDashTime;
             }
+            postDashMomentumTimer = 0f;
             m_wallGrabbing = false;
             actuallyWallGrabbing = false;
         }
@@ -397,6 +537,7 @@ namespace SupanthaPaul
             canMove = false;
             m_rb.velocity = Vector2.zero;
             isDashing = false;
+            postDashMomentumTimer = 0f;
             m_wallGrabbing = false;
             actuallyWallGrabbing = false;
         }
@@ -408,5 +549,30 @@ namespace SupanthaPaul
         {
             canMove = true;
         }
+        private void UpdateStaminaBar()
+        {
+            if (staminaBar != null)
+            {
+                float staminaPercentage = currentStamina / maxStamina;
+                staminaBar.sizeDelta = new Vector2(staminaBarFullWidth * staminaPercentage, staminaBar.sizeDelta.y);
+            }
+        }
+        private DashDirection GetDashDirection()
+        {
+            if (lastMoveInput.y > 0.5f)
+            {
+                if (Mathf.Abs(lastMoveInput.x) > 0.1f)
+                    return DashDirection.UpForward;
+                return DashDirection.Up;
+            }
+            else if (lastMoveInput.y < -0.5f)
+            {
+                if (Mathf.Abs(lastMoveInput.x) > 0.1f)
+                    return DashDirection.DownForward;
+                return DashDirection.Down;
+            }
+            return DashDirection.Horizontal;
+        }
+
     }
 }
