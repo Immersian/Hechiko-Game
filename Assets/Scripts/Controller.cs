@@ -125,8 +125,8 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": ""Keyboard Movement"",
-                    ""id"": ""e0b17623-4955-42e5-ae58-bfc8a381daf0"",
+                    ""name"": ""2D Vector"",
+                    ""id"": ""93d1d833-b4cc-4f22-87ea-11f16c950184"",
                     ""path"": ""2DVector"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -136,8 +136,30 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
+                    ""name"": ""up"",
+                    ""id"": ""decdbb65-a7f1-4828-a4a8-132cb06bf5b6"",
+                    ""path"": ""<Keyboard>/w"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""Move"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""ee31348f-5a3b-474c-bb62-9e0f0e8c61c3"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""Move"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
                     ""name"": ""left"",
-                    ""id"": ""d21e8333-8841-49bb-bb73-28edc78ad4a9"",
+                    ""id"": ""8a10698f-92a6-472d-8155-5ea172fe48e0"",
                     ""path"": ""<Keyboard>/a"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -148,7 +170,7 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""right"",
-                    ""id"": ""237cb231-deba-4935-991e-4b5c4847e5da"",
+                    ""id"": ""90c4649f-af03-46c4-aec7-5703e496d051"",
                     ""path"": ""<Keyboard>/d"",
                     ""interactions"": """",
                     ""processors"": """",
