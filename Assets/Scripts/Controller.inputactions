@@ -88,6 +88,33 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ShockwaveTest",
+                    "type": "Button",
+                    "id": "f635add5-150b-4e2d-983b-92d21b0e9e5f",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Attack",
+                    "type": "Button",
+                    "id": "4ad24dc9-0403-4714-b084-0c2cd105bf86",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Special",
+                    "type": "Button",
+                    "id": "ea6a6181-7159-42ae-89f5-4d8fe38c1ba7",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -182,7 +209,7 @@
                 {
                     "name": "",
                     "id": "e12f87aa-f946-48a1-8418-8fa67ac7e119",
-                    "path": "<DualSenseGamepadHID>/buttonEast",
+                    "path": "<DualSenseGamepadHID>/rightShoulder",
                     "interactions": "",
                     "processors": "",
                     "groups": "Gamepad",
@@ -248,7 +275,7 @@
                 {
                     "name": "",
                     "id": "e0881edb-fce5-4aa8-8745-20be0d97d064",
-                    "path": "<DualSenseGamepadHID>/buttonWest",
+                    "path": "<DualSenseGamepadHID>/rightTrigger",
                     "interactions": "",
                     "processors": "",
                     "groups": "Gamepad",
@@ -264,6 +291,72 @@
                     "processors": "",
                     "groups": "Keyboard",
                     "action": "Interact",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "49b2d103-1368-4f3e-9ba1-6c7d1004e321",
+                    "path": "<DualSenseGamepadHID>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "ShockwaveTest",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7a71997d-1476-4295-b09a-9246c7e7d881",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "ShockwaveTest",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "dfb202b2-2980-4216-a7cc-87f44f93ded2",
+                    "path": "<DualSenseGamepadHID>/buttonWest",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "Attack",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3fee17b5-2802-402c-bf07-c4a83981a1b2",
+                    "path": "<Keyboard>/j",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "Attack",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f1efdbaa-c36e-4641-8546-d1add16c406f",
+                    "path": "<Keyboard>/i",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "Special",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "93e1d042-3176-4f62-846a-e1011263e6dd",
+                    "path": "<DualSenseGamepadHID>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "Special",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -404,7 +497,7 @@
                 {
                     "name": "",
                     "id": "cdbf5b31-7933-4257-9b32-13238c0c1c9c",
-                    "path": "<DualSenseGamepadHID>/leftStick",
+                    "path": "<Gamepad>/leftStick",
                     "interactions": "",
                     "processors": "",
                     "groups": "Gamepad",
@@ -415,7 +508,7 @@
                 {
                     "name": "",
                     "id": "5f6c69fb-df47-4f3d-9b83-68a6f7ca7166",
-                    "path": "<DualSenseGamepadHID>/dpad",
+                    "path": "<Gamepad>/dpad",
                     "interactions": "",
                     "processors": "",
                     "groups": "Gamepad",

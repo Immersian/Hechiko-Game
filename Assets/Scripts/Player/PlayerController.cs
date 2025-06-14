@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
+using System.Collections.Generic;
+using System.Net.NetworkInformation;
 
 namespace SupanthaPaul
 {
@@ -10,7 +13,7 @@ namespace SupanthaPaul
         [Header("Jumping")]
         [SerializeField] private float jumpForce;
         [SerializeField] private float fallMultiplier;
-        [SerializeField] private Transform groundCheck;
+        [SerializeField] public Transform groundCheck;
         [SerializeField] private float groundCheckRadius;
         [SerializeField] private LayerMask whatIsGround;
         [SerializeField] private int extraJumpCount = 1;
@@ -58,10 +61,20 @@ namespace SupanthaPaul
         public Vector2 wallClimbForce = new Vector2(4f, 14f);
         [SerializeField] private float wallSlideCoyoteTime = 0.1f;
 
+        [Header("Knockback Settings")]
+        [SerializeField] private float knockbackDuration = 0.2f;
+        [SerializeField] private float knockbackMovementLockDuration = 0.3f;
+        private bool isKnockback = false;
+        private float knockbackTimer = 0f;
+
         [Header("Camera Shake")]
-        [SerializeField] private CameraShake cameraShake;
-        [SerializeField] private float shakeIntensity = 5;
-        [SerializeField] private float shakeTime = 0.1f;
+        [SerializeField] public CameraShake cameraShake;
+        [SerializeField] public float shakeIntensity = 5;
+        [SerializeField] public float shakeTime = 0.1f;
+
+        [Header("Ground Slam Detection")]
+        [SerializeField] private float groundSlamMinHeight = 3f; // Minimum height difference to consider ground slam
+        [SerializeField] public bool canGroundSlam;
 
         private Rigidbody2D m_rb;
         private ParticleSystem m_dustParticle;
@@ -74,7 +87,7 @@ namespace SupanthaPaul
         private bool m_onWall = false;
         private bool m_onRightWall = false;
         private bool m_onLeftWall = false;
-        private bool m_wallGrabbing = false;
+        public bool m_wallGrabbing = false;
         private float m_wallStickTime = 0.25f;
         private float m_wallStick = 0f;
         private bool m_wallJumping = false;
@@ -199,7 +212,19 @@ namespace SupanthaPaul
             m_onLeftWall = Physics2D.OverlapCircle((Vector2)position + grabLeftOffset, grabCheckRadius, whatIsGround);
 
             CalculateSides();
+            CheckGroundSlam();
+            if (isKnockback)
+            {
+                knockbackTimer -= Time.fixedDeltaTime;
+                if (knockbackTimer <= 0)
+                {
+                    isKnockback = false;
+                    // Movement will be re-enabled by the coroutine
+                }
+            }
 
+            // Skip normal movement if in knockback
+            if (isKnockback) return;
             if ((m_wallGrabbing || isGrounded) && m_wallJumping)
             {
                 m_wallJumping = false;
@@ -432,6 +457,75 @@ namespace SupanthaPaul
             if (m_wallGrabbing && isGrounded)
                 m_wallGrabbing = false;
         }
+        private void CheckGroundSlam()
+        {
+            if (!isGrounded)
+            {
+                // Use RaycastHit2D with Mathf.Infinity as the distance
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, Mathf.Infinity, whatIsGround);
+
+                if (hit.collider != null)
+                {
+                    float heightAboveGround = transform.position.y - hit.point.y;
+
+                    if (heightAboveGround >= groundSlamMinHeight)
+                    {
+                        canGroundSlam = true;
+                    }
+                    else
+                    {
+                        canGroundSlam = false;
+                    }
+                }
+                else
+                {
+                    // No ground detected below at all
+                    canGroundSlam = false;
+                }
+            }
+            else
+            {
+                // Player is grounded, can't ground slam
+                canGroundSlam = false;
+            }
+        }
+
+
+        // Add this method to handle knockback
+        public void ApplyKnockback(Vector2 knockbackForce)
+        {
+            // Don't allow knockback during dash
+            if (isDashing) return;
+
+            // Reset velocity and apply force
+            m_rb.velocity = Vector2.zero;
+            m_rb.AddForce(knockbackForce, ForceMode2D.Impulse);
+
+            // Set knockback state
+            isKnockback = true;
+            knockbackTimer = knockbackDuration;
+
+            // Temporarily disable movement
+            canMove = false;
+            canDash = false;
+            canJump = false;
+
+            // Start coroutine to re-enable movement
+            StartCoroutine(EndKnockbackAfterTime(knockbackMovementLockDuration));
+        }
+
+        private IEnumerator EndKnockbackAfterTime(float time)
+        {
+            yield return new WaitForSeconds(time);
+
+            // Only re-enable if we're not still in knockback
+            if (knockbackTimer <= 0)
+            {
+                canMove = true;
+                canDash = true;
+                canJump = true;
+            }
+        }
 
         void Flip()
         {
@@ -496,10 +590,44 @@ namespace SupanthaPaul
 
         private void OnDrawGizmosSelected()
         {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
-            Gizmos.DrawWireSphere((Vector2)transform.position + grabRightOffset, grabCheckRadius);
-            Gizmos.DrawWireSphere((Vector2)transform.position + grabLeftOffset, grabCheckRadius);
+            if (groundCheck != null)
+            {
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
+            }
+
+            if (grabRightOffset != null && grabLeftOffset != null)
+            {
+                Gizmos.DrawWireSphere((Vector2)transform.position + grabRightOffset, grabCheckRadius);
+                Gizmos.DrawWireSphere((Vector2)transform.position + grabLeftOffset, grabCheckRadius);
+            }
+
+            Gizmos.color = Color.yellow;
+            Vector3 rayStart = transform.position;
+            Vector3 rayEnd = rayStart + Vector3.down * 1000f; // Just draw a very long line for visualization
+            Gizmos.DrawLine(rayStart, rayEnd);
+
+            // Draw a small marker at the minimum height threshold
+            if (groundSlamMinHeight > 0)
+            {
+                Gizmos.color = Color.cyan;
+                float minHeightY = transform.position.y - groundSlamMinHeight;
+                Vector3 minHeightStart = new Vector3(transform.position.x - 0.5f, minHeightY, 0);
+                Vector3 minHeightEnd = new Vector3(transform.position.x + 0.5f, minHeightY, 0);
+                Gizmos.DrawLine(minHeightStart, minHeightEnd);
+            }
+
+            // Draw actual hit point if in play mode
+            if (Application.isPlaying && !isGrounded)
+            {
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, Mathf.Infinity, whatIsGround);
+                if (hit.collider != null)
+                {
+                    Gizmos.color = Color.red;
+                    Gizmos.DrawSphere(hit.point, 0.1f);
+                    Gizmos.DrawLine(transform.position, hit.point);
+                }
+            }
         }
     }
 }

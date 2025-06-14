@@ -15,43 +15,26 @@ public class DialogueTrigger : MonoBehaviour
     [SerializeField] private TextAsset inkJSON;
 
     private bool playerInRange;
-    private PlayerInput playerInput;
-    private string currentControlScheme;
+    private bool isGamepad;
+    private float lastInputTime;
+    private const float inputTimeout = 1f; // Time before considering input inactive
 
     private void Awake()
     {
         playerInRange = false;
-        playerInput = FindObjectOfType<PlayerInput>();
-        if (playerInput != null)
-        {
-            currentControlScheme = playerInput.currentControlScheme;
-        }
-    }
-
-    private void OnEnable()
-    {
-        if (playerInput != null)
-        {
-            playerInput.onControlsChanged += OnControlsChanged;
-        }
-    }
-
-    private void OnDisable()
-    {
-        if (playerInput != null)
-        {
-            playerInput.onControlsChanged -= OnControlsChanged;
-        }
+        // Start with keyboard by default
+        isGamepad = false;
+        lastInputTime = Time.time;
     }
 
     private void Update()
     {
         if (playerInRange && !DialogueManager.GetInstance().dialogueIsPlaying)
         {
+            CheckCurrentControlScheme();
             UpdateVisualCues();
 
-            if (!DialogueManager.GetInstance().dialogueIsPlaying &&
-                InputManager.instance.inputControl.Gameplay.Interact.WasPressedThisFrame())
+            if (InputManager.instance.inputControl.Gameplay.Interact.WasPressedThisFrame())
             {
                 DialogueManager.GetInstance().EnterDialogueMode(inkJSON, gameObject.name);
             }
@@ -63,18 +46,40 @@ public class DialogueTrigger : MonoBehaviour
         }
     }
 
-    private void OnControlsChanged(PlayerInput input)
+    private void CheckCurrentControlScheme()
     {
-        currentControlScheme = input.currentControlScheme;
-        UpdateVisualCues();
+        // Check for gamepad input
+        bool gamepadActive = Gamepad.current != null &&
+                           (Gamepad.current.leftStick.ReadValue().magnitude > 0.1f ||
+                            Gamepad.current.buttonSouth.wasPressedThisFrame ||
+                            Gamepad.current.rightStick.ReadValue().magnitude > 0.1f);
+
+        // Check for keyboard input
+        bool keyboardActive = Keyboard.current != null &&
+                             (Keyboard.current.anyKey.wasPressedThisFrame ||
+                              Mouse.current.leftButton.wasPressedThisFrame ||
+                              Mouse.current.rightButton.wasPressedThisFrame);
+
+        // Update control scheme state
+        if (gamepadActive)
+        {
+            isGamepad = true;
+            lastInputTime = Time.time;
+        }
+        else if (keyboardActive)
+        {
+            isGamepad = false;
+            lastInputTime = Time.time;
+        }
+        // Optional: Timeout after inactivity (uncomment if needed)
+        // else if (Time.time - lastInputTime > inputTimeout)
+        // {
+        //     // Could revert to default here if desired
+        // }
     }
 
     private void UpdateVisualCues()
     {
-        if (playerInput == null) return;
-
-        bool isGamepad = currentControlScheme == "Gamepad";
-
         if (keyboardCue != null)
         {
             keyboardCue.SetActive(!isGamepad);
@@ -93,6 +98,7 @@ public class DialogueTrigger : MonoBehaviour
         if (collider.gameObject.CompareTag("Player"))
         {
             playerInRange = true;
+            CheckCurrentControlScheme();
             UpdateVisualCues();
         }
     }

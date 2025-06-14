@@ -8,6 +8,7 @@ TagManager:
   - Playstation
   - Keyboard
   - MovingPlatform
+  - Player Attack
   layers:
   - Default
   - TransparentFX
@@ -22,8 +23,8 @@ TagManager:
   - Player
   - InspectObject
   - PostProcessing
-  - 
-  - 
+  - Enemy
+  - Detection
   - 
   - 
   - 
@@ -47,4 +48,7 @@ TagManager:
     locked: 0
   - name: New Layer
     uniqueID: 1802038029
+    locked: 0
+  - name: CameraSortingLayer
+    uniqueID: 3370382437
     locked: 0

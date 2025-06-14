@@ -7,16 +7,35 @@ public class RumbleManager : MonoBehaviour
     public static RumbleManager instance;
     private Gamepad pad;
     private Coroutine stopRumbleAfterTimeCoroutine;
+
     private void Awake()
     {
         if (instance == null)
         {
             instance = this;
+            DontDestroyOnLoad(gameObject); // Optional: Keep between scenes
+        }
+        else
+        {
+            Destroy(gameObject);
         }
     }
 
     private void Start()
     {
+        // Wait until InputManager is ready
+        StartCoroutine(InitializeAfterInputManager());
+    }
+
+    private IEnumerator InitializeAfterInputManager()
+    {
+        // Wait until InputManager exists and is initialized
+        while (InputManager.instance == null || InputManager.instance.playerInput == null)
+        {
+            yield return null;
+        }
+
+        // Now safe to setup events
         InputManager.instance.playerInput.onControlsChanged += SwitchControls;
     }
 
@@ -26,31 +45,55 @@ public class RumbleManager : MonoBehaviour
 
         if (pad != null)
         {
-            pad.SetMotorSpeeds(lowFrequency, highFrequency);
+            // Stop any existing rumble
+            if (stopRumbleAfterTimeCoroutine != null)
+            {
+                StopCoroutine(stopRumbleAfterTimeCoroutine);
+            }
 
+            pad.SetMotorSpeeds(lowFrequency, highFrequency);
             stopRumbleAfterTimeCoroutine = StartCoroutine(StopRumble(duration, pad));
         }
     }
+
     private IEnumerator StopRumble(float duration, Gamepad pad)
     {
-        float elapsedTime = 0f;
-        while(elapsedTime < duration)
-        {
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
+        yield return new WaitForSeconds(duration);
         pad.SetMotorSpeeds(0f, 0f);
-
     }
 
     private void SwitchControls(PlayerInput input)
     {
-        Debug.Log("device is now: " + input.currentControlScheme);
+        Debug.Log("Device is now: " + input.currentControlScheme);
+        // Reset rumble when controls change
+        if (pad != null)
+        {
+            pad.SetMotorSpeeds(0f, 0f);
+        }
     }
 
     private void OnDisable()
     {
-        InputManager.instance.playerInput.onControlsChanged -= SwitchControls;
+        // Safely unsubscribe
+        if (InputManager.instance != null &&
+            InputManager.instance.playerInput != null)
+        {
+            InputManager.instance.playerInput.onControlsChanged -= SwitchControls;
+        }
+
+        // Ensure rumble stops when disabled
+        if (pad != null)
+        {
+            pad.SetMotorSpeeds(0f, 0f);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Extra safety for scene changes
+        if (pad != null)
+        {
+            pad.SetMotorSpeeds(0f, 0f);
+        }
     }
 }
