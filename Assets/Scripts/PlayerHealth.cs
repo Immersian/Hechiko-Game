@@ -8,6 +8,7 @@ public class PlayerHealth : MonoBehaviour
     public int maxHealth = 100;
     public int currentHealth;
     public bool isDead = false;
+    public bool isInvulnerable;
 
     [Header("Health Bar Settings")]
     public RectTransform healthBar;
@@ -52,6 +53,7 @@ public class PlayerHealth : MonoBehaviour
     public void TakeDamage(int damageAmount)
     {
         if (isDead) return;
+        if (isInvulnerable) return;
 
         currentHealth -= damageAmount;
         currentHealth = Mathf.Max(0, currentHealth);

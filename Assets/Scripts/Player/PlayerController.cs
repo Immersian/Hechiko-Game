@@ -79,6 +79,7 @@ namespace SupanthaPaul
         private Rigidbody2D m_rb;
         private ParticleSystem m_dustParticle;
         public bool m_facingRight = true;
+        public bool m_facingLeft = false;
         private float m_groundedRememberTime = 0.02f;
         private float m_groundedRemember = 0f;
         private int m_extraJumps;
@@ -135,6 +136,7 @@ namespace SupanthaPaul
                 UpdateStaminaBar();
             }
 
+            m_facingLeft = !m_facingRight;
             m_extraJumps = extraJumpCount;
             m_extraJumpForce = jumpForce * 0.7f;
             m_rb = GetComponent<Rigidbody2D>();
@@ -530,6 +532,7 @@ namespace SupanthaPaul
         void Flip()
         {
             m_facingRight = !m_facingRight;
+            m_facingLeft = !m_facingRight; // New line - keeps them in sync
             Vector3 newScale = transform.localScale;
             newScale.x *= -1;
             transform.localScale = newScale;

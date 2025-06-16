@@ -137,6 +137,15 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Parry"",
+                    ""type"": ""Button"",
+                    ""id"": ""5eda3e1e-3ac0-4f04-a4cb-c98c5596df7f"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -381,6 +390,28 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                     ""action"": ""Special"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b01a45e2-223e-40be-a7f3-ef63128faf0f"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""Parry"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2d2c92d7-e5bc-409d-8dbe-033f30f6dbe4"",
+                    ""path"": ""<DualSenseGamepadHID>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Parry"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -519,7 +550,7 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""cdbf5b31-7933-4257-9b32-13238c0c1c9c"",
-                    ""path"": ""<Gamepad>/leftStick"",
+                    ""path"": ""<DualSenseGamepadHID>/leftStick"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
@@ -530,7 +561,7 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""5f6c69fb-df47-4f3d-9b83-68a6f7ca7166"",
-                    ""path"": ""<Gamepad>/dpad"",
+                    ""path"": ""<DualSenseGamepadHID>/dpad"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
@@ -704,6 +735,7 @@ public partial class @Controller: IInputActionCollection2, IDisposable
         m_Gameplay_ShockwaveTest = m_Gameplay.FindAction("ShockwaveTest", throwIfNotFound: true);
         m_Gameplay_Attack = m_Gameplay.FindAction("Attack", throwIfNotFound: true);
         m_Gameplay_Special = m_Gameplay.FindAction("Special", throwIfNotFound: true);
+        m_Gameplay_Parry = m_Gameplay.FindAction("Parry", throwIfNotFound: true);
         // Dialogue
         m_Dialogue = asset.FindActionMap("Dialogue", throwIfNotFound: true);
         m_Dialogue_Interact = m_Dialogue.FindAction("Interact", throwIfNotFound: true);
@@ -828,6 +860,7 @@ public partial class @Controller: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_ShockwaveTest;
     private readonly InputAction m_Gameplay_Attack;
     private readonly InputAction m_Gameplay_Special;
+    private readonly InputAction m_Gameplay_Parry;
     public struct GameplayActions
     {
         private @Controller m_Wrapper;
@@ -840,6 +873,7 @@ public partial class @Controller: IInputActionCollection2, IDisposable
         public InputAction @ShockwaveTest => m_Wrapper.m_Gameplay_ShockwaveTest;
         public InputAction @Attack => m_Wrapper.m_Gameplay_Attack;
         public InputAction @Special => m_Wrapper.m_Gameplay_Special;
+        public InputAction @Parry => m_Wrapper.m_Gameplay_Parry;
         public InputActionMap Get() { return m_Wrapper.m_Gameplay; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -873,6 +907,9 @@ public partial class @Controller: IInputActionCollection2, IDisposable
             @Special.started += instance.OnSpecial;
             @Special.performed += instance.OnSpecial;
             @Special.canceled += instance.OnSpecial;
+            @Parry.started += instance.OnParry;
+            @Parry.performed += instance.OnParry;
+            @Parry.canceled += instance.OnParry;
         }
 
         private void UnregisterCallbacks(IGameplayActions instance)
@@ -901,6 +938,9 @@ public partial class @Controller: IInputActionCollection2, IDisposable
             @Special.started -= instance.OnSpecial;
             @Special.performed -= instance.OnSpecial;
             @Special.canceled -= instance.OnSpecial;
+            @Parry.started -= instance.OnParry;
+            @Parry.performed -= instance.OnParry;
+            @Parry.canceled -= instance.OnParry;
         }
 
         public void RemoveCallbacks(IGameplayActions instance)
@@ -1066,6 +1106,7 @@ public partial class @Controller: IInputActionCollection2, IDisposable
         void OnShockwaveTest(InputAction.CallbackContext context);
         void OnAttack(InputAction.CallbackContext context);
         void OnSpecial(InputAction.CallbackContext context);
+        void OnParry(InputAction.CallbackContext context);
     }
     public interface IDialogueActions
     {

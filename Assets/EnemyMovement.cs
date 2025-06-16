@@ -36,6 +36,12 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     // Animation parameter
     private const string IS_ATTACKING = "isAttacking";
 
+    [Header("Facing Direction")]
+    [SerializeField] private bool facingRight = true;  // Serialized field for Inspector
+
+    // Public properties for easy access
+    public bool EnemyFacingRight => facingRight;
+    public bool EnemyFacingLeft => !facingRight;
 
     private bool isDetectingPlayer = false;
     private float currentDetectionTime;
@@ -46,7 +52,6 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     private bool isChasing = false;
     private Transform player;
     private Rigidbody2D rb;
-    private bool facingRight = true;
     private float waitTimer;
     private bool isWaiting = false;
     private Animator animator;
@@ -63,7 +68,6 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
 
-        // Try to auto-find detection zone if not assigned
         if (detectionZone == null)
         {
             detectionZone = GetComponentInChildren<EnemyDetectionZone>();
@@ -79,7 +83,6 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
     void FindPlayer()
     {
-        // First try to find by layer
         var playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -97,17 +100,14 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         {
             playerInSight = PlayerInSight();
 
-            // Check if the attack animation is still playing
             AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-            bool isInAttackAnimation = stateInfo.IsTag("Attack"); // Ensure your attack animation has the "Attack" tag
+            bool isInAttackAnimation = stateInfo.IsTag("Attack");
 
-            // If the attack animation ended, reset isAttacking
             if (isAttacking && !isInAttackAnimation)
             {
                 isAttacking = false;
             }
 
-            // Check for attack conditions (only if not already attacking)
             if (!isAttacking && CanAttackPlayer())
             {
                 StartAttack();
@@ -143,6 +143,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     {
         return PlayerInSight();
     }
+
     void StartDetection()
     {
         isDetectingPlayer = true;

@@ -115,6 +115,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Parry",
+                    "type": "Button",
+                    "id": "5eda3e1e-3ac0-4f04-a4cb-c98c5596df7f",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -359,6 +368,28 @@
                     "action": "Special",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b01a45e2-223e-40be-a7f3-ef63128faf0f",
+                    "path": "<Keyboard>/leftShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "Parry",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2d2c92d7-e5bc-409d-8dbe-033f30f6dbe4",
+                    "path": "<DualSenseGamepadHID>/leftShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "Parry",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -497,7 +528,7 @@
                 {
                     "name": "",
                     "id": "cdbf5b31-7933-4257-9b32-13238c0c1c9c",
-                    "path": "<Gamepad>/leftStick",
+                    "path": "<DualSenseGamepadHID>/leftStick",
                     "interactions": "",
                     "processors": "",
                     "groups": "Gamepad",
@@ -508,7 +539,7 @@
                 {
                     "name": "",
                     "id": "5f6c69fb-df47-4f3d-9b83-68a6f7ca7166",
-                    "path": "<Gamepad>/dpad",
+                    "path": "<DualSenseGamepadHID>/dpad",
                     "interactions": "",
                     "processors": "",
                     "groups": "Gamepad",

@@ -1,4 +1,4 @@
-using SupanthaPaul;
+﻿using SupanthaPaul;
 using UnityEngine;
 
 public class DamageObject : MonoBehaviour
@@ -17,6 +17,9 @@ public class DamageObject : MonoBehaviour
     [Header("Visual Effects")]
     [SerializeField] private GameObject hitEffect;
     [SerializeField] private float effectDestroyTime = 1f;
+
+    [Header("Parry Settings")]
+    [SerializeField] private bool isObjectParryable;
 
     private float nextDamageTime;
 
@@ -41,14 +44,37 @@ public class DamageObject : MonoBehaviour
     {
         PlayerController playerController = playerCollider.GetComponent<PlayerController>();
         PlayerAttack playerAttack = playerCollider.GetComponentInChildren<PlayerAttack>();
-
-        // Check if player is invulnerable (either dashing or ground slamming)
-        bool isInvulnerable = (playerController != null && playerController.isDashing) ||
-                             (playerAttack != null && playerAttack.isGroundSlamming);
-
-        if (isInvulnerable) return;
-
         PlayerHealth playerHealth = playerCollider.GetComponent<PlayerHealth>();
+        ParryScript playerParry = playerCollider.GetComponentInChildren<ParryScript>();
+
+        // 1. First check if the player is parrying (if object is parryable)
+        if (isObjectParryable && playerParry != null)
+        {
+            EnemyMovement enemyMovement = GetComponentInParent<EnemyMovement>();
+            if (enemyMovement != null)
+            {
+                bool parryRightSuccess = playerParry.IsParryingRight && enemyMovement.EnemyFacingLeft;
+                bool parryLeftSuccess = playerParry.IsParryingLeft && enemyMovement.EnemyFacingRight;
+
+                Debug.Log($"Parry Check - Right: {parryRightSuccess}, Left: {parryLeftSuccess}");
+
+                if (parryRightSuccess || parryLeftSuccess)
+                {
+                    Debug.Log("Parry successful! No damage taken.");
+                    return; 
+                }
+            }
+        }
+
+        // 2. Then check other invulnerability states
+        if ((playerController != null && playerController.isDashing) ||
+            (playerAttack != null && playerAttack.isGroundSlamming)) 
+        {
+            Debug.Log("Player is invulnerable (dashing/ground slamming).");
+            return;
+        }
+
+        // 3. If no parry/invulnerability, apply damage
         if (playerHealth != null)
         {
             playerHealth.TakeDamage(damageAmount);
