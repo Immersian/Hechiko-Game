@@ -60,7 +60,7 @@ public class DamageObject : MonoBehaviour
 
                 if (parryRightSuccess || parryLeftSuccess)
                 {
-                    Debug.Log("Parry successful! No damage taken.");
+                    Debug.Log("Parry successful");
                     return; 
                 }
             }
