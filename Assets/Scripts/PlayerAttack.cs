@@ -19,11 +19,13 @@ public class PlayerAttack : MonoBehaviour
     [Header("Upward Launch Attack")]
     [SerializeField] private float upwardLaunchForce = 25f;
     [SerializeField] private float launchDelay = 0.1f;
-    [SerializeField] private float upwardAttackCooldown = 1f;
+    [SerializeField] private float upwardAttackStaminaCost = 30f; // Added stamina cost
     [SerializeField] private AudioClip upwardLaunchSound;
     [SerializeField] private GameObject upwardLaunchEffect;
-    private float lastUpwardAttackTime;
+    // In PlayerAttack.cs, add this variable:
+    public bool isInUpwardAttackRecovery = false;
     private bool isLaunching = false;
+    private float lastUpwardAttackTime;
 
     [Header("Attack Cooldowns")]
     public float[] attackCooldowns = new float[3] { 0.25f, 0.3f, 0.4f };
@@ -37,6 +39,12 @@ public class PlayerAttack : MonoBehaviour
     [Header("References")]
     [SerializeField] private PlayerController playerController;
     [SerializeField] private Rigidbody2D playerRigidbody;
+
+    [Header("Shockwave Settings")]
+    [SerializeField] private ShockWaveManager shockWaveManager;
+
+    [Header("Attack Hitbox")]
+    [SerializeField] private Collider2D attackHitbox;
 
     // Component references
     private Animator animator;
@@ -59,6 +67,16 @@ public class PlayerAttack : MonoBehaviour
         currentAttack = 0;
         timeSinceAttack = attackCooldowns[0];
 
+        // Try to find shockwave manager if not set
+        if (shockWaveManager == null)
+        {
+            shockWaveManager = FindObjectOfType<ShockWaveManager>();
+            if (shockWaveManager == null)
+            {
+                Debug.LogWarning("ShockWaveManager not found in scene!");
+            }
+        }
+
         // Safety checks
         if (playerController == null)
         {
@@ -67,6 +85,14 @@ public class PlayerAttack : MonoBehaviour
         if (playerRigidbody == null)
         {
             Debug.LogError("Player Rigidbody2D reference not set in PlayerCombat!");
+        }
+        if (attackHitbox != null)
+        {
+            attackHitbox.enabled = false;
+        }
+        else
+        {
+            Debug.LogWarning("Attack hitbox reference not set in PlayerAttack!");
         }
     }
 
@@ -86,9 +112,9 @@ public class PlayerAttack : MonoBehaviour
             }
         }
         if (InputManager.instance.inputControl.Gameplay.Special.WasPressedThisFrame()
-            && Time.time > lastUpwardAttackTime + upwardAttackCooldown
             && !isGroundSlamming
-            && !isInGroundSlamImpact)
+            && !isInGroundSlamImpact
+            && playerController.isGrounded) // Added grounded check
         {
             StartCoroutine(PerformUpwardLaunch());
         }
@@ -198,15 +224,23 @@ public class PlayerAttack : MonoBehaviour
     }
     private IEnumerator PerformUpwardLaunch()
     {
+        // Only allow when grounded and has enough stamina
+        if (!playerController.isGrounded || playerController.currentStamina < upwardAttackStaminaCost)
+            yield break;
+
         // Start the attack
         isLaunching = true;
-        lastUpwardAttackTime = Time.time;
+        isInUpwardAttackRecovery = true; // New state
+
+        // Consume stamina
+        playerController.currentStamina -= upwardAttackStaminaCost;
+        playerController.UpdateStaminaBar();
 
         // Disable movement during wind-up
         playerController.canMove = false;
         playerController.canDash = false;
 
-        // Trigger animation (you'll need to create this)
+        // Trigger animation
         animator.SetTrigger("UpwardLaunch");
 
         // Play sound if available
@@ -237,9 +271,17 @@ public class PlayerAttack : MonoBehaviour
         // Re-enable movement after a short delay
         yield return new WaitForSeconds(0.1f);
         playerController.canMove = true;
-        playerController.canDash = true;
         isLaunching = false;
+
+        // Clear recovery state when landing
+        while (!playerController.isGrounded)
+        {
+            yield return null;
+        }
+        isInUpwardAttackRecovery = false;
+        playerController.canDash = true; // Re-enable dash only after landing
     }
+
     private bool CanAttack()
     {
         // Reset combo if too much time passed
@@ -276,18 +318,60 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
+    public void TriggerShockwave()
+    {
+        shockWaveManager.CallShockwave(true);
+    }
+
     // Animation Event - Called at the start of attack animations
     public void OnAttackStart()
     {
         playerController.canMove = false;
         playerController.canDash = false;
+        if (attackHitbox != null)
+        {
+            attackHitbox.enabled = true;
+        }
     }
 
-    // Animation Event - Called at the end of attack animations
     public void OnAttackEnd()
     {
         playerController.canMove = true;
         playerController.canDash = true;
+
+        // Disable hitbox when attack ends
+        if (attackHitbox != null)
+        {
+            attackHitbox.enabled = false;
+        }
+    }
+
+    // In PlayerAttack.cs
+    public void OnDashStart()
+    {
+        if (attackHitbox != null)
+        {
+            attackHitbox.enabled = true;
+            Debug.Log("Dash hitbox enabled"); // For debugging
+        }
+    }
+
+    public void OnDashEnd()
+    {
+        if (attackHitbox != null)
+        {
+            attackHitbox.enabled = false;
+            Debug.Log("Dash hitbox disabled"); // For debugging
+        }
+    }
+
+    // Add this for safety in case attack is interrupted
+    public void OnDisable()
+    {
+        if (attackHitbox != null)
+        {
+            attackHitbox.enabled = false;
+        }
     }
 
     private void OnDrawGizmosSelected()

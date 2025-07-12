@@ -39,8 +39,11 @@ namespace SupanthaPaul
         private float lastDashTime;
 
         [Header("Stamina Bar UI")]
-        public RectTransform staminaBar;
+        public RectTransform staminaBar1; // Primary stamina bar
         private float staminaBarFullWidth;
+
+        [Header("Attack References")]
+        [SerializeField] private PlayerAttack playerAttack;
 
         [HideInInspector] public bool isGrounded;
         [HideInInspector] public float moveInput;
@@ -61,6 +64,11 @@ namespace SupanthaPaul
         public Vector2 wallClimbForce = new Vector2(4f, 14f);
         [SerializeField] private float wallSlideCoyoteTime = 0.1f;
 
+        [Header("Wall Jump Settings")]
+        [SerializeField] private float wallJumpHorizontalForce = 15f; // Separate horizontal force control
+        [SerializeField] private float wallJumpVerticalForce = 18f; // Separate vertical force control
+        [SerializeField] private float wallStickCancelForce = 5f;
+
         [Header("Knockback Settings")]
         [SerializeField] private float knockbackDuration = 0.2f;
         [SerializeField] private float knockbackMovementLockDuration = 0.3f;
@@ -75,6 +83,13 @@ namespace SupanthaPaul
         [Header("Ground Slam Detection")]
         [SerializeField] private float groundSlamMinHeight = 3f; // Minimum height difference to consider ground slam
         [SerializeField] public bool canGroundSlam;
+
+        [Header("Enemy Zone Visualization")]
+        [SerializeField] private bool showEnemyZones = false;
+        [SerializeField] private float gizmoInnerRadius = 3f;
+        [SerializeField] private float gizmoOuterRadius = 7f;
+        [SerializeField] private Color gizmoInnerColor = new Color(1f, 0f, 0f, 0.3f); // Red with transparency
+        [SerializeField] private Color gizmoOuterColor = new Color(1f, 1f, 0f, 0.2f); // Yellow with transparency
 
         private Rigidbody2D m_rb;
         private ParticleSystem m_dustParticle;
@@ -130,12 +145,12 @@ namespace SupanthaPaul
                 isCurrentlyPlayable = true;
 
             currentStamina = maxStamina;
-            if (staminaBar != null)
+            currentStamina = maxStamina;
+            if (staminaBar1 != null)
             {
-                staminaBarFullWidth = staminaBar.sizeDelta.x;
+                staminaBarFullWidth = staminaBar1.sizeDelta.x;
                 UpdateStaminaBar();
             }
-
             m_facingLeft = !m_facingRight;
             m_extraJumps = extraJumpCount;
             m_extraJumpForce = jumpForce * 0.7f;
@@ -248,6 +263,10 @@ namespace SupanthaPaul
                     isDashing = false;
                     m_dashEndVelocity = m_dashDirection * dashSpeed * dashEndSpeedMultiplier;
                     m_rb.velocity = m_dashEndVelocity;
+                    if (playerAttack != null)
+                    {
+                        playerAttack.OnDashEnd();
+                    }
                 }
             }
             else
@@ -307,11 +326,15 @@ namespace SupanthaPaul
 
         public bool CanDash()
         {
+            PlayerAttack playerAttack = GetComponent<PlayerAttack>();
+            bool isInUpwardRecovery = playerAttack != null && playerAttack.isInUpwardAttackRecovery;
+
             return canDash &&
                    !isDashing &&
                    m_dashCooldownRemaining <= 0f &&
                    (!m_hasDashedInAir || isGrounded) &&
-                   currentStamina >= dashCost;
+                   currentStamina >= dashCost &&
+                   !isInUpwardRecovery; // Added this check
         }
 
         private void ExecuteDash(Vector2 inputDirection)
@@ -340,6 +363,10 @@ namespace SupanthaPaul
                 {
                     dashDuration = diagonalDashDuration;
                 }
+            }
+            if (playerAttack != null)
+            {
+                playerAttack.OnDashStart();
             }
 
             // Consume stamina
@@ -378,39 +405,59 @@ namespace SupanthaPaul
         {
             if (jumpAction.triggered)
             {
-                if (m_extraJumps > 0 && !isGrounded && !m_wallGrabbing)
+                // Check for wall jump (whether sliding or just touching wall)
+                if ((m_onWall && !isGrounded) || m_wallGrabbing)
                 {
-                    // Extra jump
+                    PerformWallJump();
+                    return;
+                }
+                else if (m_extraJumps > 0 && !isGrounded)
+                {
+                    // Extra jump (unchanged)
                     m_rb.velocity = new Vector2(m_rb.velocity.x, m_extraJumpForce);
                     m_extraJumps--;
                     PoolManager.instance.ReuseObject(jumpEffect, groundCheck.position, Quaternion.identity);
                 }
                 else if (isGrounded || m_groundedRemember > 0f)
                 {
-                    // Normal jump
+                    // Normal jump (unchanged)
                     m_rb.velocity = new Vector2(m_rb.velocity.x, jumpForce);
                     PoolManager.instance.ReuseObject(jumpEffect, groundCheck.position, Quaternion.identity);
                 }
-                else if (m_wallGrabbing)
-                {
-                    // Wall jump
-                    m_wallGrabbing = false;
-                    m_wallJumping = true;
-
-                    if (moveInput != m_onWallSide)
-                    {
-                        // Wall jump off
-                        if (m_playerSide == m_onWallSide) Flip();
-                        m_rb.AddForce(new Vector2(-m_onWallSide * wallJumpForce.x, wallJumpForce.y), ForceMode2D.Impulse);
-                    }
-                    else
-                    {
-                        // Wall climb
-                        if (m_playerSide == m_onWallSide) Flip();
-                        m_rb.AddForce(new Vector2(-m_onWallSide * wallClimbForce.x, wallClimbForce.y), ForceMode2D.Impulse);
-                    }
-                }
             }
+        }
+
+        private void PerformWallJump()
+        {
+            m_wallGrabbing = false;
+            m_wallJumping = true;
+
+            // First cancel any wall stick velocity
+            m_rb.velocity = new Vector2(m_rb.velocity.x * 0.5f, 0);
+
+            // Determine direction based on input
+            bool jumpingAwayFromWall = moveInput != m_onWallSide;
+
+            // Calculate forces
+            float horizontalForce = jumpingAwayFromWall ?
+                -m_onWallSide * wallJumpHorizontalForce :
+                -m_onWallSide * wallJumpHorizontalForce * 0.7f;
+
+            // Apply consistent force regardless of wall grab state
+            m_rb.AddForce(new Vector2(
+                horizontalForce,
+                wallJumpVerticalForce
+            ), ForceMode2D.Impulse);
+
+            // Flip if needed
+            if (jumpingAwayFromWall && m_playerSide == m_onWallSide)
+            {
+                Flip();
+            }
+
+            // Reset jumps and effects
+            m_extraJumps = extraJumpCount;
+            PoolManager.instance.ReuseObject(jumpEffect, groundCheck.position, Quaternion.identity);
         }
 
         private void HandleWallGrabbing()
@@ -547,12 +594,13 @@ namespace SupanthaPaul
 
         public void UpdateStaminaBar()
         {
-            if (staminaBar != null)
-            {
-                float staminaPercentage = currentStamina / maxStamina;
-                staminaBar.sizeDelta = new Vector2(staminaBarFullWidth * staminaPercentage, staminaBar.sizeDelta.y);
-            }
+            if (staminaBar1 == null) return;
+
+            float staminaPercentage = currentStamina / maxStamina;
+            Vector2 newSize = new Vector2(staminaBarFullWidth * staminaPercentage, staminaBar1.sizeDelta.y);
+            staminaBar1.sizeDelta = newSize;
         }
+
 
         public void DisableMovement()
         {
@@ -603,6 +651,21 @@ namespace SupanthaPaul
             {
                 Gizmos.DrawWireSphere((Vector2)transform.position + grabRightOffset, grabCheckRadius);
                 Gizmos.DrawWireSphere((Vector2)transform.position + grabLeftOffset, grabCheckRadius);
+            }
+
+            // Add to OnDrawGizmos:
+            if (showEnemyZones)
+            {
+                // Draw donut zones around player
+                Gizmos.color = gizmoOuterColor;
+                Gizmos.DrawSphere(transform.position, gizmoOuterRadius);
+
+                Gizmos.color = gizmoInnerColor;
+                Gizmos.DrawSphere(transform.position, gizmoInnerRadius);
+
+                // Clear the inner part of the outer sphere
+                Gizmos.color = Color.clear;
+                Gizmos.DrawSphere(transform.position, gizmoInnerRadius);
             }
 
             Gizmos.color = Color.yellow;

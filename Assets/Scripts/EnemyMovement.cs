@@ -26,6 +26,17 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     public LayerMask playerLayer;
     public Transform raycastOrigin; // Assign your raycast empty object here
 
+    [Header("Ledge Detection")]
+    [SerializeField] private Transform ledgeCheck; // Assign your new ground check empty object here
+    [SerializeField] private float ledgeCheckDistance = 0.5f;
+    [SerializeField] private LayerMask groundLayer;
+    //[SerializeField] private float chaseLedgeStopDistance = 1f; // How close to get to ledge while chasing
+    [SerializeField] private float chaseLedgeWaitTime = 2f; // How long to wait at ledge before giving up chase
+    [SerializeField] private float returnToPatrolDelay = 1f; // Delay before returning to patrol
+    private float returnToPatrolTimer = 0f;
+    private bool shouldReturnToPatrol = false;
+    private bool atLedge = false;
+
     [Header("Attack Settings")]
     [SerializeField] private float attackRange = 1.5f;
     [SerializeField] private float attackCooldown = 1f;
@@ -55,6 +66,9 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     private float waitTimer;
     private bool isWaiting = false;
     private Animator animator;
+
+    private float chaseLedgeTimer = 0f;
+
 
     // Animation parameters
     private const string IS_WALKING = "isWalking";
@@ -96,6 +110,46 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
     void Update()
     {
+        if (TryGetComponent<EnemyDamageHandler>(out var health) && health.isDead)
+        {
+            rb.velocity = Vector2.zero;
+            return;
+        }
+        if (shouldReturnToPatrol)
+        {
+            returnToPatrolTimer += Time.deltaTime;
+            if (returnToPatrolTimer >= returnToPatrolDelay)
+            {
+                ReturnToNearestPatrolPoint();
+                shouldReturnToPatrol = false;
+            }
+        }
+        // Check for ledges
+        atLedge = !Physics2D.Raycast(ledgeCheck.position, Vector2.down, ledgeCheckDistance, groundLayer);
+
+        if (isChasing)
+        {
+            // Reset return to patrol timer while chasing
+            returnToPatrolTimer = 0f;
+            shouldReturnToPatrol = false;
+
+            atLedge = !Physics2D.Raycast(ledgeCheck.position, Vector2.down, ledgeCheckDistance, groundLayer);
+
+            if (atLedge)
+            {
+                chaseLedgeTimer += Time.deltaTime;
+
+                if (chaseLedgeTimer > chaseLedgeWaitTime)
+                {
+                    GiveUpChase();
+                }
+            }
+            else
+            {
+                chaseLedgeTimer = 0f;
+            }
+        }
+
         if (player != null)
         {
             playerInSight = PlayerInSight();
@@ -121,6 +175,14 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
             {
                 StartDetection();
             }
+        }
+
+        // Stop movement if at ledge and not chasing player
+        if (atLedge && !isChasing && !isWaiting)
+        {
+            rb.velocity = Vector2.zero;
+            StartWaiting();
+            return;
         }
 
         if (isChasing && !isAttacking)
@@ -202,11 +264,15 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
     bool CanAttackPlayer()
     {
+        // Add dead check
+        if (TryGetComponent<EnemyDamageHandler>(out var health) && health.isDead)
+            return false;
+
         if (player == null || isAttacking) return false;
 
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
         bool inAttackRange = distanceToPlayer <= attackRange;
-        bool offCooldown = Time.time >= lastAttackTime + attackCooldown + attackRecoveryTime; // Include recovery time
+        bool offCooldown = Time.time >= lastAttackTime + attackCooldown + attackRecoveryTime;
 
         return inAttackRange && offCooldown && playerInSight;
     }
@@ -261,6 +327,14 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
     void Patrol()
     {
+        // Don't patrol if at ledge
+        if (atLedge)
+        {
+            Debug.Log("At Ledge");
+            rb.velocity = Vector2.zero;
+            return;
+        }
+
         Vector2 direction = (currentTarget.position - transform.position).normalized;
         rb.velocity = new Vector2(direction.x * patrolSpeed, rb.velocity.y);
 
@@ -288,6 +362,21 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         if (distanceToPlayer <= attackRange)
         {
             rb.velocity = Vector2.zero;
+            return;
+        }
+
+        // Stop at ledges during chase
+        if (atLedge)
+        {
+            rb.velocity = Vector2.zero;
+
+            // Face toward player if they're on the other side of the ledge
+            if ((player.position.x > transform.position.x && !facingRight) ||
+                (player.position.x < transform.position.x && facingRight))
+            {
+                Flip();
+            }
+
             return;
         }
 
@@ -322,6 +411,19 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         return Vector2.Distance(transform.position, pointA.position) <
                Vector2.Distance(transform.position, pointB.position) ? pointA : pointB;
     }
+    void GiveUpChase()
+    {
+        isChasing = false;
+        chaseLedgeTimer = 0f;
+        shouldReturnToPatrol = true;
+        returnToPatrolTimer = 0f;
+    }
+
+    void ReturnToNearestPatrolPoint()
+    {
+        currentTarget = GetNearestPatrolPoint();
+        isWaiting = false;
+    }
 
     // Interface implementation
     public void OnPlayerDetected()
@@ -333,7 +435,21 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     {
         isChasing = false;
         isDetectingPlayer = false;
-        Debug.Log("Player left detection zone");
+        shouldReturnToPatrol = true;
+        returnToPatrolTimer = 0f;
+        Debug.Log("Player left detection zone - returning to patrol");
+    }
+
+    public void CancelAttack()
+    {
+        // Immediately stop attacking state
+        isAttacking = false;
+
+        // Reset attack animation if needed
+        animator.ResetTrigger(IS_ATTACKING);
+
+        // Optional: Play a transition animation if you have one
+        // animator.Play("HitReaction", 0, 0f);
     }
 
     void Flip()
@@ -360,6 +476,11 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
             Gizmos.DrawRay(transform.position, Vector2.left * 2f);
             Gizmos.color = new Color(1, 0, 0, 0.1f);
             Gizmos.DrawRay(transform.position, Vector2.right * 1f);
+        }
+        if (ledgeCheck != null)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(ledgeCheck.position, ledgeCheck.position + Vector3.down * ledgeCheckDistance);
         }
     }
 }

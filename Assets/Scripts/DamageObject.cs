@@ -20,12 +20,32 @@ public class DamageObject : MonoBehaviour
 
     [Header("Parry Settings")]
     [SerializeField] private bool isObjectParryable;
+    [SerializeField] private bool parryFromAnySide = false;
+    [SerializeField] private bool perfectParryOnly = false; // New: Requires perfect timing
+    [SerializeField] private float perfectParryWindow = 0.1f; // New: Timeframe for perfect parry
 
     private float nextDamageTime;
+    private Collider2D myCollider;
+    private float activeTime; // Tracks how long this object has been active
+
+    private void Awake()
+    {
+        myCollider = GetComponent<Collider2D>();
+        activeTime = 0f;
+        if (myCollider == null)
+        {
+            Debug.LogError("DamageObject requires a Collider2D on the same GameObject!", this);
+        }
+    }
+
+    private void Update()
+    {
+        activeTime += Time.deltaTime;
+    }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && myCollider != null && myCollider.IsTouching(other))
         {
             TryDamagePlayer(other, !continuousDamage);
         }
@@ -33,7 +53,9 @@ public class DamageObject : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D other)
     {
-        if (continuousDamage && other.CompareTag("Player") && Time.time >= nextDamageTime)
+        if (myCollider != null && myCollider.IsTouching(other) &&
+            continuousDamage && other.CompareTag("Player") &&
+            Time.time >= nextDamageTime)
         {
             TryDamagePlayer(other, false);
             nextDamageTime = Time.time + damageInterval;
@@ -42,60 +64,80 @@ public class DamageObject : MonoBehaviour
 
     private void TryDamagePlayer(Collider2D playerCollider, bool canDestroy)
     {
+        PlayerHealth playerHealth = playerCollider.GetComponent<PlayerHealth>();
+        if (playerHealth == null || playerHealth.isDead) return;
+
         PlayerController playerController = playerCollider.GetComponent<PlayerController>();
         PlayerAttack playerAttack = playerCollider.GetComponentInChildren<PlayerAttack>();
-        PlayerHealth playerHealth = playerCollider.GetComponent<PlayerHealth>();
         ParryScript playerParry = playerCollider.GetComponentInChildren<ParryScript>();
 
-        // 1. First check if the player is parrying (if object is parryable)
+        // 1. Check parry conditions first
         if (isObjectParryable && playerParry != null)
         {
-            EnemyMovement enemyMovement = GetComponentInParent<EnemyMovement>();
-            if (enemyMovement != null)
+            bool canBeParried = false;
+
+            if (parryFromAnySide)
             {
-                bool parryRightSuccess = playerParry.IsParryingRight && enemyMovement.EnemyFacingLeft;
-                bool parryLeftSuccess = playerParry.IsParryingLeft && enemyMovement.EnemyFacingRight;
+                // Any direction parry
+                canBeParried = playerParry.IsParryActive;
 
-                Debug.Log($"Parry Check - Right: {parryRightSuccess}, Left: {parryLeftSuccess}");
-
-                if (parryRightSuccess || parryLeftSuccess)
+                // Additional perfect parry check if enabled
+                if (perfectParryOnly)
                 {
-                    Debug.Log("Parry successful");
-                    return; 
+                    canBeParried &= activeTime <= perfectParryWindow;
                 }
+            }
+            else
+            {
+                // Directional parry
+                EnemyMovement enemyMovement = GetComponentInParent<EnemyMovement>();
+                canBeParried = playerParry.CanParryAttack(enemyMovement);
+
+                if (perfectParryOnly)
+                {
+                    canBeParried &= activeTime <= perfectParryWindow;
+                }
+            }
+
+            if (canBeParried)
+            {
+                playerParry.Parried();
+                OnParried(); // Handle parry success on this object
+                return;
             }
         }
 
-        // 2. Then check other invulnerability states
+        // 2. Check other invulnerability states
         if ((playerController != null && playerController.isDashing) ||
-            (playerAttack != null && playerAttack.isGroundSlamming)) 
+            (playerAttack != null && playerAttack.isGroundSlamming))
         {
-            Debug.Log("Player is invulnerable (dashing/ground slamming).");
             return;
         }
 
-        // 3. If no parry/invulnerability, apply damage
-        if (playerHealth != null)
+        // 3. Apply damage if not blocked
+        playerHealth.TakeDamage(damageAmount);
+        SpawnHitEffect();
+
+        if (applyKnockback && playerController != null)
         {
-            playerHealth.TakeDamage(damageAmount);
-            SpawnHitEffect();
-
-            if (applyKnockback && playerController != null)
-            {
-                Vector2 dir = (playerCollider.transform.position - transform.position).normalized;
-                Vector2 finalDirection = new Vector2(
-                    Mathf.Sign(dir.x) * knockbackDirection.x,
-                    knockbackDirection.y
-                ).normalized;
-
-                playerController.ApplyKnockback(finalDirection * knockbackForce);
-            }
-
-            if (destroyOnContact && canDestroy)
-            {
-                Destroy(gameObject);
-            }
+            ApplyKnockback(playerCollider, playerController);
         }
+
+        if (destroyOnContact && canDestroy)
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    private void ApplyKnockback(Collider2D playerCollider, PlayerController playerController)
+    {
+        Vector2 dir = (playerCollider.transform.position - transform.position).normalized;
+        Vector2 finalDirection = new Vector2(
+            Mathf.Sign(dir.x) * knockbackDirection.x,
+            knockbackDirection.y
+        ).normalized;
+
+        playerController.ApplyKnockback(finalDirection * knockbackForce);
     }
 
     private void SpawnHitEffect()
@@ -105,5 +147,19 @@ public class DamageObject : MonoBehaviour
             GameObject effect = Instantiate(hitEffect, transform.position, Quaternion.identity);
             Destroy(effect, effectDestroyTime);
         }
+    }
+
+    private void OnParried()
+    {
+        // Handle what happens when this object is parried
+        if (destroyOnContact)
+        {
+            Destroy(gameObject);
+        }
+
+        // You could add additional effects here like:
+        // - Parry sound effect
+        // - Special particles
+        // - Stun the enemy if this is an enemy attack
     }
 }

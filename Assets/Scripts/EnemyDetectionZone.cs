@@ -7,20 +7,25 @@ public class EnemyDetectionZone : MonoBehaviour
     [SerializeField] private Transform enemyTransform;
     [SerializeField] private Vector3 positionOffset;
     [SerializeField] private bool followEnemy = true;
-    [SerializeField] private bool requireLineOfSight = true; // New flag
+    [SerializeField] private bool requireLineOfSight = true;
 
+    [Header("Collider Settings")]
     [SerializeField] private LayerMask playerLayer;
-    [SerializeField] private LayerMask obstacleLayer; // New layer mask
+    [SerializeField] private LayerMask obstacleLayer;
+    [SerializeField] private string playerTag = "Player"; // Tag for main player collider
+    [SerializeField] private bool ignoreWeaponColliders = true; // Option to ignore weapon colliders
+
     public bool playerInZone { get; private set; }
 
     private IEnemyController enemyInterface;
     private Transform playerTransform;
+    private Collider2D playerMainCollider; // Track main player collider
 
     public interface IEnemyController
     {
         void OnPlayerDetected();
         void OnPlayerLost();
-        bool HasLineOfSightToPlayer(); // New method
+        bool HasLineOfSightToPlayer();
     }
 
     private void Awake()
@@ -53,7 +58,13 @@ public class EnemyDetectionZone : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!IsPlayer(other)) return;
+        if (!IsValidPlayerCollider(other)) return;
+
+        // Store reference to main player collider
+        if (playerMainCollider == null && other.CompareTag(playerTag))
+        {
+            playerMainCollider = other;
+        }
 
         playerInZone = true;
         playerTransform = other.transform;
@@ -66,9 +77,11 @@ public class EnemyDetectionZone : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D other)
     {
-        if (!IsPlayer(other)) return;
+        if (!IsValidPlayerCollider(other)) return;
 
-        // Continuous check if we require line of sight
+        // Only update detection if this is the main player collider
+        if (other != playerMainCollider) return;
+
         if (requireLineOfSight && playerInZone && enemyInterface != null)
         {
             if (enemyInterface.HasLineOfSightToPlayer())
@@ -80,14 +93,29 @@ public class EnemyDetectionZone : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (!IsPlayer(other)) return;
+        if (!IsValidPlayerCollider(other)) return;
+
+        // Only trigger exit if main player collider leaves
+        if (other != playerMainCollider) return;
 
         playerInZone = false;
         enemyInterface?.OnPlayerLost();
     }
 
-    private bool IsPlayer(Collider2D collider)
+    private bool IsValidPlayerCollider(Collider2D collider)
     {
-        return ((1 << collider.gameObject.layer) & playerLayer) != 0;
+        // Skip if this is a weapon collider and we're ignoring them
+        if (ignoreWeaponColliders && collider.gameObject.CompareTag("Player Attack"))
+            return false;
+
+        // Check if it's either the main player collider or on player layer
+        return collider.CompareTag(playerTag) ||
+               ((1 << collider.gameObject.layer) & playerLayer) != 0;
+    }
+
+    // Public method to manually set the main player collider
+    public void SetMainPlayerCollider(Collider2D collider)
+    {
+        playerMainCollider = collider;
     }
 }

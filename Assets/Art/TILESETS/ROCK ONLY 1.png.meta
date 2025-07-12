@@ -1,0 +1,906 @@
+fileFormatVersion: 2
+guid: b5eb57f294050a3468c151afacbf8587
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 1287
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ROCK ONLY 1_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 3219
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6fd693a2c7bae6746807be20c830698a
+      internalID: 62881376
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_1
+      rect:
+        serializedVersion: 2
+        x: 1287
+        y: 3219
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f127022c05f09894e8e0f7e7d801ffe7
+      internalID: -233631656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_2
+      rect:
+        serializedVersion: 2
+        x: 2574
+        y: 3219
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 78fb162b14502be4d98f1c4ee3bf5710
+      internalID: 1141461309
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_3
+      rect:
+        serializedVersion: 2
+        x: 3861
+        y: 3219
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e5954c9cc51443f4eaca8c48cd6ac814
+      internalID: -67627120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_4
+      rect:
+        serializedVersion: 2
+        x: 5148
+        y: 3219
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a5c1f41bb1a6a4d42a1222d06ac9ba2b
+      internalID: 1071732173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_5
+      rect:
+        serializedVersion: 2
+        x: 6435
+        y: 3219
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9761a69c46781e049afbdf337a038249
+      internalID: 1222141747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_6
+      rect:
+        serializedVersion: 2
+        x: 7722
+        y: 3219
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b910d5b1676ea3040b6483c5086bb6c2
+      internalID: 2101053409
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_7
+      rect:
+        serializedVersion: 2
+        x: 9009
+        y: 3219
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1bc710cb4540faf46a924bdd37924d32
+      internalID: -351744412
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_8
+      rect:
+        serializedVersion: 2
+        x: 10296
+        y: 3219
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ece4bf6f516bb814e849e41b9c028da4
+      internalID: -1514573508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_9
+      rect:
+        serializedVersion: 2
+        x: 11583
+        y: 3219
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ec5a1c2419695b14bb32329b38af6bd1
+      internalID: 1774312195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_10
+      rect:
+        serializedVersion: 2
+        x: 12870
+        y: 3219
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c53e9bb729b7e1e4592b21fafc9c5af4
+      internalID: -244400040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_11
+      rect:
+        serializedVersion: 2
+        x: 14157
+        y: 3219
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 377a029ebd7f787479f8606673b83a4d
+      internalID: 1899225272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1932
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d155a6ea883c5664e981867eafee8dad
+      internalID: -536999107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_13
+      rect:
+        serializedVersion: 2
+        x: 1287
+        y: 1932
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 64c88ad5c7dc35743abedd4ad8db088a
+      internalID: 152362456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_14
+      rect:
+        serializedVersion: 2
+        x: 2574
+        y: 1932
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ec387454524940440ae1cc4a0389ec9e
+      internalID: -795050085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_15
+      rect:
+        serializedVersion: 2
+        x: 3861
+        y: 1932
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bc9ad74d80e476e40b1f8510b834fbe6
+      internalID: -827002588
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_16
+      rect:
+        serializedVersion: 2
+        x: 5148
+        y: 1932
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3e9d3dd77df306e40bcf3c95b4e78e62
+      internalID: -2045458453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_17
+      rect:
+        serializedVersion: 2
+        x: 6435
+        y: 1932
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 68c5df2f0f2f90149a92bbbcdff03a83
+      internalID: 1763354174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_18
+      rect:
+        serializedVersion: 2
+        x: 7722
+        y: 1932
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 68fa4d47169105743b02b2c754ea6172
+      internalID: -1489705259
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_19
+      rect:
+        serializedVersion: 2
+        x: 9009
+        y: 1932
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 45ab6938bf5c2a048a073493592d432c
+      internalID: 1543640010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_20
+      rect:
+        serializedVersion: 2
+        x: 10296
+        y: 1932
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 220c4326d0951a24fbadcb94fe7474dc
+      internalID: -635494901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_21
+      rect:
+        serializedVersion: 2
+        x: 11583
+        y: 1932
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1acc9686653e73641b38a73b8aa9d283
+      internalID: 345999006
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_22
+      rect:
+        serializedVersion: 2
+        x: 12870
+        y: 1932
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 68156931f46b3ef458f73125cac88f6f
+      internalID: 321273668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_23
+      rect:
+        serializedVersion: 2
+        x: 14157
+        y: 1932
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8355ee17100c7d544a89bd7e11c81887
+      internalID: 1772955196
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_24
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 645
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3c1cddfab0a1dc246b0e7da6579d1d47
+      internalID: -1980611529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_25
+      rect:
+        serializedVersion: 2
+        x: 1287
+        y: 645
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 85816793ead23a9479a1e437207e6207
+      internalID: -423428041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_26
+      rect:
+        serializedVersion: 2
+        x: 2574
+        y: 645
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2860bff031e76304997958b9ee5837fc
+      internalID: 346756626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_27
+      rect:
+        serializedVersion: 2
+        x: 3861
+        y: 645
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dea8465927f28034ba6b9ed9dcd6f437
+      internalID: -894479543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_28
+      rect:
+        serializedVersion: 2
+        x: 5148
+        y: 645
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f3b95a62ca0d5cd42955ee48540f4be5
+      internalID: 770664776
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_29
+      rect:
+        serializedVersion: 2
+        x: 6435
+        y: 645
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9593493629b0fcc4296ff858d7b50c93
+      internalID: 1022516632
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_30
+      rect:
+        serializedVersion: 2
+        x: 7722
+        y: 645
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 32802666343c54a42b0ef11a38ad8129
+      internalID: -1850050483
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_31
+      rect:
+        serializedVersion: 2
+        x: 9009
+        y: 645
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a3164f9aca10d9049a7b5b9952b3060d
+      internalID: -1919799290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_32
+      rect:
+        serializedVersion: 2
+        x: 10296
+        y: 645
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 69bd41b16b2989645ba17ab1fa35ffbf
+      internalID: -73849418
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_33
+      rect:
+        serializedVersion: 2
+        x: 11583
+        y: 645
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1eace0a6fe2918743b9d84ef42780646
+      internalID: -1826090191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_34
+      rect:
+        serializedVersion: 2
+        x: 12870
+        y: 645
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eebc0e5b84f18074aa32d6c17416405a
+      internalID: 1197679419
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ROCK ONLY 1_35
+      rect:
+        serializedVersion: 2
+        x: 14157
+        y: 645
+        width: 1287
+        height: 1287
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: abf57224e336c2d449b8b8a276bd0c0d
+      internalID: -1217511729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      ROCK ONLY 1_0: 62881376
+      ROCK ONLY 1_1: -233631656
+      ROCK ONLY 1_10: -244400040
+      ROCK ONLY 1_11: 1899225272
+      ROCK ONLY 1_12: -536999107
+      ROCK ONLY 1_13: 152362456
+      ROCK ONLY 1_14: -795050085
+      ROCK ONLY 1_15: -827002588
+      ROCK ONLY 1_16: -2045458453
+      ROCK ONLY 1_17: 1763354174
+      ROCK ONLY 1_18: -1489705259
+      ROCK ONLY 1_19: 1543640010
+      ROCK ONLY 1_2: 1141461309
+      ROCK ONLY 1_20: -635494901
+      ROCK ONLY 1_21: 345999006
+      ROCK ONLY 1_22: 321273668
+      ROCK ONLY 1_23: 1772955196
+      ROCK ONLY 1_24: -1980611529
+      ROCK ONLY 1_25: -423428041
+      ROCK ONLY 1_26: 346756626
+      ROCK ONLY 1_27: -894479543
+      ROCK ONLY 1_28: 770664776
+      ROCK ONLY 1_29: 1022516632
+      ROCK ONLY 1_3: -67627120
+      ROCK ONLY 1_30: -1850050483
+      ROCK ONLY 1_31: -1919799290
+      ROCK ONLY 1_32: -73849418
+      ROCK ONLY 1_33: -1826090191
+      ROCK ONLY 1_34: 1197679419
+      ROCK ONLY 1_35: -1217511729
+      ROCK ONLY 1_4: 1071732173
+      ROCK ONLY 1_5: 1222141747
+      ROCK ONLY 1_6: 2101053409
+      ROCK ONLY 1_7: -351744412
+      ROCK ONLY 1_8: -1514573508
+      ROCK ONLY 1_9: 1774312195
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

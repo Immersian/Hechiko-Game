@@ -17,30 +17,38 @@ public class CameraPanScript : MonoBehaviour
     [Tooltip("Should the camera revert when exiting the trigger?")]
     [SerializeField] private bool revertOnExit = true;
 
+    [SerializeField] private string playerTag = "Player";
+    private Collider2D playerMainCollider;
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (((1 << other.gameObject.layer) & triggerLayer) != 0)
+        if (playerMainCollider == null && other.CompareTag(playerTag))
         {
-            if (triggerVirtualCamera != null)
+            if (((1 << other.gameObject.layer) & triggerLayer) != 0)
             {
-                // Set the trigger camera to highest priority
-                triggerVirtualCamera.Priority = 100;
+                if (triggerVirtualCamera != null)
+                {
+                    // Set the trigger camera to highest priority
+                    triggerVirtualCamera.Priority = 100;
+                }
             }
         }
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (((1 << other.gameObject.layer) & triggerLayer) != 0 && revertOnExit)
+        if (playerMainCollider == null && other.CompareTag(playerTag))
         {
-            if (mainVirtualCamera != null)
+            if (((1 << other.gameObject.layer) & triggerLayer) != 0 && revertOnExit)
             {
-                // Return priority to main camera
-                mainVirtualCamera.Priority = 100;
-                // Reset trigger camera priority to lower value
-                if (triggerVirtualCamera != null)
+                if (mainVirtualCamera != null)
                 {
-                    triggerVirtualCamera.Priority = 0;
+                    // Return priority to main camera
+                    mainVirtualCamera.Priority = 100;
+                    // Reset trigger camera priority to lower value
+                    if (triggerVirtualCamera != null)
+                    {
+                        triggerVirtualCamera.Priority = 0;
+                    }
                 }
             }
         }

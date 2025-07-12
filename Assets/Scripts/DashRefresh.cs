@@ -10,8 +10,8 @@ public class DashRefresh : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private bool isActive = true;
     private float cooldownTimer = 0f;
-    private Color activeColor = Color.cyan;
-    private Color inactiveColor = Color.red;
+    private Color activeColor = Color.red;
+    private Color inactiveColor = Color.blue;
 
     private void Awake()
     {

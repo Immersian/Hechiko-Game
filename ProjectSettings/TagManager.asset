@@ -25,9 +25,9 @@ TagManager:
   - PostProcessing
   - Enemy
   - Detection
-  - 
-  - 
-  - 
+  - Hitbox
+  - foliage
+  - post
   - 
   - 
   - 
@@ -43,6 +43,30 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Background
+    uniqueID: 3454594219
+    locked: 0
+  - name: Layer 3
+    uniqueID: 451708175
+    locked: 0
+  - name: Mist A Layer 3
+    uniqueID: 666539291
+    locked: 0
+  - name: Layer 2
+    uniqueID: 427030537
+    locked: 0
+  - name: Mist A Layer 2
+    uniqueID: 255843765
+    locked: 0
+  - name: Layer 1
+    uniqueID: 2727642743
+    locked: 0
+  - name: Tori Gate
+    uniqueID: 652590781
+    locked: 0
+  - name: Mist and Fog
+    uniqueID: 1588941689
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
@@ -51,4 +75,7 @@ TagManager:
     locked: 0
   - name: CameraSortingLayer
     uniqueID: 3370382437
+    locked: 0
+  - name: SortingTexture
+    uniqueID: 3109668907
     locked: 0

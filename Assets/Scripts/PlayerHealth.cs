@@ -1,4 +1,3 @@
-using BarthaSzabolcs.Tutorial_SpriteFlash;
 using System;
 using UnityEngine;
 
@@ -9,9 +8,11 @@ public class PlayerHealth : MonoBehaviour
     public int currentHealth;
     public bool isDead = false;
     public bool isInvulnerable;
+    [SerializeField] private float invulnerabilityDuration = 1f;
+    private float invulnerabilityTimer = 0f;
 
-    [Header("Health Bar Settings")]
-    public RectTransform healthBar;
+    [Header("Health Bars (Identical)")]
+    public RectTransform healthBar1;
     private float healthBarFullWidth;
 
     [Header("Camera Shake Parameters")]
@@ -20,16 +21,17 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] private float shakeTime = 1;
 
     [Header("Visual Feedback")]
-    [SerializeField] private SimpleFlash flashEffect; // Reference to the SimpleFlash component
+    [SerializeField] private SimpleFlash flashEffect;
 
     void Start()
     {
         currentHealth = maxHealth;
 
-        if (healthBar != null)
+        // Initialize health bars (assuming they're identical)
+        if (healthBar1 != null)
         {
-            healthBarFullWidth = healthBar.sizeDelta.x;
-            UpdateHealthBar();
+            healthBarFullWidth = healthBar1.sizeDelta.x;
+            UpdateHealthBars();
         }
 
         // Auto-get the SimpleFlash component if not assigned
@@ -39,13 +41,26 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    public void UpdateHealthBar()
+    void Update()
     {
-        if (healthBar != null)
+        // Update invulnerability timer
+        if (invulnerabilityTimer > 0)
         {
-            float healthPercentage = Mathf.Clamp01((float)currentHealth / maxHealth);
-            healthBar.sizeDelta = new Vector2(healthBarFullWidth * healthPercentage, healthBar.sizeDelta.y);
+            invulnerabilityTimer -= Time.deltaTime;
+            isInvulnerable = true;
         }
+        else
+        {
+            isInvulnerable = false;
+        }
+    }
+
+    private void UpdateHealthBars()
+    {
+        float healthPercentage = Mathf.Clamp01((float)currentHealth / maxHealth);
+        Vector2 newSize = new Vector2(healthBarFullWidth * healthPercentage, healthBar1 != null ? healthBar1.sizeDelta.y : 0);
+
+        if (healthBar1 != null) healthBar1.sizeDelta = newSize;
     }
 
     public event Action<int> OnTakeDamage;
@@ -57,6 +72,10 @@ public class PlayerHealth : MonoBehaviour
 
         currentHealth -= damageAmount;
         currentHealth = Mathf.Max(0, currentHealth);
+
+        // Start invulnerability period
+        invulnerabilityTimer = invulnerabilityDuration;
+        isInvulnerable = true;
 
         // Trigger damage event
         OnTakeDamage?.Invoke(damageAmount);
@@ -70,18 +89,19 @@ public class PlayerHealth : MonoBehaviour
         // Trigger flash effect
         if (flashEffect != null)
         {
-            flashEffect.Flash();
+            flashEffect.CallDFlash();
         }
         else
         {
             Debug.LogWarning("Flash effect reference missing on PlayerHealth!");
         }
+
         if (RumbleManager.instance != null)
         {
-            RumbleManager.instance.RumblePulse(0.1f, 0.1f, 0.25f); // Low-frequency rumble for 0.25s
+            RumbleManager.instance.RumblePulse(0.1f, 0.1f, 0.25f);
         }
 
-        UpdateHealthBar();
+        UpdateHealthBars();
 
         if (currentHealth <= 0)
         {

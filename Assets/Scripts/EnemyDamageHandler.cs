@@ -1,13 +1,14 @@
 using UnityEngine;
-using BarthaSzabolcs.Tutorial_SpriteFlash;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(Animator), typeof(SimpleFlash))]
+
+[RequireComponent(typeof(Rigidbody2D), typeof(Animator))]
 public class EnemyDamageHandler : MonoBehaviour
 {
     [Header("Health Settings")]
     public int maxHealth = 100;
     public int currentHealth;
     public bool isDead = false;
+    public GameObject EnemyObject;
 
     [Header("Damage Feedback")]
     [SerializeField] private float invulnerabilityTime = 0.3f;
@@ -38,11 +39,17 @@ public class EnemyDamageHandler : MonoBehaviour
     {
         if (isDead || Time.time < lastDamageTime + invulnerabilityTime) return;
 
+        // Immediately stop any attack animations
+        if (TryGetComponent<EnemyMovement>(out var enemyMovement))
+        {
+            enemyMovement.CancelAttack();
+        }
+
         currentHealth -= damage;
         lastDamageTime = Time.time;
 
         // Visual Feedback
-        flashEffect.Flash();
+        flashEffect.CallDFlash();
         animator.ResetTrigger(hurtTrigger);
         animator.SetTrigger(hurtTrigger);
 
@@ -61,7 +68,14 @@ public class EnemyDamageHandler : MonoBehaviour
     private void Die()
     {
         isDead = true;
+
+        // Force stop all animations and transitions
+        animator.ResetTrigger(hurtTrigger);
+        animator.ResetTrigger(deathTrigger);
         animator.SetTrigger(deathTrigger);
+
+        // If using Animator.CrossFade instead:
+        // animator.CrossFade(deathTrigger, 0.1f, 0);
 
         // Disable all colliders
         foreach (var collider in colliders)
@@ -69,10 +83,16 @@ public class EnemyDamageHandler : MonoBehaviour
             collider.enabled = false;
         }
 
-        // Disable physics
+        // Disable physics and movement
         if (rb != null) rb.simulated = false;
 
-        Destroy(gameObject, deathDestroyDelay);
+        // Disable enemy behavior scripts
+        if (TryGetComponent<EnemyMovement>(out var movement))
+        {
+            movement.enabled = false;
+        }
+
+        Destroy(EnemyObject, deathDestroyDelay);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -85,4 +105,11 @@ public class EnemyDamageHandler : MonoBehaviour
             TakeDamage(attack.damage, hitDirection);
         }
     }
+    public interface IEnemyController
+    {
+        void OnPlayerDetected();
+        void OnPlayerLost();
+        bool HasLineOfSightToPlayer();
+    }
+
 }

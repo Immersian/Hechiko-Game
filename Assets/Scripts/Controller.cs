@@ -217,6 +217,17 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""968ceb16-f105-4478-8cf2-7b771600add2"",
+                    ""path"": ""<XInputController>/leftStick"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Move"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""6ba3b641-2a41-4cd6-8b06-ed75e0644892"",
                     ""path"": ""<Keyboard>/space"",
                     ""interactions"": """",
@@ -230,6 +241,17 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                     ""name"": """",
                     ""id"": ""a669301a-d7ad-43ed-ac34-17c4a6eeeb5b"",
                     ""path"": ""<DualSenseGamepadHID>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""34a90d57-b31a-449e-8c57-2404e63d89e6"",
+                    ""path"": ""<XInputController>/buttonSouth"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
@@ -261,6 +283,17 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""61c3b59e-63e4-458a-bbf1-10ca72d9b816"",
+                    ""path"": ""<XInputController>/rightShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Dash"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""32ef0dda-50dc-4f48-bd4e-df60d979d810"",
                     ""path"": ""<DualSenseGamepadHID>/rightStick"",
                     ""interactions"": """",
@@ -284,7 +317,7 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""up"",
                     ""id"": ""d638f0fe-077b-411c-bb6d-9845a4ca6cb6"",
-                    ""path"": ""<Keyboard>/w"",
+                    ""path"": ""<Keyboard>/upArrow"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard"",
@@ -295,7 +328,7 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""down"",
                     ""id"": ""91389440-3692-4745-b4c3-eac3e0df8004"",
-                    ""path"": ""<Keyboard>/s"",
+                    ""path"": ""<Keyboard>/downArrow"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard"",
@@ -305,8 +338,19 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""f0c3a1ed-5176-4a8e-b186-16c956e737dd"",
+                    ""path"": ""<XInputController>/rightStick"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Look"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""e0881edb-fce5-4aa8-8745-20be0d97d064"",
-                    ""path"": ""<DualSenseGamepadHID>/rightTrigger"",
+                    ""path"": ""<DualSenseGamepadHID>/buttonEast"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
@@ -321,6 +365,17 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard"",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""07e5f921-b6ab-450b-8240-06524c5c1a3c"",
+                    ""path"": ""<XInputController>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
                     ""action"": ""Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -371,6 +426,17 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""a9603534-677f-4b3c-8404-fea8534be8d3"",
+                    ""path"": ""<XInputController>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Attack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""f1efdbaa-c36e-4641-8546-d1add16c406f"",
                     ""path"": ""<Keyboard>/i"",
                     ""interactions"": """",
@@ -384,6 +450,17 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                     ""name"": """",
                     ""id"": ""93e1d042-3176-4f62-846a-e1011263e6dd"",
                     ""path"": ""<DualSenseGamepadHID>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Special"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""cdfa9854-bcc4-414d-ab95-1f7fee220a72"",
+                    ""path"": ""<XInputController>/buttonNorth"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
@@ -427,24 +504,6 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Test"",
-                    ""type"": ""Button"",
-                    ""id"": ""ce6c9138-c58e-433a-ae73-488bb7cc24b5"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Select"",
-                    ""type"": ""Value"",
-                    ""id"": ""97473d5b-a1fa-41de-99e7-578d6751d435"",
-                    ""expectedControlType"": ""Vector2"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -483,28 +542,6 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""87c4753b-52ff-4d6a-a74c-5addccca325a"",
-                    ""path"": ""<DualSenseGamepadHID>/buttonWest"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""Interact"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""4c8b1af2-46df-4221-9491-3146bb9ffbe5"",
-                    ""path"": ""<DualSenseGamepadHID>/buttonSouth"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""Interact"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""68f93b9f-8474-4b72-a4a5-5fcb7b346baa"",
                     ""path"": ""<DualSenseGamepadHID>/buttonEast"",
                     ""interactions"": """",
@@ -513,116 +550,6 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                     ""action"": ""Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""e21d002e-ba6f-4a64-9051-b15a326b9ace"",
-                    ""path"": ""<DualSenseGamepadHID>/buttonNorth"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""Interact"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""8b5e7d28-0169-41eb-a7e0-ec6be37e7b4d"",
-                    ""path"": ""<Keyboard>/e"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard"",
-                    ""action"": ""Test"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""9c246300-09bb-45a1-964e-94a14f50f7ca"",
-                    ""path"": ""<DualSenseGamepadHID>/buttonWest"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""Test"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""cdbf5b31-7933-4257-9b32-13238c0c1c9c"",
-                    ""path"": ""<DualSenseGamepadHID>/leftStick"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""Select"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""5f6c69fb-df47-4f3d-9b83-68a6f7ca7166"",
-                    ""path"": ""<DualSenseGamepadHID>/dpad"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""Select"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""2D Vector"",
-                    ""id"": ""51e3ac28-b288-45f0-bbd2-59598ed2f30f"",
-                    ""path"": ""2DVector"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Select"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""up"",
-                    ""id"": ""c9872c53-d352-42cc-a5df-15f3c0d06d9e"",
-                    ""path"": ""<Keyboard>/w"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Select"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""down"",
-                    ""id"": ""dc478c70-6a77-4db6-b285-4f1575eddce7"",
-                    ""path"": ""<Keyboard>/s"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Select"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""left"",
-                    ""id"": ""de964fac-bb2e-40cf-b076-b0b0fde02e6b"",
-                    ""path"": ""<Keyboard>/a"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Select"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""right"",
-                    ""id"": ""19f8f9ce-333a-4517-b92c-ac305ca592c9"",
-                    ""path"": ""<Keyboard>/d"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Select"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
                 }
             ]
         },
@@ -739,8 +666,6 @@ public partial class @Controller: IInputActionCollection2, IDisposable
         // Dialogue
         m_Dialogue = asset.FindActionMap("Dialogue", throwIfNotFound: true);
         m_Dialogue_Interact = m_Dialogue.FindAction("Interact", throwIfNotFound: true);
-        m_Dialogue_Test = m_Dialogue.FindAction("Test", throwIfNotFound: true);
-        m_Dialogue_Select = m_Dialogue.FindAction("Select", throwIfNotFound: true);
         // Pause
         m_Pause = asset.FindActionMap("Pause", throwIfNotFound: true);
         m_Pause_Pause = m_Pause.FindAction("Pause", throwIfNotFound: true);
@@ -963,15 +888,11 @@ public partial class @Controller: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Dialogue;
     private List<IDialogueActions> m_DialogueActionsCallbackInterfaces = new List<IDialogueActions>();
     private readonly InputAction m_Dialogue_Interact;
-    private readonly InputAction m_Dialogue_Test;
-    private readonly InputAction m_Dialogue_Select;
     public struct DialogueActions
     {
         private @Controller m_Wrapper;
         public DialogueActions(@Controller wrapper) { m_Wrapper = wrapper; }
         public InputAction @Interact => m_Wrapper.m_Dialogue_Interact;
-        public InputAction @Test => m_Wrapper.m_Dialogue_Test;
-        public InputAction @Select => m_Wrapper.m_Dialogue_Select;
         public InputActionMap Get() { return m_Wrapper.m_Dialogue; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -984,12 +905,6 @@ public partial class @Controller: IInputActionCollection2, IDisposable
             @Interact.started += instance.OnInteract;
             @Interact.performed += instance.OnInteract;
             @Interact.canceled += instance.OnInteract;
-            @Test.started += instance.OnTest;
-            @Test.performed += instance.OnTest;
-            @Test.canceled += instance.OnTest;
-            @Select.started += instance.OnSelect;
-            @Select.performed += instance.OnSelect;
-            @Select.canceled += instance.OnSelect;
         }
 
         private void UnregisterCallbacks(IDialogueActions instance)
@@ -997,12 +912,6 @@ public partial class @Controller: IInputActionCollection2, IDisposable
             @Interact.started -= instance.OnInteract;
             @Interact.performed -= instance.OnInteract;
             @Interact.canceled -= instance.OnInteract;
-            @Test.started -= instance.OnTest;
-            @Test.performed -= instance.OnTest;
-            @Test.canceled -= instance.OnTest;
-            @Select.started -= instance.OnSelect;
-            @Select.performed -= instance.OnSelect;
-            @Select.canceled -= instance.OnSelect;
         }
 
         public void RemoveCallbacks(IDialogueActions instance)
@@ -1111,8 +1020,6 @@ public partial class @Controller: IInputActionCollection2, IDisposable
     public interface IDialogueActions
     {
         void OnInteract(InputAction.CallbackContext context);
-        void OnTest(InputAction.CallbackContext context);
-        void OnSelect(InputAction.CallbackContext context);
     }
     public interface IPauseActions
     {

@@ -61,7 +61,7 @@ Material:
     - _EnableExternalAlpha: 0
     - _Shockwave_Strenght: -0.1
     - _Size: 0.05
-    - _Wave_Distance_From_Centre: 1
+    - _Wave_Distance_From_Centre: -0.1
     - _XSizeRatio: 1.777
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
