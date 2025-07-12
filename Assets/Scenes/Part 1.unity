@@ -101673,7 +101673,7 @@ PrefabInstance:
     - target: {fileID: 8530296641523352378, guid: 361385c2c50cf9745861441e6ea6ab8b,
         type: 3}
       propertyPath: m_Name
-      value: NPC (4)
+      value: NPC
       objectReference: {fileID: 0}
     - target: {fileID: 8980165244759257379, guid: 361385c2c50cf9745861441e6ea6ab8b,
         type: 3}
