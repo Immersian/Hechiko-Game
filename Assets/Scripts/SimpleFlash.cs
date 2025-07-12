@@ -1,19 +1,21 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SimpleFlash : MonoBehaviour
 {
-    [SerializeField] private Color flashColor = Color.white;
+    [Header("Damage Flash")]
+    [SerializeField] private Color damageFlashColor = Color.red;
     [SerializeField] private float flashTime = 0.25f;
+
+    [Header("Other Flash Colors")]
+    [SerializeField] private Color dashRefreshColor = Color.cyan;
 
     private SpriteRenderer[] spriteRenderers;
     private Material[] materials;
-    private Coroutine damageFlashCoroutine;
-    // Start is called before the first frame update
+    private Coroutine flashCoroutine;
+
     void Start()
     {
-        //get all them sprite renderers
         spriteRenderers = GetComponentsInChildren<SpriteRenderer>();
         Init();
     }
@@ -21,43 +23,54 @@ public class SimpleFlash : MonoBehaviour
     private void Init()
     {
         materials = new Material[spriteRenderers.Length];
-
-        //loop that assigns sprite renderer materials to materials
         for (int i = 0; i < spriteRenderers.Length; i++)
         {
             materials[i] = spriteRenderers[i].material;
         }
     }
+
+    // Default damage flash
     public void CallDFlash()
     {
-        damageFlashCoroutine = StartCoroutine(DamageFlashActivate());
+        Flash(damageFlashColor);
     }
 
-    private IEnumerator DamageFlashActivate()
+    // New method for dash refresh flash
+    public void CallDashRefreshFlash()
     {
-        //color set
-        SetFlashColor();
-        //lerp flash amount
+        Flash(dashRefreshColor);
+    }
+
+    // Generic flash method
+    public void Flash(Color color)
+    {
+        if (flashCoroutine != null)
+            StopCoroutine(flashCoroutine);
+
+        flashCoroutine = StartCoroutine(FlashRoutine(color));
+    }
+
+    private IEnumerator FlashRoutine(Color color)
+    {
+        SetFlashColor(color);
+
         float currentFlashAmount = 0f;
         float elapsedTime = 0f;
-        //loop for how long we want flas timw to occur
+
         while (elapsedTime < flashTime)
         {
             elapsedTime += Time.deltaTime;
-            //to lerp the slider from 1 to 0
             currentFlashAmount = Mathf.Lerp(1f, 0f, (elapsedTime / flashTime));
             SetFlashAmount(currentFlashAmount);
             yield return null;
         }
     }
 
-    private void SetFlashColor()
+    private void SetFlashColor(Color color)
     {
-        //in a loop to ensure every sprite renderer gets it
-        //setting color
         for (int i = 0; i < materials.Length; i++)
         {
-            materials[i].SetColor("_FlashColor", flashColor);
+            materials[i].SetColor("_FlashColor", color);
         }
     }
 
@@ -67,10 +80,5 @@ public class SimpleFlash : MonoBehaviour
         {
             materials[i].SetFloat("_FlashAmount", amount);
         }
-    }
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 }

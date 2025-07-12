@@ -6,17 +6,26 @@ public class DashRefresh : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private float respawnTime = 5f;
     [SerializeField] private bool canRefreshAerialDash = true;
+    [SerializeField] private float checkRadius = 0.5f;
 
-    private SpriteRenderer spriteRenderer;
+    [Header("Animation")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private string hitTrigger = "Hit";
+    [SerializeField] private string respawnTrigger = "Respawn";
+    [SerializeField] private string idleState = "Idle";
+
+    private Collider2D refreshCollider;
     private bool isActive = true;
     private float cooldownTimer = 0f;
-    private Color activeColor = Color.red;
-    private Color inactiveColor = Color.blue;
+    private LayerMask playerLayer;
 
     private void Awake()
     {
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        UpdateVisuals();
+        refreshCollider = GetComponent<Collider2D>();
+        playerLayer = LayerMask.GetMask("Player");
+
+        if (animator == null)
+            animator = GetComponent<Animator>();
     }
 
     private void Update()
@@ -29,46 +38,88 @@ public class DashRefresh : MonoBehaviour
                 Respawn();
             }
         }
+        else
+        {
+            CheckForPlayer();
+        }
+    }
+
+    private void CheckForPlayer()
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, checkRadius, playerLayer);
+        foreach (Collider2D hit in hits)
+        {
+            TryCollect(hit.GetComponent<PlayerController>());
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!isActive) return;
+        if (isActive) TryCollect(other.GetComponent<PlayerController>());
+    }
 
-        PlayerController player = other.GetComponent<PlayerController>();
-        if (player != null && player.isCurrentlyPlayable)
-        {
-            // Only refresh if player can't dash (unless aerial refresh is allowed)
-            if ((!player.isGrounded && !canRefreshAerialDash) || player.CanDash()) return;
+    private void TryCollect(PlayerController player)
+    {
+        if (player == null || !player.isCurrentlyPlayable) return;
+        if ((!player.isGrounded && !canRefreshAerialDash) || player.CanDash()) return;
 
-            Collect(player);
-        }
+        Collect(player);
     }
 
     private void Collect(PlayerController player)
     {
-        // Refresh player's dash
         player.m_hasDashedInAir = false;
         player.currentStamina = player.maxStamina;
         player.UpdateStaminaBar();
 
-        // Deactivate object
+        // Search for SimpleFlash in player or its children
+        SimpleFlash flash = player.GetComponentInChildren<SimpleFlash>();
+        if (flash != null)
+        {
+            flash.CallDashRefreshFlash();
+        }
+
         isActive = false;
         cooldownTimer = respawnTime;
-        UpdateVisuals();
-    }
+        refreshCollider.enabled = false;
 
+        if (animator != null)
+        {
+            animator.SetTrigger(hitTrigger);
+        }
+    }
     private void Respawn()
     {
         isActive = true;
-        UpdateVisuals();
+        refreshCollider.enabled = true;
+
+        if (animator != null)
+        {
+            // Use SetTrigger for respawn as well if it's a trigger
+            animator.SetTrigger(respawnTrigger);
+            // Or use Play if it's a state name
+            // animator.Play(idleState);
+        }
     }
 
-    private void UpdateVisuals()
+    // Animation Events
+    public void OnHitAnimationComplete()
     {
-        if (spriteRenderer != null)
+        // Animation ends on last frame automatically
+    }
+
+    public void OnRespawnAnimationComplete()
+    {
+        // Return to idle state after respawn completes
+        if (animator != null)
         {
-            spriteRenderer.color = isActive ? activeColor : inactiveColor;
+            animator.Play(idleState);
         }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, checkRadius);
     }
 }
