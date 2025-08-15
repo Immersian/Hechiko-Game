@@ -14,15 +14,14 @@ public class PlayerAttack : MonoBehaviour
     public float groundSlamImpactRadius = 2f;
     public float groundSlamImpactForce = 10f;
     public LayerMask groundSlamAffectedLayers;
-    public float groundSlamLockDuration = 0.5f; // Time player is locked after ground slam impact
+    public float groundSlamLockDuration = 0.5f;
 
     [Header("Upward Launch Attack")]
     [SerializeField] private float upwardLaunchForce = 25f;
     [SerializeField] private float launchDelay = 0.1f;
-    [SerializeField] private float upwardAttackStaminaCost = 30f; // Added stamina cost
+    [SerializeField] private float upwardAttackStaminaCost = 30f;
     [SerializeField] private AudioClip upwardLaunchSound;
     [SerializeField] private GameObject upwardLaunchEffect;
-    // In PlayerAttack.cs, add this variable:
     public bool isInUpwardAttackRecovery = false;
     private bool isLaunching = false;
     private float lastUpwardAttackTime;
@@ -30,11 +29,16 @@ public class PlayerAttack : MonoBehaviour
     [Header("Attack Cooldowns")]
     public float[] attackCooldowns = new float[3] { 0.25f, 0.3f, 0.4f };
 
+    [Header("Dash Cooldown After Attack")]
+    [SerializeField] private float postAttackDashCooldown = 0.3f; // Separate cooldown for dash after attacking
+    private float timeSinceLastAttack = 0f;
+
     [Header("Effects")]
     public AudioClip[] attackSounds;
     public AudioClip downwardAttackSound;
     public AudioClip groundSlamImpactSound;
     public GameObject groundSlamEffect;
+    //[SerializeField] private Vector2 soundPitchRange = new Vector2(0.9f, 1.1f);
 
     [Header("References")]
     [SerializeField] private PlayerController playerController;
@@ -46,11 +50,15 @@ public class PlayerAttack : MonoBehaviour
     [Header("Attack Hitbox")]
     [SerializeField] private Collider2D attackHitbox;
 
+    [Header("Sound Settings")]
+    [SerializeField] private Vector2 pitchRange = new Vector2(0.9f, 1.1f); // Random pitch range
+    [SerializeField] private float pitchShiftDuration = 0.1f; // How long the pitch shift lasts
+
     // Component references
+    private Coroutine currentPitchShiftCoroutine;
+
     private Animator animator;
     private AudioSource audioSource;
-
-    // State variables
     private float timeSinceAttack;
     private int currentAttack;
     public bool isGroundSlamming = false;
@@ -63,11 +71,9 @@ public class PlayerAttack : MonoBehaviour
         animator = GetComponent<Animator>();
         audioSource = GetComponent<AudioSource>();
 
-        // Initialize attack states
         currentAttack = 0;
         timeSinceAttack = attackCooldowns[0];
 
-        // Try to find shockwave manager if not set
         if (shockWaveManager == null)
         {
             shockWaveManager = FindObjectOfType<ShockWaveManager>();
@@ -77,7 +83,6 @@ public class PlayerAttack : MonoBehaviour
             }
         }
 
-        // Safety checks
         if (playerController == null)
         {
             Debug.LogError("PlayerController reference not set in PlayerCombat!");
@@ -99,6 +104,7 @@ public class PlayerAttack : MonoBehaviour
     void Update()
     {
         timeSinceAttack += Time.deltaTime;
+        timeSinceLastAttack += Time.deltaTime;
 
         if (InputManager.instance.inputControl.Gameplay.Attack.WasPressedThisFrame())
         {
@@ -106,30 +112,28 @@ public class PlayerAttack : MonoBehaviour
             {
                 StartGroundSlam();
             }
-            else if (CanAttack() && !playerController.isDashing && !isGroundSlamming && !isInGroundSlamImpact)
+            // Only allow ground attacks when grounded
+            else if (playerController.isGrounded && CanAttack() && !playerController.isDashing && !isGroundSlamming && !isInGroundSlamImpact)
             {
                 PerformGroundAttack();
             }
         }
+
+        // Rest of your Update method remains the same...
         if (InputManager.instance.inputControl.Gameplay.Special.WasPressedThisFrame()
             && !isGroundSlamming
             && !isInGroundSlamImpact
-            && playerController.isGrounded) // Added grounded check
+            && playerController.isGrounded)
         {
             StartCoroutine(PerformUpwardLaunch());
         }
 
-
-        // Handle ground slam states
         UpdateGroundSlamState();
-
-        // Update falling animation state
         UpdateFallingAnimation();
     }
 
     private void UpdateGroundSlamState()
     {
-        // Handle ground slam impact lock duration
         if (isInGroundSlamImpact)
         {
             groundSlamLockTimer -= Time.deltaTime;
@@ -142,7 +146,6 @@ public class PlayerAttack : MonoBehaviour
             }
         }
 
-        // Check if we hit ground during ground slam
         if (isGroundSlamming && playerController.isGrounded)
         {
             EndGroundSlam();
@@ -151,7 +154,6 @@ public class PlayerAttack : MonoBehaviour
 
     private void UpdateFallingAnimation()
     {
-        // Set falling animation state
         bool shouldBeFalling = isGroundSlamming && !playerController.isGrounded;
         animator.SetBool("FallingGroundSlam", shouldBeFalling);
     }
@@ -162,18 +164,16 @@ public class PlayerAttack : MonoBehaviour
         playerController.canMove = false;
         playerController.canDash = false;
         playerController.canFlip = false;
-        playerController.m_wallGrabbing = false; // Force exit wall grab
+        playerController.m_wallGrabbing = false;
 
-        // Apply downward force
         playerRigidbody.velocity = new Vector2(playerRigidbody.velocity.x, -downwardAttackSpeed);
 
-        // Play sound if available
         if (downwardAttackSound != null)
         {
+            //audioSource.pitch = Random.Range(soundPitchRange.x, soundPitchRange.y);
             audioSource.PlayOneShot(downwardAttackSound);
         }
 
-        // Start falling animation
         animator.SetBool("FallingGroundSlam", true);
     }
 
@@ -183,23 +183,20 @@ public class PlayerAttack : MonoBehaviour
         isInGroundSlamImpact = true;
         groundSlamLockTimer = groundSlamLockDuration;
 
-        // Switch to impact animation
         animator.SetBool("FallingGroundSlam", false);
         animator.SetTrigger("GroundSlamImpact");
 
-        // Create impact effect
         if (groundSlamEffect != null)
         {
             Instantiate(groundSlamEffect, playerController.groundCheck.position, Quaternion.identity);
         }
 
-        // Play impact sound
         if (groundSlamImpactSound != null)
         {
+            //audioSource.pitch = Random.Range(soundPitchRange.x, soundPitchRange.y);
             audioSource.PlayOneShot(groundSlamImpactSound);
         }
 
-        // Apply impact force to nearby objects
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(
             playerController.groundCheck.position,
             groundSlamImpactRadius,
@@ -216,111 +213,99 @@ public class PlayerAttack : MonoBehaviour
             }
         }
 
-        // Camera shake
         if (playerController.cameraShake != null)
         {
             playerController.cameraShake.ShakeCamera(playerController.shakeIntensity * 1.5f, playerController.shakeTime * 1.2f);
         }
     }
+
     private IEnumerator PerformUpwardLaunch()
     {
-        // Only allow when grounded and has enough stamina
         if (!playerController.isGrounded || playerController.currentStamina < upwardAttackStaminaCost)
             yield break;
-
-        // Start the attack
         isLaunching = true;
-        isInUpwardAttackRecovery = true; // New state
+        isInUpwardAttackRecovery = true;
 
-        // Consume stamina
         playerController.currentStamina -= upwardAttackStaminaCost;
         playerController.UpdateStaminaBar();
 
-        // Disable movement during wind-up
         playerController.canMove = false;
         playerController.canDash = false;
 
-        // Trigger animation
         animator.SetTrigger("UpwardLaunch");
 
-        // Play sound if available
         if (upwardLaunchSound != null)
         {
+            PlayWithRandomPitch(upwardLaunchSound);
+        }
+
+        if (upwardLaunchSound != null)
+        {
+            //audioSource.pitch = Random.Range(soundPitchRange.x, soundPitchRange.y);
             audioSource.PlayOneShot(upwardLaunchSound);
         }
 
-        // Wait for the delay
         yield return new WaitForSeconds(launchDelay);
 
-        // Apply upward force
-        playerRigidbody.velocity = new Vector2(playerRigidbody.velocity.x, 0); // Reset vertical velocity first
+        playerRigidbody.velocity = new Vector2(playerRigidbody.velocity.x, 0);
         playerRigidbody.AddForce(Vector2.up * upwardLaunchForce, ForceMode2D.Impulse);
 
-        // Create effect if available
         if (upwardLaunchEffect != null)
         {
             Instantiate(upwardLaunchEffect, transform.position, Quaternion.identity);
         }
 
-        // Camera shake
         if (playerController.cameraShake != null)
         {
             playerController.cameraShake.ShakeCamera(playerController.shakeIntensity * 0.8f, playerController.shakeTime * 0.8f);
         }
 
-        // Re-enable movement after a short delay
         yield return new WaitForSeconds(0.1f);
         playerController.canMove = true;
         isLaunching = false;
 
-        // Clear recovery state when landing
         while (!playerController.isGrounded)
         {
             yield return null;
         }
         isInUpwardAttackRecovery = false;
-        playerController.canDash = true; // Re-enable dash only after landing
+        playerController.canDash = true;
     }
 
     private bool CanAttack()
     {
-        // Reset combo if too much time passed
+        // Only allow ground attacks when player is grounded
+        if (!playerController.isGrounded)
+            return false;
+
         if (timeSinceAttack > comboResetTime)
         {
             currentAttack = 0;
         }
 
-        // For first attack or after combo reset
         if (currentAttack == 0)
         {
             return timeSinceAttack >= attackCooldowns[0];
         }
 
-        // For subsequent attacks
         int cooldownIndex = Mathf.Clamp(currentAttack - 1, 0, attackCooldowns.Length - 1);
         return timeSinceAttack >= attackCooldowns[cooldownIndex];
     }
-
     private void PerformGroundAttack()
     {
-        // Advance combo counter
+        if (!playerController.isGrounded)
+            return;
+
         currentAttack = (currentAttack % maxComboCount) + 1;
         timeSinceAttack = 0f;
+        timeSinceLastAttack = 0f; // Reset the dash cooldown timer
 
-        // Trigger animation
         string triggerName = attackTriggerPrefix + currentAttack;
         animator.SetTrigger(triggerName);
-
-        // Play sound if available
-        if (attackSounds.Length >= currentAttack && attackSounds[currentAttack - 1] != null)
-        {
-            audioSource.PlayOneShot(attackSounds[currentAttack - 1]);
-        }
     }
-
-    public void TriggerShockwave()
+    public bool IsInPostAttackDashCooldown
     {
-        shockWaveManager.CallShockwave(true);
+        get { return timeSinceLastAttack < postAttackDashCooldown; }
     }
 
     // Animation Event - Called at the start of attack animations
@@ -332,6 +317,35 @@ public class PlayerAttack : MonoBehaviour
         {
             attackHitbox.enabled = true;
         }
+        // Play attack sound with randomized pitch
+        if (attackSounds.Length >= currentAttack && attackSounds[currentAttack - 1] != null)
+        {
+            PlayWithRandomPitch(attackSounds[currentAttack - 1]);
+        }
+
+
+    }
+    private void PlayWithRandomPitch(AudioClip clip)
+    {
+        // Stop any existing pitch shift
+        if (currentPitchShiftCoroutine != null)
+        {
+            StopCoroutine(currentPitchShiftCoroutine);
+        }
+
+        // Set random pitch and play sound
+        float randomPitch = Random.Range(pitchRange.x, pitchRange.y);
+        audioSource.pitch = randomPitch;
+        audioSource.PlayOneShot(clip);
+
+        // Start coroutine to reset pitch
+        currentPitchShiftCoroutine = StartCoroutine(ResetPitch());
+    }
+    private IEnumerator ResetPitch()
+    {
+        yield return new WaitForSeconds(pitchShiftDuration);
+        audioSource.pitch = 1.0f; // Reset to default pitch
+        currentPitchShiftCoroutine = null;
     }
 
     public void OnAttackEnd()
@@ -339,20 +353,17 @@ public class PlayerAttack : MonoBehaviour
         playerController.canMove = true;
         playerController.canDash = true;
 
-        // Disable hitbox when attack ends
         if (attackHitbox != null)
         {
             attackHitbox.enabled = false;
         }
     }
 
-    // In PlayerAttack.cs
     public void OnDashStart()
     {
         if (attackHitbox != null)
         {
             attackHitbox.enabled = true;
-            Debug.Log("Dash hitbox enabled"); // For debugging
         }
     }
 
@@ -361,17 +372,20 @@ public class PlayerAttack : MonoBehaviour
         if (attackHitbox != null)
         {
             attackHitbox.enabled = false;
-            Debug.Log("Dash hitbox disabled"); // For debugging
         }
     }
 
-    // Add this for safety in case attack is interrupted
     public void OnDisable()
     {
         if (attackHitbox != null)
         {
             attackHitbox.enabled = false;
         }
+    }
+
+    public void TriggerShockwave()
+    {
+        shockWaveManager.CallShockwave(true);
     }
 
     private void OnDrawGizmosSelected()

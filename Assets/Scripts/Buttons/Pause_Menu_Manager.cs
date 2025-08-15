@@ -7,7 +7,8 @@ using UnityEngine.EventSystems; // Required for EventSystem
 public class Pause_Menu_Manager : MonoBehaviour
 {
     public static bool Paused = false;
-    public GameObject PauseMenuCanvas;
+    public GameObject PauseMenuCanvas;   
+    public GameObject Canvas;
     public UnityEngine.UI.Button firstSelectedButton; // Assign in Inspector
 
     void Start()
@@ -34,6 +35,7 @@ public class Pause_Menu_Manager : MonoBehaviour
     void Stop()
     {
         PauseMenuCanvas.SetActive(true);
+        Canvas.SetActive(false);
         Time.timeScale = 0.0f;
         InputManager.instance.SetGameplayInputEnabled(false);
 
@@ -55,6 +57,7 @@ public class Pause_Menu_Manager : MonoBehaviour
     public void Play()
     {
         PauseMenuCanvas.SetActive(false);
+        Canvas.SetActive(true);
         Time.timeScale = 1f;
         InputManager.instance.SetGameplayInputEnabled(true);
 
@@ -68,6 +71,11 @@ public class Pause_Menu_Manager : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(null);
 
         Paused = false;
+    }
+
+    public void Restart()
+    {
+        SceneManager.LoadScene("Part 1");
     }
 
     public void QuitGame()

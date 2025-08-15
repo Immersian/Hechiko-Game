@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 7400638406774827936}
   m_Layer: 0
   m_Name: Enemy Projectile
-  m_TagString: Untagged
+  m_TagString: SpecialAttack
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -77,7 +77,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 50
-  m_Sprite: {fileID: 570810842, guid: 932be0d780fcbcc4a8a7b67e81fb26b1, type: 3}
+  m_Sprite: {fileID: 417032744, guid: 088f565afc7ac13438559b017ff758ec, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -137,6 +137,9 @@ MonoBehaviour:
   hitEffect: {fileID: 0}
   effectDestroyTime: 1
   isObjectParryable: 1
+  parryFromAnySide: 1
+  perfectParryOnly: 0
+  perfectParryWindow: 0.1
 --- !u!61 &8961328530681018711
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -173,14 +176,14 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 3.2, y: 3.2}
+    oldSize: {x: 0.87, y: 0.27}
     newSize: {x: 3.2, y: 3.2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.82, y: 0.82}
+  m_Size: {x: 0.82, y: 0.30474854}
   m_EdgeRadius: 0
 --- !u!114 &7400638406774827936
 MonoBehaviour:
@@ -195,4 +198,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   force: 10
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 1280
   destroyDelay: 0

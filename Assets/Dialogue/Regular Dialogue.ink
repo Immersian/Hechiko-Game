@@ -1,9 +1,6 @@
 VAR interaction_count = 0
 
-This is a test for regular dialogue
-
-It works
-
-go away now
-
+Here are phaseable platforms
+When you dash, some platforms become solid and some dissapear.
+Go ahead and try it out
 -> END

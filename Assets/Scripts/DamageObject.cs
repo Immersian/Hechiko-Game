@@ -78,10 +78,7 @@ public class DamageObject : MonoBehaviour
 
             if (parryFromAnySide)
             {
-                // Any direction parry
                 canBeParried = playerParry.IsParryActive;
-
-                // Additional perfect parry check if enabled
                 if (perfectParryOnly)
                 {
                     canBeParried &= activeTime <= perfectParryWindow;
@@ -89,10 +86,8 @@ public class DamageObject : MonoBehaviour
             }
             else
             {
-                // Directional parry
                 EnemyMovement enemyMovement = GetComponentInParent<EnemyMovement>();
                 canBeParried = playerParry.CanParryAttack(enemyMovement);
-
                 if (perfectParryOnly)
                 {
                     canBeParried &= activeTime <= perfectParryWindow;
@@ -102,28 +97,59 @@ public class DamageObject : MonoBehaviour
             if (canBeParried)
             {
                 playerParry.Parried();
-                OnParried(); // Handle parry success on this object
+                OnParried();
                 return;
             }
         }
 
-        // 2. Check other invulnerability states
-        if ((playerController != null && playerController.isDashing) ||
-            (playerAttack != null && playerAttack.isGroundSlamming))
+        bool isSpecialAttack = gameObject.CompareTag("SpecialAttack");
+
+        // 2. Check if we should apply damage
+        bool shouldDamage = true;
+
+        // Always respect post-hit invulnerability
+        if (playerHealth.isInvulnerable)
         {
-            return;
+            shouldDamage = false;
+        }
+        // For non-special attacks, respect dash/slam invulnerability
+        else if (!isSpecialAttack &&
+                 ((playerController != null && playerController.isDashing) ||
+                  (playerAttack != null && playerAttack.isGroundSlamming)))
+        {
+            shouldDamage = false;
         }
 
-        // 3. Apply damage if not blocked
-        playerHealth.TakeDamage(damageAmount);
-        SpawnHitEffect();
-
+        // 3. Apply knockback if configured
+        // Special attacks should always apply knockback, even during dash
         if (applyKnockback && playerController != null)
         {
-            ApplyKnockback(playerCollider, playerController);
+            // Only skip knockback for non-special attacks during dash/slam
+            if (!isSpecialAttack &&
+                ((playerController.isDashing) ||
+                 (playerAttack != null && playerAttack.isGroundSlamming)))
+            {
+                // Don't apply knockback for normal attacks during invulnerable states
+            }
+            else
+            {
+                ApplyKnockback(playerCollider, playerController);
+            }
         }
 
-        if (destroyOnContact && canDestroy)
+        // 4. Apply damage if allowed
+        if (shouldDamage)
+        {
+            playerHealth.TakeDamage(damageAmount, gameObject);
+            SpawnHitEffect();
+
+            if (destroyOnContact && canDestroy)
+            {
+                Destroy(gameObject);
+            }
+        }
+        // Still destroy on contact even if no damage was dealt (if configured)
+        else if (destroyOnContact && canDestroy)
         {
             Destroy(gameObject);
         }

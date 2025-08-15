@@ -3,82 +3,139 @@ using UnityEngine;
 
 public class SimpleFlash : MonoBehaviour
 {
-    [Header("Damage Flash")]
-    [SerializeField] private Color damageFlashColor = Color.red;
+    [Header("Flash Settings")]
     [SerializeField] private float flashTime = 0.25f;
 
-    [Header("Other Flash Colors")]
-    [SerializeField] private Color dashRefreshColor = Color.cyan;
+    [Header("Damage Flash")]
+    [SerializeField] private Color damageFlashColor = Color.red;
+    [SerializeField] private Color dashedFlashColor = Color.cyan;
+
+    [Header("Dash Colors")]
+    [SerializeField] private Color dashFlashColor = Color.white;
+    [SerializeField] private Color noDashColor = new Color(0.243f, 0.749f, 0.769f); // #3ebfc4
+    [SerializeField] private Color defaultColor = new Color(0.878f, 0.094f, 0.051f); // E0180D
+
+    [Header("Material References")]
+    [SerializeField] private Material flashMaterial;
+    [SerializeField] private Material paletteMaterial;
 
     private SpriteRenderer[] spriteRenderers;
-    private Material[] materials;
+    private Material[] originalMaterials;
     private Coroutine flashCoroutine;
+    private Coroutine dashColorRoutine;
+    private Color currentFlashColor;
 
     void Start()
     {
         spriteRenderers = GetComponentsInChildren<SpriteRenderer>();
-        Init();
+        StoreOriginalMaterials();
+        RegularColour();
     }
 
-    private void Init()
+    private void StoreOriginalMaterials()
     {
-        materials = new Material[spriteRenderers.Length];
+        originalMaterials = new Material[spriteRenderers.Length];
         for (int i = 0; i < spriteRenderers.Length; i++)
         {
-            materials[i] = spriteRenderers[i].material;
+            originalMaterials[i] = spriteRenderers[i].material;
         }
     }
 
-    // Default damage flash
-    public void CallDFlash()
-    {
-        Flash(damageFlashColor);
-    }
-
-    // New method for dash refresh flash
-    public void CallDashRefreshFlash()
-    {
-        Flash(dashRefreshColor);
-    }
-
-    // Generic flash method
-    public void Flash(Color color)
+    // Damage flash effect (red)
+    public void CallHurtFlash()
     {
         if (flashCoroutine != null)
             StopCoroutine(flashCoroutine);
 
-        flashCoroutine = StartCoroutine(FlashRoutine(color));
+        currentFlashColor = damageFlashColor;
+        flashCoroutine = StartCoroutine(FlashRoutine());
+    }
+    public void CallDashFlash()
+    {
+        if (flashCoroutine != null)
+            StopCoroutine(flashCoroutine);
+
+        currentFlashColor = dashedFlashColor;
+        flashCoroutine = StartCoroutine(FlashRoutine());
     }
 
-    private IEnumerator FlashRoutine(Color color)
+    // Dash transition (white flash)
+    public void DashingTrans()
     {
-        SetFlashColor(color);
+        if (dashColorRoutine != null)
+            StopCoroutine(dashColorRoutine);
 
-        float currentFlashAmount = 0f;
+        currentFlashColor = dashFlashColor;
+        dashColorRoutine = StartCoroutine(DashFlashRoutine());
+    }
+
+    // When player can't dash
+    public void NoDash()
+    {
+        SetPaletteColor(noDashColor);
+    }
+
+    // Return to regular color
+    public void RegularColour()
+    {
+        SetPaletteColor(defaultColor);
+    }
+
+    private IEnumerator FlashRoutine()
+    {
+        // Apply flash material to all renderers
+        foreach (var renderer in spriteRenderers)
+        {
+            renderer.material = flashMaterial;
+            renderer.material.SetColor("_FlashColor", currentFlashColor);
+        }
+
+        // Animate flash
         float elapsedTime = 0f;
-
         while (elapsedTime < flashTime)
         {
             elapsedTime += Time.deltaTime;
-            currentFlashAmount = Mathf.Lerp(1f, 0f, (elapsedTime / flashTime));
-            SetFlashAmount(currentFlashAmount);
+            float flashAmount = Mathf.Lerp(1f, 0f, elapsedTime / flashTime);
+            foreach (var renderer in spriteRenderers)
+            {
+                renderer.material.SetFloat("_FlashAmount", flashAmount);
+            }
             yield return null;
         }
-    }
 
-    private void SetFlashColor(Color color)
-    {
-        for (int i = 0; i < materials.Length; i++)
+        // Restore original materials
+        for (int i = 0; i < spriteRenderers.Length; i++)
         {
-            materials[i].SetColor("_FlashColor", color);
+            spriteRenderers[i].material = originalMaterials[i];
         }
     }
 
-    private void SetFlashAmount(float amount)
+    private IEnumerator DashFlashRoutine()
     {
-        for (int i = 0; i < materials.Length; i++)
+        // Store current palette color
+        Color currentColor = paletteMaterial.GetColor("_DashUsed");
+
+        // Flash with specified color
+        SetPaletteColor(currentFlashColor);
+        yield return new WaitForSeconds(0.1f);
+
+        // Restore color
+        SetPaletteColor(currentColor);
+    }
+
+    private void SetPaletteColor(Color color)
+    {
+        // Update the palette material
+        paletteMaterial.SetColor("_DashUsed", color);
+
+        // Update all renderers using the palette material
+        foreach (var renderer in spriteRenderers)
         {
-            materials[i].SetFloat("_FlashAmount", amount);
+            if (renderer.material == paletteMaterial ||
+                renderer.material.HasProperty("_DashUsed"))
+            {
+                renderer.material.SetColor("_DashUsed", color);
+            }
         }
     }
 }

@@ -7,22 +7,28 @@ public class DashRefresh : MonoBehaviour
     [SerializeField] private float respawnTime = 5f;
     [SerializeField] private bool canRefreshAerialDash = true;
     [SerializeField] private float checkRadius = 0.5f;
+    [SerializeField] private bool refreshOnlyWhenNeeded = true;
+
+    [Header("Visual Feedback")]
+    [SerializeField] private GameObject collectEffect;
+    [SerializeField] private float effectDuration = 1f;
 
     [Header("Animation")]
     [SerializeField] private Animator animator;
     [SerializeField] private string hitTrigger = "Hit";
     [SerializeField] private string respawnTrigger = "Respawn";
-    [SerializeField] private string idleState = "Idle";
 
     private Collider2D refreshCollider;
     private bool isActive = true;
     private float cooldownTimer = 0f;
     private LayerMask playerLayer;
+    private SimpleFlash flashEffect;
 
     private void Awake()
     {
         refreshCollider = GetComponent<Collider2D>();
         playerLayer = LayerMask.GetMask("Player");
+        flashEffect = GetComponentInChildren<SimpleFlash>();
 
         if (animator == null)
             animator = GetComponent<Animator>();
@@ -38,7 +44,11 @@ public class DashRefresh : MonoBehaviour
                 Respawn();
             }
         }
-        else
+    }
+
+    private void FixedUpdate()
+    {
+        if (isActive)
         {
             CheckForPlayer();
         }
@@ -61,24 +71,40 @@ public class DashRefresh : MonoBehaviour
     private void TryCollect(PlayerController player)
     {
         if (player == null || !player.isCurrentlyPlayable) return;
-        if ((!player.isGrounded && !canRefreshAerialDash) || player.CanDash()) return;
 
-        Collect(player);
+        // Check if we should refresh based on conditions
+        bool shouldRefresh = true;
+        if (refreshOnlyWhenNeeded)
+        {
+            shouldRefresh = (!player.isGrounded && canRefreshAerialDash && player.m_hasDashedInAir) ||
+                          (!player.CanDash() && (player.isGrounded || canRefreshAerialDash));
+        }
+        if (shouldRefresh)
+        {
+            Collect(player);
+        }
     }
 
     private void Collect(PlayerController player)
     {
-        player.m_hasDashedInAir = false;
-        player.currentStamina = player.maxStamina;
-        player.UpdateStaminaBar();
+        // Refresh the player's dash
+        player.RefreshDash();
 
         // Search for SimpleFlash in player or its children
         SimpleFlash flash = player.GetComponentInChildren<SimpleFlash>();
         if (flash != null)
         {
-            flash.CallDashRefreshFlash();
+            flash.CallDashFlash();
         }
 
+
+        if (collectEffect != null)
+        {
+            GameObject effect = Instantiate(collectEffect, transform.position, Quaternion.identity);
+            Destroy(effect, effectDuration);
+        }
+
+        // Disable the refresh object
         isActive = false;
         cooldownTimer = respawnTime;
         refreshCollider.enabled = false;
@@ -88,6 +114,7 @@ public class DashRefresh : MonoBehaviour
             animator.SetTrigger(hitTrigger);
         }
     }
+
     private void Respawn()
     {
         isActive = true;
@@ -95,10 +122,7 @@ public class DashRefresh : MonoBehaviour
 
         if (animator != null)
         {
-            // Use SetTrigger for respawn as well if it's a trigger
             animator.SetTrigger(respawnTrigger);
-            // Or use Play if it's a state name
-            // animator.Play(idleState);
         }
     }
 
@@ -113,7 +137,7 @@ public class DashRefresh : MonoBehaviour
         // Return to idle state after respawn completes
         if (animator != null)
         {
-            animator.Play(idleState);
+            animator.Play("Idle");
         }
     }
 

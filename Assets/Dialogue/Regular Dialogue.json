@@ -1,1 +1,1 @@
-﻿{"inkVersion":21,"root":[["^This is a test for regular dialogue","\n","^It works","\n","^go away now","\n","end",["done",{"#f":5,"#n":"g-0"}],null],"done",{"global decl":["ev",0,{"VAR=":"interaction_count"},"/ev","end",null],"#f":1}],"listDefs":{}}
+﻿{"inkVersion":21,"root":[["^Here are phaseable platforms","\n","^When you dash, some platforms become solid and some dissapear.","\n","^Go ahead and try it out","\n","end",["done",{"#f":5,"#n":"g-0"}],null],"done",{"global decl":["ev",0,{"VAR=":"interaction_count"},"/ev","end",null],"#f":1}],"listDefs":{}}

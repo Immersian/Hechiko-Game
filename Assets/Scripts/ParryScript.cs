@@ -146,6 +146,12 @@ public class ParryScript : MonoBehaviour
         {
             parryChargeSystem.AddCharge();
         }
+
+        // Trigger small shockwave effect
+        if (ShockWaveManager.Instance != null)
+        {
+            ShockWaveManager.Instance.CallSmallShockwave();
+        }
     }
 
     // Visual debug

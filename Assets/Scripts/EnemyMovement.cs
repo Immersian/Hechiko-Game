@@ -44,15 +44,26 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     private float lastAttackTime;
     private bool isAttacking = false;
 
+    [Header("Stun Settings")]
+    [SerializeField] private float stunDuration = 2f;
+    [SerializeField] private string stunBool = "Stun"; // Animation trigger name
+    private bool isStunned = false;
+    private float stunTimer = 0f;
+
     // Animation parameter
     private const string IS_ATTACKING = "isAttacking";
 
     [Header("Facing Direction")]
-    [SerializeField] private bool facingRight = true;  // Serialized field for Inspector
+    [SerializeField] private bool facingLeft = true;  // Changed from facingRight to facingLeft
+    [SerializeField] private bool flipSprite = true;  // Option to flip sprite vs scale
 
-    // Public properties for easy access
-    public bool EnemyFacingRight => facingRight;
-    public bool EnemyFacingLeft => !facingRight;
+    private float lastFlipTime;
+    [SerializeField] private float flipCooldown = 0.5f;
+
+    // Public properties updated for left-facing
+    public bool EnemyFacingLeft => facingLeft;
+    public bool EnemyFacingRight => !facingLeft;
+
 
     private bool isDetectingPlayer = false;
     private float currentDetectionTime;
@@ -110,6 +121,19 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
     void Update()
     {
+        if (isStunned)
+        {
+            stunTimer -= Time.deltaTime;
+            if (stunTimer <= 0)
+            {
+                isStunned = false;
+                animator.SetBool(stunBool, false);
+                ReturnToNearestPatrolPoint();
+            }
+            return;
+        }
+
+        // Rest of your existing Update() logic...
         if (TryGetComponent<EnemyDamageHandler>(out var health) && health.isDead)
         {
             rb.velocity = Vector2.zero;
@@ -124,8 +148,15 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
                 shouldReturnToPatrol = false;
             }
         }
-        // Check for ledges
-        atLedge = !Physics2D.Raycast(ledgeCheck.position, Vector2.down, ledgeCheckDistance, groundLayer);
+        // Check for ledges - only when moving
+        if (rb.velocity.magnitude > 0.1f)
+        {
+            atLedge = !Physics2D.Raycast(ledgeCheck.position, Vector2.down, ledgeCheckDistance, groundLayer);
+        }
+        else
+        {
+            atLedge = false;
+        }
 
         if (isChasing)
         {
@@ -189,6 +220,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         {
             ChasePlayer();
         }
+
         else if (!isWaiting && !isDetectingPlayer && !isAttacking)
         {
             Patrol();
@@ -231,7 +263,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         if (player == null) return 1f;
 
         Vector2 toPlayer = (player.position - transform.position).normalized;
-        float dotProduct = Vector2.Dot(toPlayer, facingRight ? Vector2.right : Vector2.left);
+        float dotProduct = Vector2.Dot(toPlayer, facingLeft ? Vector2.right : Vector2.left);
 
         // Player is in front (dot product > 0)
         if (dotProduct > 0.3f) // Using a threshold for "front"
@@ -287,11 +319,14 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
     public void OnAttackEnd()
     {
-        isAttacking = false; // Immediately stop attacking
+        isAttacking = false;
+        CheckFacePlayerAfterAttack(); // Add this line
     }
 
     void UpdateAnimations()
     {
+        if (isStunned) return; // Don't change animations while stunned
+
         bool isMoving = rb.velocity.magnitude > 0.1f && !isAttacking;
         animator.SetBool(IS_WALKING, isMoving && !isChasing);
         animator.SetBool(IS_RUNNING, isMoving && isChasing);
@@ -315,30 +350,53 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     }
     void UpdateFacingDirection()
     {
-        if (rb.velocity.x > 0 && !facingRight)
+        if (isAttacking || isStunned) return;
+
+        bool shouldFaceLeft = facingLeft;
+
+        // Special case when at ledge - always face toward player if they're on the other side
+        if (player != null && (atLedge || isChasing))
         {
-            Flip();
+            shouldFaceLeft = player.position.x < transform.position.x;
         }
-        else if (rb.velocity.x < 0 && facingRight)
+        // Normal movement facing direction
+        else if (Mathf.Abs(rb.velocity.x) > 0.1f)
+        {
+            shouldFaceLeft = rb.velocity.x < 0;
+        }
+
+        // Only flip if needed and cooldown has passed
+        if (shouldFaceLeft != facingLeft && Time.time >= lastFlipTime + flipCooldown)
         {
             Flip();
         }
     }
 
+
     void Patrol()
     {
-        // Don't patrol if at ledge
-        if (atLedge)
+        // Only check for ledges when actually moving toward a target
+        if (Vector2.Distance(transform.position, currentTarget.position) > 0.5f)
         {
-            Debug.Log("At Ledge");
-            rb.velocity = Vector2.zero;
-            return;
+            if (atLedge)
+            {
+                rb.velocity = Vector2.zero;
+
+                // Face toward patrol point while at ledge
+                bool targetOnLeft = currentTarget.position.x < transform.position.x;
+                if (targetOnLeft != facingLeft && Time.time >= lastFlipTime + flipCooldown)
+                {
+                    Flip();
+                }
+
+                StartWaiting();
+                return;
+            }
+
+            Vector2 direction = (currentTarget.position - transform.position).normalized;
+            rb.velocity = new Vector2(direction.x * patrolSpeed, rb.velocity.y);
         }
-
-        Vector2 direction = (currentTarget.position - transform.position).normalized;
-        rb.velocity = new Vector2(direction.x * patrolSpeed, rb.velocity.y);
-
-        if (Vector2.Distance(transform.position, currentTarget.position) < 0.5f)
+        else
         {
             StartWaiting();
         }
@@ -349,7 +407,6 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     {
         if (player == null || isAttacking) return;
 
-        // Don't chase if still in recovery phase after attack
         if (Time.time < lastAttackTime + attackRecoveryTime)
         {
             rb.velocity = Vector2.zero;
@@ -358,25 +415,28 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
-        // Stop chasing if in attack range (attack will handle the rest)
         if (distanceToPlayer <= attackRange)
         {
             rb.velocity = Vector2.zero;
             return;
         }
 
-        // Stop at ledges during chase
         if (atLedge)
         {
             rb.velocity = Vector2.zero;
+            chaseLedgeTimer += Time.deltaTime;
 
-            // Face toward player if they're on the other side of the ledge
-            if ((player.position.x > transform.position.x && !facingRight) ||
-                (player.position.x < transform.position.x && facingRight))
+            // Face toward player while at ledge
+            bool playerOnLeft = player.position.x < transform.position.x;
+            if (playerOnLeft != facingLeft && Time.time >= lastFlipTime + flipCooldown)
             {
                 Flip();
             }
 
+            if (chaseLedgeTimer > chaseLedgeWaitTime)
+            {
+                GiveUpChase();
+            }
             return;
         }
 
@@ -439,7 +499,46 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         returnToPatrolTimer = 0f;
         Debug.Log("Player left detection zone - returning to patrol");
     }
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Shockwave") && !isStunned)
+        {
+            if (TryGetComponent<EnemyDamageHandler>(out var health) && health.isDead)
+                return;
 
+            isStunned = true;
+            stunTimer = stunDuration;
+            rb.velocity = Vector2.zero; // Stop movement
+
+            // Trigger stun animation
+            if (animator != null)
+            {
+                animator.SetBool(stunBool, true);
+            }
+
+            // Cancel any current actions
+            isChasing = false;
+            isDetectingPlayer = false;
+            isAttacking = false;
+            isWaiting = false;
+        }
+    }
+    void CheckFacePlayerAfterAttack()
+    {
+        if (isAttacking || player == null) return;
+
+        // Only check if player is still in attack range after attack ends
+        if (Vector2.Distance(transform.position, player.position) <= attackRange)
+        {
+            bool shouldFaceLeft = player.position.x < transform.position.x;
+
+            // Only flip if not already facing the correct direction
+            if (shouldFaceLeft != facingLeft)
+            {
+                Flip();
+            }
+        }
+    }
     public void CancelAttack()
     {
         // Immediately stop attacking state
@@ -454,16 +553,20 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
     void Flip()
     {
-        facingRight = !facingRight;
+        if (Time.time < lastFlipTime + flipCooldown) return;
+
+        facingLeft = !facingLeft;
         Vector3 scale = transform.localScale;
         scale.x *= -1;
         transform.localScale = scale;
+
+        lastFlipTime = Time.time;
     }
 
     private void OnDrawGizmosSelected()
     {
         // Visualize detection zones
-        if (facingRight)
+        if (facingLeft)
         {
             Gizmos.color = new Color(0, 1, 0, 0.3f);
             Gizmos.DrawRay(transform.position, Vector2.right * 2f);

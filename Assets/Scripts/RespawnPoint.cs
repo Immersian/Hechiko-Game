@@ -9,7 +9,7 @@ public class RespawnPoint : MonoBehaviour
 
     [Header("Fade Settings")]
     [SerializeField] private float respawnDelay = 0.2f;
-    [SerializeField] private float fadeDuration = 0.5f;
+    [SerializeField] private float fadeDuration = 0.5f; // This will be used for both fade in and out
     [SerializeField] private CrossFade crossFade;
 
     private void Awake()
@@ -81,7 +81,7 @@ public class RespawnPoint : MonoBehaviour
         // Fade in
         if (crossFade != null)
         {
-            yield return crossFade.FadeIn();
+            yield return StartCoroutine(crossFade.FadeIn(fadeDuration));
         }
 
         // Wait for the delay
@@ -93,7 +93,7 @@ public class RespawnPoint : MonoBehaviour
         // Fade out
         if (crossFade != null)
         {
-            yield return crossFade.FadeOut();
+            yield return StartCoroutine(crossFade.FadeOut(fadeDuration));
         }
 
         // Unfreeze player
@@ -101,4 +101,3 @@ public class RespawnPoint : MonoBehaviour
     }
 }
 
-// Helper component for child objects

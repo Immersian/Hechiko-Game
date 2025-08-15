@@ -46,7 +46,10 @@ public class ParryChargeSystem : MonoBehaviour
             chargeImages[i].color = (i < currentCharges) ? activeColor : inactiveColor;
         }
     }
-
+    public bool HasFullCharge()
+    {
+        return currentCharges >= maxCharges;
+    }
     // For testing in editor without parrying
     [ContextMenu("Add Test Charge")]
     private void AddTestCharge()

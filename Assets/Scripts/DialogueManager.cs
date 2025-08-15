@@ -1,21 +1,22 @@
 using Ink.Runtime;
-using SupanthaPaul;
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
+using System.Collections;
+using System.Collections.Generic;
+using SupanthaPaul;
 
 public class DialogueManager : MonoBehaviour
 {
-    [Header("Dialogue UI")]
-    [SerializeField] private GameObject dialoguePanel;
-    [SerializeField] private TextMeshProUGUI dialoguetext;
-    [SerializeField] private GameObject interactIcon;
+    [Header("Left Dialogue UI")]
+    [SerializeField] private GameObject leftDialogueCanvas;
+    [SerializeField] private TextMeshProUGUI leftDialogueText;
+    [SerializeField] private GameObject[] leftChoiceButtons;
 
-    [Header("Choices UI")]
-    [SerializeField] private GameObject[] choiceButtons;
-    private TextMeshProUGUI[] choicesText;
+    [Header("Right Dialogue UI")]
+    [SerializeField] private GameObject rightDialogueCanvas;
+    [SerializeField] private TextMeshProUGUI rightDialogueText;
+    [SerializeField] private GameObject[] rightChoiceButtons;
 
     [Header("Params")]
     [SerializeField] private float typingSpeed = 0.04f;
@@ -24,98 +25,84 @@ public class DialogueManager : MonoBehaviour
     public bool dialogueIsPlaying { get; private set; }
     private bool canContinueToNextLine = false;
     private Coroutine displayLineCoroutine;
-    private static DialogueManager instance;
-    
-    // Track interaction count per NPC
     private Dictionary<string, int> interactionCounts = new Dictionary<string, int>();
+
+    // Current active UI elements
+    private GameObject currentDialogueCanvas;
+    private TextMeshProUGUI currentDialogueText;
+    private GameObject[] currentChoiceButtons;
+    private TextMeshProUGUI[] currentChoicesText;
 
     private void Awake()
     {
-        if (instance != null)
-        {
-            Debug.LogWarning("Found more than one Dialogue Manager in the scene");
-        }
-        instance = this;
+        // Initialize choices text arrays
+        InitializeChoiceButtons(leftChoiceButtons, out _);
+        InitializeChoiceButtons(rightChoiceButtons, out _);
 
-        // Initialize choices UI
-        choicesText = new TextMeshProUGUI[choiceButtons.Length];
-        for (int i = 0; i < choiceButtons.Length; i++)
-        {
-            choicesText[i] = choiceButtons[i].GetComponentInChildren<TextMeshProUGUI>();
-        }
+        // Ensure canvases are disabled at start
+        leftDialogueCanvas?.SetActive(false);
+        rightDialogueCanvas?.SetActive(false);
     }
 
-    public static DialogueManager GetInstance()
+    private void InitializeChoiceButtons(GameObject[] buttons, out TextMeshProUGUI[] choicesText)
     {
-        return instance;
+        choicesText = new TextMeshProUGUI[buttons.Length];
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            choicesText[i] = buttons[i].GetComponentInChildren<TextMeshProUGUI>();
+        }
     }
-
-    private void Start()
-    {
-        dialogueIsPlaying = false;
-        dialoguePanel.SetActive(false);
-        HideChoices();
-    }
-
     private void Update()
     {
-        if (!dialogueIsPlaying)
+        // Only handle input when dialogue is playing
+        if (dialogueIsPlaying)
         {
-            return;
-        }
-
-        if (InputManager.instance.inputControl.Dialogue.Interact.WasPressedThisFrame() && 
-            currentStory.currentChoices.Count == 0 && canContinueToNextLine)
-        {
-            ContinueStory();
+            HandleContinueClick();
         }
     }
-
-    public void EnterDialogueMode(TextAsset inkJSON, string npcID)
+    public void StartDialogue(TextAsset inkJSON, string npcID, bool playerIsLeft)
     {
-        if (inkJSON == null)
+        // Set up the appropriate UI based on player position
+        if (playerIsLeft)
         {
-            Debug.LogError("Ink JSON file is null!");
-            return;
+            currentDialogueCanvas = rightDialogueCanvas;
+            currentDialogueText = rightDialogueText;
+            currentChoiceButtons = rightChoiceButtons;
+        }
+        else
+        {
+            currentDialogueCanvas = leftDialogueCanvas;
+            currentDialogueText = leftDialogueText;
+            currentChoiceButtons = leftChoiceButtons;
         }
 
-        // Get or create interaction count for this NPC
+        // Initialize choices text
+        currentChoicesText = new TextMeshProUGUI[currentChoiceButtons.Length];
+        for (int i = 0; i < currentChoiceButtons.Length; i++)
+        {
+            currentChoicesText[i] = currentChoiceButtons[i].GetComponentInChildren<TextMeshProUGUI>();
+        }
+
+        // Initialize interaction count
         if (!interactionCounts.ContainsKey(npcID))
         {
             interactionCounts[npcID] = 0;
         }
         interactionCounts[npcID]++;
 
+        // Disable player movement
         PlayerController player = FindObjectOfType<PlayerController>();
-        if (player != null)
-        {
-            player.DisableMovement();
-        }
+        player?.DisableMovement();
 
         InputManager.instance.SetGameplayInputEnabled(false);
 
+        // Start the story
         currentStory = new Story(inkJSON.text);
-        
-        // Set the interaction count in Ink
         currentStory.variablesState["interaction_count"] = interactionCounts[npcID];
-        
-        dialogueIsPlaying = true;
-        dialoguePanel.SetActive(true);
-        ContinueStory();
-    }
 
-    private void ExitDialogueMode()
-    {
-        dialogueIsPlaying = false;
-        dialoguePanel.SetActive(false);
-        dialoguetext.text = "";
-        InputManager.instance.SetGameplayInputEnabled(true);
-        
-        PlayerController player = FindObjectOfType<PlayerController>();
-        if (player != null)
-        {
-            player.EnableMovement();
-        }
+        dialogueIsPlaying = true;
+        currentDialogueCanvas.SetActive(true);
+        ContinueStory();
     }
 
     private void ContinueStory()
@@ -137,20 +124,19 @@ public class DialogueManager : MonoBehaviour
 
     private IEnumerator DisplayLine(string line)
     {
-        // Skip empty lines
         if (string.IsNullOrWhiteSpace(line))
         {
             ContinueStory();
             yield break;
         }
 
-        dialoguetext.text = "";
+        currentDialogueText.text = "";
         canContinueToNextLine = false;
         HideChoices();
 
         foreach (char letter in line.ToCharArray())
         {
-            dialoguetext.text += letter;
+            currentDialogueText.text += letter;
             yield return new WaitForSeconds(typingSpeed);
         }
 
@@ -164,15 +150,14 @@ public class DialogueManager : MonoBehaviour
 
         if (currentChoices.Count > 0)
         {
-            interactIcon.SetActive(false);
             InputManager.instance.SetDialogueInputEnabled(false);
-            
+
             for (int i = 0; i < currentChoices.Count; i++)
             {
-                if (i < choiceButtons.Length)
+                if (i < currentChoiceButtons.Length)
                 {
-                    choiceButtons[i].gameObject.SetActive(true);
-                    choicesText[i].text = currentChoices[i].text;
+                    currentChoiceButtons[i].SetActive(true);
+                    currentChoicesText[i].text = currentChoices[i].text;
                 }
                 else
                 {
@@ -181,35 +166,37 @@ public class DialogueManager : MonoBehaviour
                 }
             }
 
-            for (int i = currentChoices.Count; i < choiceButtons.Length; i++)
+            for (int i = currentChoices.Count; i < currentChoiceButtons.Length; i++)
             {
-                choiceButtons[i].gameObject.SetActive(false);
+                currentChoiceButtons[i].SetActive(false);
             }
 
             StartCoroutine(SelectFirstChoice());
         }
         else
         {
-            interactIcon.SetActive(true);
             HideChoices();
             InputManager.instance.SetDialogueInputEnabled(true);
+
+            // Enable continue-on-click when there are no choices
+            canContinueToNextLine = true;
         }
     }
 
     private IEnumerator SelectFirstChoice()
     {
         yield return null;
-        if (choiceButtons.Length > 0 && choiceButtons[0].activeInHierarchy)
+        if (currentChoiceButtons.Length > 0 && currentChoiceButtons[0].activeInHierarchy)
         {
-            choiceButtons[0].GetComponent<Button>().Select();
+            currentChoiceButtons[0].GetComponent<Button>().Select();
         }
     }
 
     private void HideChoices()
     {
-        foreach (GameObject choiceButton in choiceButtons)
+        foreach (GameObject choiceButton in currentChoiceButtons)
         {
-            choiceButton.SetActive(false);
+            choiceButton?.SetActive(false);
         }
     }
 
@@ -220,5 +207,24 @@ public class DialogueManager : MonoBehaviour
             currentStory.ChooseChoiceIndex(choiceIndex);
             ContinueStory();
         }
+    }
+    private void HandleContinueClick()
+    {
+        if (InputManager.instance.inputControl.Dialogue.Interact.WasPressedThisFrame() &&
+            canContinueToNextLine &&
+            currentStory.currentChoices.Count == 0)
+        {
+            ContinueStory();
+        }
+    }
+    private void ExitDialogueMode()
+    {
+        dialogueIsPlaying = false;
+        currentDialogueCanvas?.SetActive(false);
+        currentDialogueText.text = "";
+        InputManager.instance.SetGameplayInputEnabled(true);
+
+        PlayerController player = FindObjectOfType<PlayerController>();
+        player?.EnableMovement();
     }
 }

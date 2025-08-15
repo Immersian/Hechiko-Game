@@ -8,7 +8,10 @@ public class BulletScript : MonoBehaviour
     private Rigidbody2D rb;
 
     public float force;
-    public float destroyDelay = 0.1f; // Small delay before destruction
+    [Header("Collision Settings")]
+    public LayerMask groundLayer; // Assign this in the Inspector to the ground layer
+    public LayerMask playerLayer; // Assign this in the Inspector to the player layer
+    public float destroyDelay = 0.1f;
 
     // Start is called before the first frame update
     void Start()
@@ -16,16 +19,28 @@ public class BulletScript : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         player = GameObject.FindGameObjectWithTag("Player");
 
-        Vector3 direction = player.transform.position - transform.position;
-        rb.velocity = new Vector2(direction.x, direction.y).normalized * force;
+        if (player != null)
+        {
+            Vector3 direction = player.transform.position - transform.position;
+            rb.velocity = direction.normalized * force;
 
-        float rot = Mathf.Atan2(-direction.y, -direction.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, 0, rot + 180);
+            float rot = Mathf.Atan2(-direction.y, -direction.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0, 0, rot + 180);
+        }
+        else
+        {
+            Destroy(gameObject); // No player found, destroy bullet
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
+        // Get the layer of the collided object
+        int otherLayer = other.gameObject.layer;
+
+        // Check if collided with player or ground using layers
+        if ((groundLayer.value & (1 << otherLayer)) != 0 ||
+            (playerLayer.value & (1 << otherLayer)) != 0)
         {
             // Destroy the bullet after a slight delay
             Destroy(gameObject, destroyDelay);

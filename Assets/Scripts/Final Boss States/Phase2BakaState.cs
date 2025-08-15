@@ -12,7 +12,7 @@ public class Phase2BakaState : BakaBossBaseState
         bossHealth = baka.GetComponent<BakaBossHealth>();
         attackManager = baka.GetComponent<BakaBossAttackManager>();
 
-        Debug.Log("Entered Phase 2 - Angry Lobster Mode");
+        Debug.Log("Entered Phase 2");
 
         // Initialize phase-specific values
         timer = 0f;
@@ -24,7 +24,7 @@ public class Phase2BakaState : BakaBossBaseState
     public override void UpdateState(BakaBossStateManager baka)
     {
         // Check for phase transition to phase 3
-        if (bossHealth != null && bossHealth.currentHealth <= 0)
+        if (bossHealth != null && bossHealth.currentHealth <= 50)
         {
             return;
         }

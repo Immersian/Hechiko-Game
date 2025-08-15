@@ -1,5 +1,6 @@
+using SupanthaPaul;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-
 
 [RequireComponent(typeof(Rigidbody2D), typeof(Animator))]
 public class EnemyDamageHandler : MonoBehaviour
@@ -15,16 +16,25 @@ public class EnemyDamageHandler : MonoBehaviour
     [SerializeField] private string hurtTrigger = "Hurt";
     [SerializeField] private string deathTrigger = "Die";
     [SerializeField] private float deathDestroyDelay = 2f;
+    [SerializeField] private AudioClip hurtSound;
+    [SerializeField] private AudioClip deathSound;
+    [SerializeField] private Vector2 soundPitchRange = new Vector2(0.9f, 1.1f);
 
     [Header("Knockback")]
     [SerializeField] private bool useKnockback = true;
     [SerializeField] private float knockbackResistance = 0.5f;
+
+    [Header("Dash Attack Settings")]  // New section
+    [SerializeField] private bool consumeAttackerStamina = true;
+    [SerializeField] private float staminaCostPercent = 0.2f;
+    [SerializeField] private PlayerController attacker;
 
     private float lastDamageTime;
     private Rigidbody2D rb;
     private Animator animator;
     private SimpleFlash flashEffect;
     private Collider2D[] colliders;
+    private AudioSource audioSource;
 
     void Start()
     {
@@ -33,12 +43,27 @@ public class EnemyDamageHandler : MonoBehaviour
         animator = GetComponent<Animator>();
         flashEffect = GetComponent<SimpleFlash>();
         colliders = GetComponentsInChildren<Collider2D>();
+
+        // Add AudioSource if not present
+        if (!TryGetComponent<AudioSource>(out audioSource))
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
     }
 
     public void TakeDamage(int damage, Vector2 hitDirection)
     {
         if (isDead || Time.time < lastDamageTime + invulnerabilityTime) return;
-
+        if (consumeAttackerStamina && attacker != null)
+        {
+            PlayerController playerController = attacker.GetComponent<PlayerController>();
+            if (playerController != null && playerController.isDashing)
+            {
+                float staminaCost = playerController.dashCost * staminaCostPercent;
+                playerController.currentStamina = Mathf.Max(0, playerController.currentStamina - staminaCost);
+                playerController.UpdateStaminaBar();
+            }
+        }
         // Immediately stop any attack animations
         if (TryGetComponent<EnemyMovement>(out var enemyMovement))
         {
@@ -49,9 +74,16 @@ public class EnemyDamageHandler : MonoBehaviour
         lastDamageTime = Time.time;
 
         // Visual Feedback
-        flashEffect.CallDFlash();
+        flashEffect.CallHurtFlash();
         animator.ResetTrigger(hurtTrigger);
         animator.SetTrigger(hurtTrigger);
+
+        // Sound Feedback
+        if (hurtSound != null)
+        {
+            audioSource.pitch = Random.Range(soundPitchRange.x, soundPitchRange.y);
+            audioSource.PlayOneShot(hurtSound);
+        }
 
         // Knockback
         if (useKnockback && rb != null)
@@ -72,10 +104,15 @@ public class EnemyDamageHandler : MonoBehaviour
         // Force stop all animations and transitions
         animator.ResetTrigger(hurtTrigger);
         animator.ResetTrigger(deathTrigger);
+        animator.SetBool("Stun", false);
         animator.SetTrigger(deathTrigger);
 
-        // If using Animator.CrossFade instead:
-        // animator.CrossFade(deathTrigger, 0.1f, 0);
+        // Play death sound
+        if (deathSound != null)
+        {
+            audioSource.pitch = 1f; // Reset to normal pitch for death sound
+            audioSource.PlayOneShot(deathSound);
+        }
 
         // Disable all colliders
         foreach (var collider in colliders)
@@ -105,11 +142,11 @@ public class EnemyDamageHandler : MonoBehaviour
             TakeDamage(attack.damage, hitDirection);
         }
     }
+
     public interface IEnemyController
     {
         void OnPlayerDetected();
         void OnPlayerLost();
         bool HasLineOfSightToPlayer();
     }
-
 }

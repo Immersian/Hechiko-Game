@@ -9,6 +9,9 @@ TagManager:
   - Keyboard
   - MovingPlatform
   - Player Attack
+  - Shockwave
+  - Lethal
+  - SpecialAttack
   layers:
   - Default
   - TransparentFX

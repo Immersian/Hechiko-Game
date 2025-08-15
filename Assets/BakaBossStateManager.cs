@@ -1,30 +1,29 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Playables;
 
 public class BakaBossStateManager : MonoBehaviour
 {
-
-    BakaBossBaseState currentState;
+    // All possible states
     public CutsceneBakaState cutsceneState = new CutsceneBakaState();
     public Phase1BakaState Phase1State = new Phase1BakaState();
+    public PhaseTransitionState phasecutsceneState = new PhaseTransitionState(); // Added this line
     public Phase2BakaState Phase2State = new Phase2BakaState();
+
+    [Header("Phase Transition")]
+    public PlayableDirector phaseTransitionCutscene;
 
     [SerializeField]
     public string currentStateName;
 
-    // Start is called before the first frame update
+    private BakaBossBaseState currentState;
+
     void Start()
     {
         currentState = cutsceneState;
-        //currentState = damagedBState;
-        //currentState = dizzyState;
         currentState.EnterState(this);
-        currentStateName = currentState.GetType().Name;
         currentStateName = currentState.GetType().Name;
     }
 
-    // Update is called once per frame 
     void Update()
     {
         currentState.UpdateState(this);

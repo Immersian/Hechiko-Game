@@ -3,25 +3,29 @@ using UnityEngine;
 public class Phase1BakaState : BakaBossBaseState
 {
     private BakaBossHealth bossHealth;
-    private BakaBossAttackManager lobsterAttackManager;
+    private BakaBossAttackManager attackManager;
 
     public override void EnterState(BakaBossStateManager baka)
     {
         bossHealth = baka.GetComponent<BakaBossHealth>();
-        lobsterAttackManager = baka.GetComponent<BakaBossAttackManager>();
-        Debug.Log("Lesbian Moment");
+        attackManager = baka.GetComponent<BakaBossAttackManager>();
+        Debug.Log("Entered Phase 1");
     }
 
     public override void UpdateState(BakaBossStateManager baka)
     {
-        if (bossHealth != null && bossHealth.currentHealth <= 50)
+        if (bossHealth != null && bossHealth.currentHealth <= 999)
         {
-            baka.SwitchState(baka.Phase2State);
+            // Stop any ongoing attacks before transitioning
+            attackManager?.StopAllAttacks();
+
+            // Transition to phase cutscene state
+            baka.SwitchState(baka.phasecutsceneState);
         }
     }
 
     public override void ExitState(BakaBossStateManager baka)
     {
-        // Clean up or prepare for state exit if needed
+        Debug.Log("Exiting Phase 1");
     }
 }

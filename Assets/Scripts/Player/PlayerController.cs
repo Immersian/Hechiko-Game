@@ -1,8 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
+using UnityEngine.UI;
 
 namespace SupanthaPaul
 {
@@ -69,6 +71,29 @@ namespace SupanthaPaul
         [SerializeField] private float wallJumpVerticalForce = 18f; // Separate vertical force control
         [SerializeField] private float wallStickCancelForce = 5f;
 
+        [Header("Healing Settings")]
+        [SerializeField] private float healAmount = 25f;
+        [SerializeField] private float healDuration = 1.5f;
+        [SerializeField] private float healCooldown = 3f;
+        [SerializeField] private GameObject healEffect;
+        [SerializeField] private AudioClip healSound;
+        private bool isHealing = false;
+        private float lastHealTime = -10f;
+        public event Action OnHealStart;
+        public event Action OnHealInterrupt;
+        public event Action<bool> OnHealingStateChanged;
+        public event Action OnHealComplete;
+
+        [Header("Potion Images")]
+        [SerializeField] private Image[] potionImages = new Image[3];
+        private int currentPotions = 0;
+        private int maxPotions = 3;
+
+        // Component references
+        public PlayerHealth playerHealth;
+        public Animator animator;
+        private AudioSource audioSource;
+
         [Header("Knockback Settings")]
         [SerializeField] private float knockbackDuration = 0.2f;
         [SerializeField] private float knockbackMovementLockDuration = 0.3f;
@@ -90,6 +115,17 @@ namespace SupanthaPaul
         [SerializeField] private float gizmoOuterRadius = 7f;
         [SerializeField] private Color gizmoInnerColor = new Color(1f, 0f, 0f, 0.3f); // Red with transparency
         [SerializeField] private Color gizmoOuterColor = new Color(1f, 1f, 0f, 0.2f); // Yellow with transparency
+
+        [Header("Dash Refresh Settings")]
+        [SerializeField] private float dashRefreshGracePeriod = 0.2f; // Time after refresh where dash state won't be updated
+        private float m_lastDashRefreshTime = -10f; // Initialize to a time far in the past
+        private bool m_dashRefreshedThisFrame = false;
+
+        [Header("Visual Feedback")]
+        [SerializeField] private SimpleFlash flashEffect;
+
+        [Header("Tilemap Phasing")]
+        [SerializeField] private TilemapBev tilemapBev; // Reference to the TilemapBev component
 
         private Rigidbody2D m_rb;
         private ParticleSystem m_dustParticle;
@@ -151,6 +187,8 @@ namespace SupanthaPaul
                 staminaBarFullWidth = staminaBar1.sizeDelta.x;
                 UpdateStaminaBar();
             }
+            currentPotions = maxPotions;
+            UpdatePotionImages();
             m_facingLeft = !m_facingRight;
             m_extraJumps = extraJumpCount;
             m_extraJumpForce = jumpForce * 0.7f;
@@ -158,6 +196,9 @@ namespace SupanthaPaul
             m_rb.interpolation = RigidbodyInterpolation2D.Interpolate;
             m_dustParticle = GetComponentInChildren<ParticleSystem>();
             _cameraFollowObject = _cameraFollowGO.GetComponent<CameraFollowObject>();
+            playerHealth = GetComponent<PlayerHealth>();
+            animator = GetComponentInChildren<Animator>();
+            audioSource = GetComponent<AudioSource>();
         }
 
         private void Update()
@@ -175,6 +216,7 @@ namespace SupanthaPaul
                 m_groundedRemember = m_groundedRememberTime;
                 m_extraJumps = extraJumpCount;
                 m_hasDashedInAir = false;
+                flashEffect.RegularColour();
             }
 
             // Handle dash input buffering
@@ -216,6 +258,11 @@ namespace SupanthaPaul
             {
                 HandleJumping();
             }
+            if (InputManager.instance.inputControl.Gameplay.Heal.WasPressedThisFrame())
+            {
+                TryHeal();
+                Debug.Log("Pressed 1");
+            }
         }
 
         private void FixedUpdate()
@@ -256,6 +303,7 @@ namespace SupanthaPaul
                 {
                     m_dashTimeRemaining -= Time.fixedDeltaTime;
                     m_rb.velocity = m_dashDirection * dashSpeed;
+                    flashEffect.DashingTrans();
                 }
                 else
                 {
@@ -263,10 +311,20 @@ namespace SupanthaPaul
                     isDashing = false;
                     m_dashEndVelocity = m_dashDirection * dashSpeed * dashEndSpeedMultiplier;
                     m_rb.velocity = m_dashEndVelocity;
+
+                    // Only set hasDashedInAir if allowed and we're in air
+                    if (!isGrounded && CanSetDashUsed() && !m_dashRefreshedThisFrame)
+                    {
+                        m_hasDashedInAir = true;
+                        flashEffect.NoDash();
+                    }
+
                     if (playerAttack != null)
                     {
                         playerAttack.OnDashEnd();
                     }
+
+                    m_dashRefreshedThisFrame = false; // Reset frame flag
                 }
             }
             else
@@ -326,81 +384,182 @@ namespace SupanthaPaul
 
         public bool CanDash()
         {
-            PlayerAttack playerAttack = GetComponent<PlayerAttack>();
+            PlayerAttack playerAttack = GetComponentInChildren<PlayerAttack>();
             bool isInUpwardRecovery = playerAttack != null && playerAttack.isInUpwardAttackRecovery;
+            bool isInPostAttackCooldown = playerAttack != null && playerAttack.IsInPostAttackDashCooldown;
 
             return canDash &&
                    !isDashing &&
                    m_dashCooldownRemaining <= 0f &&
                    (!m_hasDashedInAir || isGrounded) &&
                    currentStamina >= dashCost &&
-                   !isInUpwardRecovery; // Added this check
+                   !isInUpwardRecovery &&
+                   !isInPostAttackCooldown; // Use the new cooldown check
         }
 
         private void ExecuteDash(Vector2 inputDirection)
         {
-            float dashDuration = horizontalDashDuration; // Default to horizontal duration
+            float dashDuration = horizontalDashDuration;
+            flashEffect.DashingTrans();
 
-            // Determine dash direction based on input
+            // Determine dash direction
             if (inputDirection.magnitude < 0.1f)
             {
-                // Default to facing direction if no input
                 m_dashDirection = m_facingRight ? Vector2.right : Vector2.left;
             }
             else
             {
-                // Snap to 8 directions and set appropriate duration
                 float angle = Mathf.Atan2(inputDirection.y, inputDirection.x);
                 float snappedAngle = Mathf.Round(angle / (Mathf.PI / 4)) * (Mathf.PI / 4);
                 m_dashDirection = new Vector2(Mathf.Cos(snappedAngle), Mathf.Sin(snappedAngle)).normalized;
 
-                // Set duration based on direction
-                if (Mathf.Abs(m_dashDirection.y) > 0.9f) // Mostly vertical
+                if (Mathf.Abs(m_dashDirection.y) > 0.9f)
                 {
                     dashDuration = m_dashDirection.y > 0 ? upwardDashDuration : downwardDashDuration;
                 }
-                else if (Mathf.Abs(m_dashDirection.x) > 0.1f && Mathf.Abs(m_dashDirection.y) > 0.1f) // Diagonal
+                else if (Mathf.Abs(m_dashDirection.x) > 0.1f && Mathf.Abs(m_dashDirection.y) > 0.1f)
                 {
                     dashDuration = diagonalDashDuration;
                 }
             }
+
+            // Toggle tilemaps when dashing starts
+            if (tilemapBev != null)
+            {
+                tilemapBev.ToggleAllTilemaps();
+            }
+
             if (playerAttack != null)
             {
                 playerAttack.OnDashStart();
             }
 
-            // Consume stamina
             currentStamina -= dashCost;
             lastDashTime = Time.time;
             UpdateStaminaBar();
 
-            // Start dash with direction-specific duration
             isDashing = true;
             m_dashTimeRemaining = dashDuration;
             m_dashCooldownRemaining = dashCooldown;
             m_dashInputBuffered = false;
             m_dashBufferTimer = 0f;
 
-            if (!isGrounded)
-            {
-                m_hasDashedInAir = true;
-            }
+            //if (!isGrounded)
+            //{
+            //    m_hasDashedInAir = true;
+            //}
 
-            // Handle dash effect rotation for ALL directions
             GameObject dashEffectInstance = PoolManager.instance.ReuseObject(dashEffect, transform.position, Quaternion.identity);
             ParticleSystem.MainModule main = dashEffectInstance.GetComponent<ParticleSystem>().main;
-
-            // Calculate angle (left dash will be 180 degrees, right 0 degrees, up 90, etc.)
             float rotationAngle = -Mathf.Atan2(m_dashDirection.y, m_dashDirection.x);
             main.startRotation = rotationAngle;
 
-            // If your particles face the wrong direction, you might need to add an offset:
-            // main.startRotation = rotationAngle + Mathf.PI/2; // 90 degree offset if needed
-
             cameraShake.ShakeCamera(shakeIntensity, shakeTime);
-            RumbleManager.instance.RumblePulse(0.01f, 0f, 0.05f);
+            RumbleManager.instance.RumblePulse(1f, 1f, 0.15f);
+        }
+        private void TryHeal()
+        {
+            if (CanHeal() && currentPotions > 0)
+            {
+                currentPotions--; // Consume one potion
+                UpdatePotionImages();
+                StartCoroutine(PerformHeal());
+            }
         }
 
+        private bool CanHeal()
+        {
+            return isGrounded &&
+                   !isHealing &&
+                   !isDashing &&
+                   !isKnockback;
+                   //Time.time > lastHealTime + healCooldown &&
+                   //playerHealth.currentHealth < playerHealth.maxHealth;
+        }
+
+        private IEnumerator PerformHeal()
+        {
+            isHealing = true;
+
+            // Trigger heal start (will activate the trigger)
+            OnHealStart?.Invoke();
+
+            // Disable movement
+            canMove = false;
+            canDash = false;
+            canFlip = false;
+
+            // Play effects
+            if (healSound != null && audioSource != null)
+                audioSource.PlayOneShot(healSound);
+
+            if (healEffect != null)
+                Instantiate(healEffect, transform.position, Quaternion.identity);
+
+            // Wait for animation to start
+            yield return null;
+
+            // Get the length of the healing animation
+            float animLength = animator.GetCurrentAnimatorStateInfo(0).length;
+
+            // Wait for animation to complete
+            float elapsedTime = 0f;
+            while (elapsedTime < animLength && isHealing)
+            {
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+
+            // Complete healing if not interrupted
+            if (isHealing)
+            {
+                playerHealth.Heal(Mathf.RoundToInt(healAmount));
+            }
+
+            // Clean up
+            isHealing = false;
+            OnHealComplete?.Invoke();
+
+            // Restore movement
+            canMove = true;
+            canDash = true;
+            canFlip = true;
+        }
+
+        public void InterruptHealing()
+        {
+            if (isHealing)
+            {
+                isHealing = false;
+                OnHealComplete?.Invoke(); // This will reset the trigger
+                canMove = true;
+                canDash = true;
+                canFlip = true;
+            }
+        }
+        private void UpdatePotionImages()
+        {
+            // Enable/disable images based on current potions (right to left)
+            for (int i = 0; i < potionImages.Length; i++)
+            {
+                // Compare against the reverse index
+                int reverseIndex = potionImages.Length - 1 - i;
+                potionImages[i].enabled = (reverseIndex < currentPotions);
+            }
+        }
+        public void AddPotion()
+        {
+            if (currentPotions < maxPotions)
+            {
+                currentPotions++;
+                UpdatePotionImages();
+            }
+        }
+        public void RefillAllPotions()
+        {
+            currentPotions = maxPotions;
+            UpdatePotionImages();
+        }
         private void HandleJumping()
         {
             if (jumpAction.triggered)
@@ -539,12 +698,14 @@ namespace SupanthaPaul
             }
         }
 
-
         // Add this method to handle knockback
         public void ApplyKnockback(Vector2 knockbackForce)
         {
-            // Don't allow knockback during dash
-            if (isDashing) return;
+            // Interrupt any active dash first
+            if (isDashing)
+            {
+                EndDash();
+            }
 
             // Reset velocity and apply force
             m_rb.velocity = Vector2.zero;
@@ -619,7 +780,24 @@ namespace SupanthaPaul
             canJump = true;
             canDash = true;
         }
+        public void RefreshDash()
+        {
+            m_hasDashedInAir = false;
+            m_dashCooldownRemaining = 0f;
+            currentStamina = maxStamina;
+            UpdateStaminaBar();
+            m_lastDashRefreshTime = Time.time;
+            m_dashRefreshedThisFrame = true;
+            flashEffect.RegularColour();
 
+            // Optional: Add visual/audio feedback here
+        }
+
+        private bool CanSetDashUsed()
+        {
+            // Only allow setting dash used if we haven't recently refreshed
+            return Time.time > m_lastDashRefreshTime + dashRefreshGracePeriod;
+        }
         public void FreezePlayer()
         {
             canMove = false;
@@ -634,9 +812,52 @@ namespace SupanthaPaul
 
         private void EndDash()
         {
+            if (!isDashing) return;
+
             isDashing = false;
             m_dashTimeRemaining = 0f;
             m_rb.velocity = m_dashDirection * dashSpeed * dashEndSpeedMultiplier;
+
+            // Reset dash effects
+            flashEffect.RegularColour();
+
+            // Notify attack system dash ended
+            if (playerAttack != null)
+            {
+                playerAttack.OnDashEnd();
+            }
+        }
+        // In PlayerController.cs
+        public void InterruptDash()
+        {
+            if (isDashing)
+            {
+                isDashing = false;
+                m_dashTimeRemaining = 0f;
+
+                // Keep some horizontal momentum but reset vertical
+                m_rb.velocity = new Vector2(
+                    m_dashDirection.x * dashSpeed * dashEndSpeedMultiplier,
+                    0f
+                );
+
+                // Reset dash effects
+                flashEffect.RegularColour();
+
+                // Notify attack system dash ended
+                if (playerAttack != null)
+                {
+                    playerAttack.OnDashEnd();
+                }
+
+                // Apply reduced cooldown as penalty
+                m_dashCooldownRemaining = dashCooldown * 0.5f;
+            }
+        }
+        public void ForceDashCooldown(float duration)
+        {
+            m_dashCooldownRemaining = duration;
+            m_hasDashedInAir = true; // Prevent immediate air dash after bounce
         }
 
         private void OnDrawGizmosSelected()
