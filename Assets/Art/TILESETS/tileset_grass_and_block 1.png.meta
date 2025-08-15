@@ -1,0 +1,862 @@
+fileFormatVersion: 2
+guid: dd27ad423cebdc541a769318cf510cba
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 491
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2477
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: acded8101fe1f8e43b8cbb53c265528a
+      internalID: -1334641928
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_1
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 2477
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b2587e02283e0f944a729152123c17b3
+      internalID: 247136296
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_2
+      rect:
+        serializedVersion: 2
+        x: 982
+        y: 2477
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6f49c888e9a431d4e985d0e15d8f2659
+      internalID: -566088909
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_3
+      rect:
+        serializedVersion: 2
+        x: 1473
+        y: 2477
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2718dc8ee900aaa4d8b76fb222541c0f
+      internalID: 1147654807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_4
+      rect:
+        serializedVersion: 2
+        x: 1964
+        y: 2477
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2ad5273a1461d4843865d4ab172c67e1
+      internalID: 683372925
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_5
+      rect:
+        serializedVersion: 2
+        x: 2455
+        y: 2477
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ef8cce803ef1a3148bfb091ac6581ed8
+      internalID: -219991863
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1982
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 84110a346fb28e94bac7a224de22de6d
+      internalID: -2131837980
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_7
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 1982
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: df85c3cf1af51c545b1280e7ac2bc043
+      internalID: -1492239101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_8
+      rect:
+        serializedVersion: 2
+        x: 982
+        y: 1982
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1de128d672cce414f9988b975f28f013
+      internalID: -478380548
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_9
+      rect:
+        serializedVersion: 2
+        x: 1473
+        y: 1982
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c9cd893a3452aa94695565aa80eaa110
+      internalID: -478925831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_10
+      rect:
+        serializedVersion: 2
+        x: 1964
+        y: 1982
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7b8eaa7e04a59a247902dd2c51479089
+      internalID: 1232626989
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_11
+      rect:
+        serializedVersion: 2
+        x: 2455
+        y: 1982
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 76ef489c394a4c7488d99932ddd64afc
+      internalID: -898750115
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1487
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b05fc52cb1322c04e8c479b7d6877a98
+      internalID: -834818449
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_13
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 1487
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b2cf91c773047a044b573656dfc59595
+      internalID: 271436385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_14
+      rect:
+        serializedVersion: 2
+        x: 982
+        y: 1487
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 331b40becebc5584eb2978372c0a5641
+      internalID: 1674162895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_15
+      rect:
+        serializedVersion: 2
+        x: 1964
+        y: 1487
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 775f36967d39b104b96e5b807df6d8af
+      internalID: 1284828316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_16
+      rect:
+        serializedVersion: 2
+        x: 2455
+        y: 1487
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9b1c9a4dd5886664a95bce469f454c98
+      internalID: 1821793571
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_17
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 992
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0c27891f8d5e4ce4eab3b06ad8d538a0
+      internalID: -2011669229
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_18
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 992
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9c3460cc78ec6c445b740be09361823f
+      internalID: -1948637814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_19
+      rect:
+        serializedVersion: 2
+        x: 982
+        y: 992
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0880126ab11ff9b43aaa6545f170352b
+      internalID: -956408621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_20
+      rect:
+        serializedVersion: 2
+        x: 1964
+        y: 992
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b4a803ad8439cc443ad4751607ed8ed3
+      internalID: -1698679192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_21
+      rect:
+        serializedVersion: 2
+        x: 2455
+        y: 992
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d19be4a8f15f1b24c97938d743826356
+      internalID: -1343530818
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_22
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 497
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a2c1cc0b8e9bb70408c2610bca4bf29d
+      internalID: 1424113014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_23
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 497
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 71dcf88f08ce4034595af25de3a92d08
+      internalID: -403657012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_24
+      rect:
+        serializedVersion: 2
+        x: 982
+        y: 497
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2ec8e5cdad406e847a7d8a15430506d0
+      internalID: -68741521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_25
+      rect:
+        serializedVersion: 2
+        x: 1473
+        y: 497
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d7bfef1168e1a77408c8fa2ddc933553
+      internalID: 2133942778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_26
+      rect:
+        serializedVersion: 2
+        x: 1964
+        y: 497
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e19f850473044b14e968643edd886493
+      internalID: 537144282
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_27
+      rect:
+        serializedVersion: 2
+        x: 2455
+        y: 497
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 262aaa4f89a8c074ca39db7a8efabdca
+      internalID: 880757174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_28
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7217a7453c79fc44fb1f0f778ca3b2f1
+      internalID: 1630370547
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_29
+      rect:
+        serializedVersion: 2
+        x: 491
+        y: 2
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 52c1c1d9557a39d4d84253dd2b115025
+      internalID: -2087312345
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_30
+      rect:
+        serializedVersion: 2
+        x: 982
+        y: 2
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 61d51681d961ff145a51a54191284290
+      internalID: -377523069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_31
+      rect:
+        serializedVersion: 2
+        x: 1473
+        y: 2
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 00bc7be1628bda14eb0d23b7fa7f801f
+      internalID: 367262399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_32
+      rect:
+        serializedVersion: 2
+        x: 1964
+        y: 2
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 78c23582d703fa0419b235759b59fae9
+      internalID: -895432374
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tileset_grass_and_block 1_33
+      rect:
+        serializedVersion: 2
+        x: 2455
+        y: 2
+        width: 491
+        height: 495
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a53e5433080e0a4283d55cc67e85558
+      internalID: -1915358727
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      tileset_grass_and_block 1_0: -1334641928
+      tileset_grass_and_block 1_1: 247136296
+      tileset_grass_and_block 1_10: 1232626989
+      tileset_grass_and_block 1_11: -898750115
+      tileset_grass_and_block 1_12: -834818449
+      tileset_grass_and_block 1_13: 271436385
+      tileset_grass_and_block 1_14: 1674162895
+      tileset_grass_and_block 1_15: 1284828316
+      tileset_grass_and_block 1_16: 1821793571
+      tileset_grass_and_block 1_17: -2011669229
+      tileset_grass_and_block 1_18: -1948637814
+      tileset_grass_and_block 1_19: -956408621
+      tileset_grass_and_block 1_2: -566088909
+      tileset_grass_and_block 1_20: -1698679192
+      tileset_grass_and_block 1_21: -1343530818
+      tileset_grass_and_block 1_22: 1424113014
+      tileset_grass_and_block 1_23: -403657012
+      tileset_grass_and_block 1_24: -68741521
+      tileset_grass_and_block 1_25: 2133942778
+      tileset_grass_and_block 1_26: 537144282
+      tileset_grass_and_block 1_27: 880757174
+      tileset_grass_and_block 1_28: 1630370547
+      tileset_grass_and_block 1_29: -2087312345
+      tileset_grass_and_block 1_3: 1147654807
+      tileset_grass_and_block 1_30: -377523069
+      tileset_grass_and_block 1_31: 367262399
+      tileset_grass_and_block 1_32: -895432374
+      tileset_grass_and_block 1_33: -1915358727
+      tileset_grass_and_block 1_4: 683372925
+      tileset_grass_and_block 1_5: -219991863
+      tileset_grass_and_block 1_6: -2131837980
+      tileset_grass_and_block 1_7: -1492239101
+      tileset_grass_and_block 1_8: -478380548
+      tileset_grass_and_block 1_9: -478925831
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
