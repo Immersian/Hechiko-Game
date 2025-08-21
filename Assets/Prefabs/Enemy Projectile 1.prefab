@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 8961328530681018711}
   - component: {fileID: 7400638406774827936}
   - component: {fileID: -5515842016454822338}
+  - component: {fileID: 4619539094505069657}
   m_Layer: 0
   m_Name: Enemy Projectile 1
   m_TagString: SpecialAttack
@@ -78,7 +79,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 50
-  m_Sprite: {fileID: 21300000, guid: 5fcf0026b96543e44ae33039877c0703, type: 3}
+  m_Sprite: {fileID: 21300000, guid: bf2d3fba5074e404c908ea3f3e08d63e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 1
   m_FlipY: 0
@@ -173,18 +174,18 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: -0.0073623657, y: 0.0073623657}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 3.2, y: 2.1333334}
+    oldSize: {x: 5.714286, y: 5.714286}
     newSize: {x: 3.2, y: 3.2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.82, y: 0.30474854}
+  m_Size: {x: 0.6, y: 0.61}
   m_EdgeRadius: 0
 --- !u!114 &7400638406774827936
 MonoBehaviour:
@@ -224,3 +225,24 @@ MonoBehaviour:
     type: 3}
   spawnOffset: {x: 0.5, y: 0.5}
   destroyEffect: {fileID: 0}
+--- !u!95 &4619539094505069657
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4579984132463885031}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: b208873fc2da8274cbb8d03916b338bb, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
