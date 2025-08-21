@@ -55,7 +55,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
     [Header("Facing Direction")]
     [SerializeField] private bool facingLeft = true;  // Changed from facingRight to facingLeft
-    [SerializeField] private bool flipSprite = true;  // Option to flip sprite vs scale
+/*    [SerializeField] private bool flipSprite = true;*/  // Option to flip sprite vs scale
 
     private float lastFlipTime;
     [SerializeField] private float flipCooldown = 0.5f;

@@ -23,6 +23,16 @@ public class ParryScript : MonoBehaviour
     [SerializeField] private float shakeIntensity = 5;
     [SerializeField] private float shakeTime = 1;
 
+    [Header("Hitstop Settings")]
+    [SerializeField] private float hitstopDuration = 0.1f;
+    [SerializeField] private float hitstopTimeScale = 0.1f;
+
+    [Header("Sound Effects")]
+    [SerializeField] private AudioClip parrySound;
+    [SerializeField] private AudioClip blockSound;
+    [SerializeField] private float parrySoundVolume = 0.8f;
+    [SerializeField] private float blockSoundVolume = 0.6f;
+
     // Public properties for other scripts to check
     public bool IsParryingRight { get; private set; }
     public bool IsParryingLeft { get; private set; }
@@ -32,16 +42,27 @@ public class ParryScript : MonoBehaviour
     // References
     private PlayerController playerController;
     private Animator animator;
+    private AudioSource audioSource;
 
     // Timing variables
     private float parryTimer;
     private float lastParryTime;
     private bool isHoldingBlock;
+    private bool isInHitstop;
 
     private void Awake()
     {
         animator = GetComponent<Animator>();
         playerController = GetComponentInParent<PlayerController>();
+        audioSource = GetComponent<AudioSource>();
+
+        // Ensure we have an AudioSource
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.spatialBlend = 0f; // Make it 2D
+            audioSource.playOnAwake = false;
+        }
     }
 
     private void Update()
@@ -95,6 +116,9 @@ public class ParryScript : MonoBehaviour
         isHoldingBlock = true;
         animator.SetBool(blockBool, true);
         lastParryTime = Time.time;
+
+        // Play block sound
+        PlaySound(blockSound, blockSoundVolume);
     }
 
     private void ResetParryDirections()
@@ -136,6 +160,12 @@ public class ParryScript : MonoBehaviour
 
     public void Parried()
     {
+        // Apply hitstop effect
+        StartCoroutine(ApplyHitstop());
+
+        // Play parry sound
+        PlaySound(parrySound, parrySoundVolume);
+
         if (cameraShake != null)
         {
             cameraShake.ShakeCamera(shakeIntensity, shakeTime);
@@ -151,6 +181,34 @@ public class ParryScript : MonoBehaviour
         if (ShockWaveManager.Instance != null)
         {
             ShockWaveManager.Instance.CallSmallShockwave();
+        }
+    }
+
+    private System.Collections.IEnumerator ApplyHitstop()
+    {
+        if (isInHitstop) yield break;
+
+        isInHitstop = true;
+
+        // Freeze time
+        Time.timeScale = hitstopTimeScale;
+        Time.fixedDeltaTime = 0.02f * Time.timeScale;
+
+        // Wait for the hitstop duration (scaled by time scale)
+        yield return new WaitForSecondsRealtime(hitstopDuration);
+
+        // Restore normal time
+        Time.timeScale = 1f;
+        Time.fixedDeltaTime = 0.02f;
+
+        isInHitstop = false;
+    }
+
+    private void PlaySound(AudioClip clip, float volume = 1f)
+    {
+        if (clip != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(clip, volume);
         }
     }
 

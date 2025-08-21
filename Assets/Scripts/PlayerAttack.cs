@@ -23,7 +23,7 @@ public class PlayerAttack : MonoBehaviour
     [SerializeField] private AudioClip upwardLaunchSound;
     [SerializeField] private GameObject upwardLaunchEffect;
     public bool isInUpwardAttackRecovery = false;
-    private bool isLaunching = false;
+    //private bool isLaunching = false;
     private float lastUpwardAttackTime;
 
     [Header("Attack Cooldowns")]
@@ -223,7 +223,7 @@ public class PlayerAttack : MonoBehaviour
     {
         if (!playerController.isGrounded || playerController.currentStamina < upwardAttackStaminaCost)
             yield break;
-        isLaunching = true;
+        //isLaunching = true;
         isInUpwardAttackRecovery = true;
 
         playerController.currentStamina -= upwardAttackStaminaCost;
@@ -262,7 +262,7 @@ public class PlayerAttack : MonoBehaviour
 
         yield return new WaitForSeconds(0.1f);
         playerController.canMove = true;
-        isLaunching = false;
+        //isLaunching = false;
 
         while (!playerController.isGrounded)
         {

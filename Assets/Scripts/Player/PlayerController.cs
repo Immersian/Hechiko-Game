@@ -8,13 +8,14 @@ using UnityEngine.UI;
 
 namespace SupanthaPaul
 {
-    [RequireComponent(typeof(PlayerInput))]
+    //[RequireComponent(typeof(PlayerInput))]
     public class PlayerController : MonoBehaviour
     {
         [SerializeField] private float speed;
         [Header("Jumping")]
         [SerializeField] private float jumpForce;
         [SerializeField] private float fallMultiplier;
+        [SerializeField] private float maxFallSpeed = -25f;
         [SerializeField] public Transform groundCheck;
         [SerializeField] private float groundCheckRadius;
         [SerializeField] private LayerMask whatIsGround;
@@ -23,10 +24,10 @@ namespace SupanthaPaul
 
         [Header("Celeste-Style Dash")]
         [SerializeField] private float dashSpeed = 30f;
-        [SerializeField] private float horizontalDashDuration = 0.15f; // Duration for horizontal dashes
-        [SerializeField] private float upwardDashDuration = 0.12f;    // Shorter duration for upward dashes
-        [SerializeField] private float downwardDashDuration = 0.1f;  // Shortest duration for downward dashes
-        [SerializeField] private float diagonalDashDuration = 0.13f; // Duration for diagonal dashes
+        [SerializeField] private float horizontalDashDuration = 0.15f;
+        [SerializeField] private float upwardDashDuration = 0.12f;
+        [SerializeField] private float downwardDashDuration = 0.1f;
+        [SerializeField] private float diagonalDashDuration = 0.13f;
         [SerializeField] private float dashCooldown = 0.4f;
         [SerializeField] private float dashEndSpeedMultiplier = 0.85f;
         [SerializeField] private GameObject dashEffect;
@@ -41,11 +42,24 @@ namespace SupanthaPaul
         private float lastDashTime;
 
         [Header("Stamina Bar UI")]
-        public RectTransform staminaBar1; // Primary stamina bar
+        public RectTransform staminaBar1;
         private float staminaBarFullWidth;
 
         [Header("Attack References")]
         [SerializeField] private PlayerAttack playerAttack;
+
+        [Header("Sound Effects")]
+        [SerializeField] private AudioClip jumpSound;
+        [SerializeField] private AudioClip doubleJumpSound;
+        [SerializeField] private AudioClip dashSound;
+        [SerializeField] private AudioClip landSound;
+        [SerializeField] private AudioClip wallGrabSound;
+        [SerializeField] private AudioClip wallJumpSound;
+        [SerializeField] private AudioClip footstepSound;
+        [SerializeField] private AudioClip groundSlamSound;
+        [SerializeField] private AudioClip staminaRefillSound;
+        [SerializeField] private float footstepInterval = 0.3f;
+        [SerializeField] private float footstepVolume = 0.4f;
 
         [HideInInspector] public bool isGrounded;
         [HideInInspector] public float moveInput;
@@ -67,21 +81,15 @@ namespace SupanthaPaul
         [SerializeField] private float wallSlideCoyoteTime = 0.1f;
 
         [Header("Wall Jump Settings")]
-        [SerializeField] private float wallJumpHorizontalForce = 15f; // Separate horizontal force control
-        [SerializeField] private float wallJumpVerticalForce = 18f; // Separate vertical force control
-        [SerializeField] private float wallStickCancelForce = 5f;
+        [SerializeField] private float wallJumpHorizontalForce = 15f;
+        [SerializeField] private float wallJumpVerticalForce = 18f;
 
         [Header("Healing Settings")]
         [SerializeField] private float healAmount = 25f;
-        [SerializeField] private float healDuration = 1.5f;
-        [SerializeField] private float healCooldown = 3f;
         [SerializeField] private GameObject healEffect;
         [SerializeField] private AudioClip healSound;
         private bool isHealing = false;
-        private float lastHealTime = -10f;
         public event Action OnHealStart;
-        public event Action OnHealInterrupt;
-        public event Action<bool> OnHealingStateChanged;
         public event Action OnHealComplete;
 
         [Header("Potion Images")]
@@ -89,10 +97,9 @@ namespace SupanthaPaul
         private int currentPotions = 0;
         private int maxPotions = 3;
 
-        // Component references
         public PlayerHealth playerHealth;
         public Animator animator;
-        private AudioSource audioSource;
+        public AudioSource audioSource;
 
         [Header("Knockback Settings")]
         [SerializeField] private float knockbackDuration = 0.2f;
@@ -106,26 +113,26 @@ namespace SupanthaPaul
         [SerializeField] public float shakeTime = 0.1f;
 
         [Header("Ground Slam Detection")]
-        [SerializeField] private float groundSlamMinHeight = 3f; // Minimum height difference to consider ground slam
+        [SerializeField] private float groundSlamMinHeight = 3f;
         [SerializeField] public bool canGroundSlam;
 
         [Header("Enemy Zone Visualization")]
         [SerializeField] private bool showEnemyZones = false;
         [SerializeField] private float gizmoInnerRadius = 3f;
         [SerializeField] private float gizmoOuterRadius = 7f;
-        [SerializeField] private Color gizmoInnerColor = new Color(1f, 0f, 0f, 0.3f); // Red with transparency
-        [SerializeField] private Color gizmoOuterColor = new Color(1f, 1f, 0f, 0.2f); // Yellow with transparency
+        [SerializeField] private Color gizmoInnerColor = new Color(1f, 0f, 0f, 0.3f);
+        [SerializeField] private Color gizmoOuterColor = new Color(1f, 1f, 0f, 0.2f);
 
         [Header("Dash Refresh Settings")]
-        [SerializeField] private float dashRefreshGracePeriod = 0.2f; // Time after refresh where dash state won't be updated
-        private float m_lastDashRefreshTime = -10f; // Initialize to a time far in the past
+        [SerializeField] private float dashRefreshGracePeriod = 0.2f;
+        private float m_lastDashRefreshTime = -10f;
         private bool m_dashRefreshedThisFrame = false;
 
         [Header("Visual Feedback")]
         [SerializeField] private SimpleFlash flashEffect;
 
         [Header("Tilemap Phasing")]
-        [SerializeField] private TilemapBev tilemapBev; // Reference to the TilemapBev component
+        [SerializeField] private TilemapBev tilemapBev;
 
         private Rigidbody2D m_rb;
         private ParticleSystem m_dustParticle;
@@ -147,7 +154,6 @@ namespace SupanthaPaul
         private int m_onWallSide = 0;
         private int m_playerSide = 1;
 
-        // Dash variables
         private Vector2 m_dashDirection;
         private float m_dashTimeRemaining;
         private float m_dashCooldownRemaining;
@@ -163,6 +169,10 @@ namespace SupanthaPaul
         private InputAction moveAction;
         private InputAction jumpAction;
         private InputAction dashAction;
+
+        private float lastFootstepTime;
+        private bool wasGrounded;
+        private bool wasWallGrabbing;
 
         void Start()
         {
@@ -181,11 +191,17 @@ namespace SupanthaPaul
                 isCurrentlyPlayable = true;
 
             currentStamina = maxStamina;
-            currentStamina = maxStamina;
             if (staminaBar1 != null)
             {
                 staminaBarFullWidth = staminaBar1.sizeDelta.x;
                 UpdateStaminaBar();
+            }
+            // Add this to your PlayerController's Start() method
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource != null)
+            {
+                audioSource.spatialize = false;
+                audioSource.spatialBlend = 0; // Makes it fully 2D (non-directional)
             }
             currentPotions = maxPotions;
             UpdatePotionImages();
@@ -199,17 +215,18 @@ namespace SupanthaPaul
             playerHealth = GetComponent<PlayerHealth>();
             animator = GetComponentInChildren<Animator>();
             audioSource = GetComponent<AudioSource>();
+
+            wasGrounded = isGrounded;
+            wasWallGrabbing = m_wallGrabbing;
         }
 
         private void Update()
         {
             if (!isCurrentlyPlayable) return;
 
-            // Get input
             Vector2 moveInputVector = moveAction.ReadValue<Vector2>();
             moveInput = moveInputVector.x;
 
-            // Grounded remember
             m_groundedRemember -= Time.deltaTime;
             if (isGrounded)
             {
@@ -219,7 +236,6 @@ namespace SupanthaPaul
                 flashEffect.RegularColour();
             }
 
-            // Handle dash input buffering
             if (dashAction.triggered)
             {
                 m_dashBufferTimer = dashBufferTime;
@@ -234,40 +250,54 @@ namespace SupanthaPaul
                 m_dashInputBuffered = false;
             }
 
-            // Stamina regen
             if (!isDashing && Time.time > lastDashTime + staminaRegenDelay)
             {
                 currentStamina = Mathf.Min(maxStamina, currentStamina + staminaRegenRate * Time.deltaTime);
                 UpdateStaminaBar();
             }
 
-            // Dash cooldown
             if (m_dashCooldownRemaining > 0)
             {
                 m_dashCooldownRemaining -= Time.deltaTime;
             }
 
-            // Try to execute buffered dash
             if (m_dashInputBuffered && CanDash())
             {
                 ExecuteDash(moveInputVector);
             }
 
-            // Jumping
             if (canJump && !isDashing)
             {
                 HandleJumping();
             }
+
             if (InputManager.instance.inputControl.Gameplay.Heal.WasPressedThisFrame())
             {
                 TryHeal();
-                Debug.Log("Pressed 1");
+            }
+
+            // Sound effects
+            if (isGrounded && !wasGrounded && m_rb.velocity.y <= 0f)
+            {
+                PlaySound(landSound, 0.7f);
+            }
+            wasGrounded = isGrounded;
+
+            if (m_wallGrabbing && !wasWallGrabbing)
+            {
+                PlaySound(wallGrabSound, 0.6f);
+            }
+            wasWallGrabbing = m_wallGrabbing;
+
+            if (isGrounded && Mathf.Abs(moveInput) > 0.1f && Time.time - lastFootstepTime > footstepInterval)
+            {
+                PlaySound(footstepSound, footstepVolume);
+                lastFootstepTime = Time.time;
             }
         }
 
         private void FixedUpdate()
         {
-            // Check grounded and wall states
             isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, whatIsGround);
             var position = transform.position;
             m_onWall = Physics2D.OverlapCircle((Vector2)position + grabRightOffset, grabCheckRadius, whatIsGround)
@@ -277,17 +307,16 @@ namespace SupanthaPaul
 
             CalculateSides();
             CheckGroundSlam();
+
             if (isKnockback)
             {
                 knockbackTimer -= Time.fixedDeltaTime;
                 if (knockbackTimer <= 0)
                 {
                     isKnockback = false;
-                    // Movement will be re-enabled by the coroutine
                 }
             }
 
-            // Skip normal movement if in knockback
             if (isKnockback) return;
             if ((m_wallGrabbing || isGrounded) && m_wallJumping)
             {
@@ -296,7 +325,6 @@ namespace SupanthaPaul
 
             if (!isCurrentlyPlayable) return;
 
-            // Dashing
             if (isDashing)
             {
                 if (m_dashTimeRemaining > 0)
@@ -307,12 +335,10 @@ namespace SupanthaPaul
                 }
                 else
                 {
-                    // Dash ended - apply end speed
                     isDashing = false;
                     m_dashEndVelocity = m_dashDirection * dashSpeed * dashEndSpeedMultiplier;
                     m_rb.velocity = m_dashEndVelocity;
 
-                    // Only set hasDashedInAir if allowed and we're in air
                     if (!isGrounded && CanSetDashUsed() && !m_dashRefreshedThisFrame)
                     {
                         m_hasDashedInAir = true;
@@ -324,12 +350,11 @@ namespace SupanthaPaul
                         playerAttack.OnDashEnd();
                     }
 
-                    m_dashRefreshedThisFrame = false; // Reset frame flag
+                    m_dashRefreshedThisFrame = false;
                 }
             }
             else
             {
-                // Normal movement
                 if (canMove && !m_wallGrabbing)
                 {
                     if (m_wallJumping)
@@ -349,13 +374,16 @@ namespace SupanthaPaul
                 }
             }
 
-            // Better jump physics
             if (m_rb.velocity.y < 0f && !isDashing)
             {
                 m_rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
+
+                if (m_rb.velocity.y < maxFallSpeed)
+                {
+                    m_rb.velocity = new Vector2(m_rb.velocity.x, maxFallSpeed);
+                }
             }
 
-            // Flipping
             if (canFlip && !isDashing)
             {
                 if (!m_facingRight && moveInput > 0f)
@@ -364,13 +392,11 @@ namespace SupanthaPaul
                     Flip();
             }
 
-            // Wall grab
             if (!isDashing)
             {
                 HandleWallGrabbing();
             }
 
-            // Dust particles
             float playerVelocityMag = m_rb.velocity.sqrMagnitude;
             if (m_dustParticle.isPlaying && playerVelocityMag == 0f)
             {
@@ -394,7 +420,7 @@ namespace SupanthaPaul
                    (!m_hasDashedInAir || isGrounded) &&
                    currentStamina >= dashCost &&
                    !isInUpwardRecovery &&
-                   !isInPostAttackCooldown; // Use the new cooldown check
+                   !isInPostAttackCooldown;
         }
 
         private void ExecuteDash(Vector2 inputDirection)
@@ -402,7 +428,6 @@ namespace SupanthaPaul
             float dashDuration = horizontalDashDuration;
             flashEffect.DashingTrans();
 
-            // Determine dash direction
             if (inputDirection.magnitude < 0.1f)
             {
                 m_dashDirection = m_facingRight ? Vector2.right : Vector2.left;
@@ -423,10 +448,9 @@ namespace SupanthaPaul
                 }
             }
 
-            // Toggle tilemaps when dashing starts
             if (tilemapBev != null)
             {
-                tilemapBev.ToggleAllTilemaps();
+                tilemapBev.ToggleTilemaps();
             }
 
             if (playerAttack != null)
@@ -444,10 +468,7 @@ namespace SupanthaPaul
             m_dashInputBuffered = false;
             m_dashBufferTimer = 0f;
 
-            //if (!isGrounded)
-            //{
-            //    m_hasDashedInAir = true;
-            //}
+            PlaySound(dashSound, 0.8f);
 
             GameObject dashEffectInstance = PoolManager.instance.ReuseObject(dashEffect, transform.position, Quaternion.identity);
             ParticleSystem.MainModule main = dashEffectInstance.GetComponent<ParticleSystem>().main;
@@ -457,11 +478,12 @@ namespace SupanthaPaul
             cameraShake.ShakeCamera(shakeIntensity, shakeTime);
             RumbleManager.instance.RumblePulse(1f, 1f, 0.15f);
         }
+
         private void TryHeal()
         {
             if (CanHeal() && currentPotions > 0)
             {
-                currentPotions--; // Consume one potion
+                currentPotions--;
                 UpdatePotionImages();
                 StartCoroutine(PerformHeal());
             }
@@ -473,36 +495,26 @@ namespace SupanthaPaul
                    !isHealing &&
                    !isDashing &&
                    !isKnockback;
-                   //Time.time > lastHealTime + healCooldown &&
-                   //playerHealth.currentHealth < playerHealth.maxHealth;
         }
 
         private IEnumerator PerformHeal()
         {
             isHealing = true;
-
-            // Trigger heal start (will activate the trigger)
             OnHealStart?.Invoke();
 
-            // Disable movement
             canMove = false;
             canDash = false;
             canFlip = false;
 
-            // Play effects
             if (healSound != null && audioSource != null)
                 audioSource.PlayOneShot(healSound);
 
             if (healEffect != null)
                 Instantiate(healEffect, transform.position, Quaternion.identity);
 
-            // Wait for animation to start
             yield return null;
 
-            // Get the length of the healing animation
             float animLength = animator.GetCurrentAnimatorStateInfo(0).length;
-
-            // Wait for animation to complete
             float elapsedTime = 0f;
             while (elapsedTime < animLength && isHealing)
             {
@@ -510,17 +522,14 @@ namespace SupanthaPaul
                 yield return null;
             }
 
-            // Complete healing if not interrupted
             if (isHealing)
             {
                 playerHealth.Heal(Mathf.RoundToInt(healAmount));
             }
 
-            // Clean up
             isHealing = false;
             OnHealComplete?.Invoke();
 
-            // Restore movement
             canMove = true;
             canDash = true;
             canFlip = true;
@@ -531,22 +540,22 @@ namespace SupanthaPaul
             if (isHealing)
             {
                 isHealing = false;
-                OnHealComplete?.Invoke(); // This will reset the trigger
+                OnHealComplete?.Invoke();
                 canMove = true;
                 canDash = true;
                 canFlip = true;
             }
         }
+
         private void UpdatePotionImages()
         {
-            // Enable/disable images based on current potions (right to left)
             for (int i = 0; i < potionImages.Length; i++)
             {
-                // Compare against the reverse index
                 int reverseIndex = potionImages.Length - 1 - i;
                 potionImages[i].enabled = (reverseIndex < currentPotions);
             }
         }
+
         public void AddPotion()
         {
             if (currentPotions < maxPotions)
@@ -555,16 +564,17 @@ namespace SupanthaPaul
                 UpdatePotionImages();
             }
         }
+
         public void RefillAllPotions()
         {
             currentPotions = maxPotions;
             UpdatePotionImages();
         }
+
         private void HandleJumping()
         {
             if (jumpAction.triggered)
             {
-                // Check for wall jump (whether sliding or just touching wall)
                 if ((m_onWall && !isGrounded) || m_wallGrabbing)
                 {
                     PerformWallJump();
@@ -572,16 +582,16 @@ namespace SupanthaPaul
                 }
                 else if (m_extraJumps > 0 && !isGrounded)
                 {
-                    // Extra jump (unchanged)
                     m_rb.velocity = new Vector2(m_rb.velocity.x, m_extraJumpForce);
                     m_extraJumps--;
                     PoolManager.instance.ReuseObject(jumpEffect, groundCheck.position, Quaternion.identity);
+                    PlaySound(doubleJumpSound, 0.7f);
                 }
                 else if (isGrounded || m_groundedRemember > 0f)
                 {
-                    // Normal jump (unchanged)
                     m_rb.velocity = new Vector2(m_rb.velocity.x, jumpForce);
                     PoolManager.instance.ReuseObject(jumpEffect, groundCheck.position, Quaternion.identity);
+                    PlaySound(jumpSound, 0.7f);
                 }
             }
         }
@@ -591,32 +601,27 @@ namespace SupanthaPaul
             m_wallGrabbing = false;
             m_wallJumping = true;
 
-            // First cancel any wall stick velocity
             m_rb.velocity = new Vector2(m_rb.velocity.x * 0.5f, 0);
 
-            // Determine direction based on input
             bool jumpingAwayFromWall = moveInput != m_onWallSide;
 
-            // Calculate forces
             float horizontalForce = jumpingAwayFromWall ?
                 -m_onWallSide * wallJumpHorizontalForce :
                 -m_onWallSide * wallJumpHorizontalForce * 0.7f;
 
-            // Apply consistent force regardless of wall grab state
             m_rb.AddForce(new Vector2(
                 horizontalForce,
                 wallJumpVerticalForce
             ), ForceMode2D.Impulse);
 
-            // Flip if needed
             if (jumpingAwayFromWall && m_playerSide == m_onWallSide)
             {
                 Flip();
             }
 
-            // Reset jumps and effects
             m_extraJumps = extraJumpCount;
             PoolManager.instance.ReuseObject(jumpEffect, groundCheck.position, Quaternion.identity);
+            PlaySound(wallJumpSound, 0.8f);
         }
 
         private void HandleWallGrabbing()
@@ -627,7 +632,6 @@ namespace SupanthaPaul
             {
                 if (shouldHoldWall)
                 {
-                    // Reset coyote timer while holding input
                     m_wallSlideCoyoteTimer = wallSlideCoyoteTime;
                     actuallyWallGrabbing = true;
                     m_wallGrabbing = true;
@@ -636,7 +640,6 @@ namespace SupanthaPaul
                 }
                 else if (m_wallSlideCoyoteTimer > 0f)
                 {
-                    // Still in coyote time
                     m_wallSlideCoyoteTimer -= Time.fixedDeltaTime;
                     actuallyWallGrabbing = true;
                     m_wallGrabbing = true;
@@ -656,7 +659,6 @@ namespace SupanthaPaul
                     m_wallGrabbing = false;
             }
 
-            // Reset coyote time when grabbing a new wall
             if ((m_onRightWall && moveInput > 0) || (m_onLeftWall && moveInput < 0))
             {
                 m_wallSlideCoyoteTimer = wallSlideCoyoteTime;
@@ -665,62 +667,45 @@ namespace SupanthaPaul
             if (m_wallGrabbing && isGrounded)
                 m_wallGrabbing = false;
         }
+
         private void CheckGroundSlam()
         {
             if (!isGrounded)
             {
-                // Use RaycastHit2D with Mathf.Infinity as the distance
                 RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, Mathf.Infinity, whatIsGround);
-
                 if (hit.collider != null)
                 {
                     float heightAboveGround = transform.position.y - hit.point.y;
-
-                    if (heightAboveGround >= groundSlamMinHeight)
-                    {
-                        canGroundSlam = true;
-                    }
-                    else
-                    {
-                        canGroundSlam = false;
-                    }
+                    canGroundSlam = heightAboveGround >= groundSlamMinHeight;
                 }
                 else
                 {
-                    // No ground detected below at all
                     canGroundSlam = false;
                 }
             }
             else
             {
-                // Player is grounded, can't ground slam
                 canGroundSlam = false;
             }
         }
 
-        // Add this method to handle knockback
         public void ApplyKnockback(Vector2 knockbackForce)
         {
-            // Interrupt any active dash first
             if (isDashing)
             {
                 EndDash();
             }
 
-            // Reset velocity and apply force
             m_rb.velocity = Vector2.zero;
             m_rb.AddForce(knockbackForce, ForceMode2D.Impulse);
 
-            // Set knockback state
             isKnockback = true;
             knockbackTimer = knockbackDuration;
 
-            // Temporarily disable movement
             canMove = false;
             canDash = false;
             canJump = false;
 
-            // Start coroutine to re-enable movement
             StartCoroutine(EndKnockbackAfterTime(knockbackMovementLockDuration));
         }
 
@@ -728,7 +713,6 @@ namespace SupanthaPaul
         {
             yield return new WaitForSeconds(time);
 
-            // Only re-enable if we're not still in knockback
             if (knockbackTimer <= 0)
             {
                 canMove = true;
@@ -740,7 +724,7 @@ namespace SupanthaPaul
         void Flip()
         {
             m_facingRight = !m_facingRight;
-            m_facingLeft = !m_facingRight; // New line - keeps them in sync
+            m_facingLeft = !m_facingRight;
             Vector3 newScale = transform.localScale;
             newScale.x *= -1;
             transform.localScale = newScale;
@@ -762,7 +746,6 @@ namespace SupanthaPaul
             staminaBar1.sizeDelta = newSize;
         }
 
-
         public void DisableMovement()
         {
             canMove = false;
@@ -780,6 +763,7 @@ namespace SupanthaPaul
             canJump = true;
             canDash = true;
         }
+
         public void RefreshDash()
         {
             m_hasDashedInAir = false;
@@ -789,15 +773,14 @@ namespace SupanthaPaul
             m_lastDashRefreshTime = Time.time;
             m_dashRefreshedThisFrame = true;
             flashEffect.RegularColour();
-
-            // Optional: Add visual/audio feedback here
+            PlaySound(staminaRefillSound, 0.6f);
         }
 
         private bool CanSetDashUsed()
         {
-            // Only allow setting dash used if we haven't recently refreshed
             return Time.time > m_lastDashRefreshTime + dashRefreshGracePeriod;
         }
+
         public void FreezePlayer()
         {
             canMove = false;
@@ -817,47 +800,52 @@ namespace SupanthaPaul
             isDashing = false;
             m_dashTimeRemaining = 0f;
             m_rb.velocity = m_dashDirection * dashSpeed * dashEndSpeedMultiplier;
-
-            // Reset dash effects
             flashEffect.RegularColour();
 
-            // Notify attack system dash ended
             if (playerAttack != null)
             {
                 playerAttack.OnDashEnd();
             }
         }
-        // In PlayerController.cs
+
         public void InterruptDash()
         {
             if (isDashing)
             {
                 isDashing = false;
                 m_dashTimeRemaining = 0f;
-
-                // Keep some horizontal momentum but reset vertical
                 m_rb.velocity = new Vector2(
                     m_dashDirection.x * dashSpeed * dashEndSpeedMultiplier,
                     0f
                 );
-
-                // Reset dash effects
                 flashEffect.RegularColour();
 
-                // Notify attack system dash ended
                 if (playerAttack != null)
                 {
                     playerAttack.OnDashEnd();
                 }
 
-                // Apply reduced cooldown as penalty
                 m_dashCooldownRemaining = dashCooldown * 0.5f;
             }
         }
+
         public void ForceDashCooldown(float duration)
         {
             m_dashCooldownRemaining = duration;
-            m_hasDashedInAir = true; // Prevent immediate air dash after bounce
+            m_hasDashedInAir = true;
+        }
+
+        public void PlayGroundSlamSound()
+        {
+            PlaySound(groundSlamSound, 1f);
+        }
+
+        private void PlaySound(AudioClip clip, float volume = 1f)
+        {
+            if (clip != null && audioSource != null)
+            {
+                audioSource.PlayOneShot(clip, volume);
+            }
         }
 
         private void OnDrawGizmosSelected()
@@ -874,27 +862,23 @@ namespace SupanthaPaul
                 Gizmos.DrawWireSphere((Vector2)transform.position + grabLeftOffset, grabCheckRadius);
             }
 
-            // Add to OnDrawGizmos:
             if (showEnemyZones)
             {
-                // Draw donut zones around player
                 Gizmos.color = gizmoOuterColor;
                 Gizmos.DrawSphere(transform.position, gizmoOuterRadius);
 
                 Gizmos.color = gizmoInnerColor;
                 Gizmos.DrawSphere(transform.position, gizmoInnerRadius);
 
-                // Clear the inner part of the outer sphere
                 Gizmos.color = Color.clear;
                 Gizmos.DrawSphere(transform.position, gizmoInnerRadius);
             }
 
             Gizmos.color = Color.yellow;
             Vector3 rayStart = transform.position;
-            Vector3 rayEnd = rayStart + Vector3.down * 1000f; // Just draw a very long line for visualization
+            Vector3 rayEnd = rayStart + Vector3.down * 1000f;
             Gizmos.DrawLine(rayStart, rayEnd);
 
-            // Draw a small marker at the minimum height threshold
             if (groundSlamMinHeight > 0)
             {
                 Gizmos.color = Color.cyan;
@@ -904,7 +888,6 @@ namespace SupanthaPaul
                 Gizmos.DrawLine(minHeightStart, minHeightEnd);
             }
 
-            // Draw actual hit point if in play mode
             if (Application.isPlaying && !isGrounded)
             {
                 RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, Mathf.Infinity, whatIsGround);

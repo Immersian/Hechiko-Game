@@ -42,10 +42,11 @@ GameObject:
   - component: {fileID: 1865938915375051426}
   - component: {fileID: 1865938915375051424}
   - component: {fileID: 1865938915375051439}
-  - component: {fileID: 1865938915375051438}
+  - component: {fileID: 4583491911232822983}
   - component: {fileID: 1173712999407116002}
   - component: {fileID: 7809348263096743130}
   - component: {fileID: 4269898918856232385}
+  - component: {fileID: 1594396520840699548}
   m_Layer: 10
   m_Name: Player
   m_TagString: Player
@@ -106,7 +107,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.030555725, y: -0.2497617}
+  m_Offset: {x: 0.03055573, y: -0.2497617}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -117,7 +118,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1.344589, y: 2.4804952}
+  m_Size: {x: 1.344589, y: 2.480495}
   m_EdgeRadius: 0
 --- !u!50 &1865938915375051439
 Rigidbody2D:
@@ -146,7 +147,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
---- !u!114 &1865938915375051438
+--- !u!114 &4583491911232822983
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -161,6 +162,7 @@ MonoBehaviour:
   speed: 8.5
   jumpForce: 15
   fallMultiplier: 1.2
+  maxFallSpeed: -25
   groundCheck: {fileID: 1865938915023229146}
   groundCheckRadius: 0.66
   whatIsGround:
@@ -180,13 +182,24 @@ MonoBehaviour:
     type: 3}
   dashBufferTime: 0.1
   maxStamina: 50
-  currentStamina: 0
+  currentStamina: 50
   dashCost: 10
   staminaRegenRate: 10
   staminaRegenDelay: 0
   staminaBar1: {fileID: 0}
   playerAttack: {fileID: 7616391099933947430}
-  isGrounded: 0
+  jumpSound: {fileID: 0}
+  doubleJumpSound: {fileID: 0}
+  dashSound: {fileID: 0}
+  landSound: {fileID: 0}
+  wallGrabSound: {fileID: 0}
+  wallJumpSound: {fileID: 0}
+  footstepSound: {fileID: 8300000, guid: d440eb51e5d3c3e458ee88b5cfac1c64, type: 3}
+  groundSlamSound: {fileID: 0}
+  staminaRefillSound: {fileID: 0}
+  footstepInterval: 0.3
+  footstepVolume: 0.1
+  isGrounded: 1
   moveInput: 0
   canMove: 1
   canFlip: 1
@@ -194,7 +207,7 @@ MonoBehaviour:
   canDash: 1
   isDashing: 0
   actuallyWallGrabbing: 0
-  isCurrentlyPlayable: 0
+  isCurrentlyPlayable: 1
   grabRightOffset: {x: 0.71, y: 0}
   grabLeftOffset: {x: -0.65, y: 0}
   grabCheckRadius: 0.24
@@ -204,7 +217,16 @@ MonoBehaviour:
   wallSlideCoyoteTime: 0.1
   wallJumpHorizontalForce: 10.5
   wallJumpVerticalForce: 16.5
-  wallStickCancelForce: 5
+  healAmount: 25
+  healEffect: {fileID: 0}
+  healSound: {fileID: 0}
+  potionImages:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  playerHealth: {fileID: 4269898918856232385}
+  animator: {fileID: 1865938916397552050}
+  audioSource: {fileID: 1594396520840699548}
   knockbackDuration: 0.2
   knockbackMovementLockDuration: 0.3
   cameraShake: {fileID: 0}
@@ -217,6 +239,9 @@ MonoBehaviour:
   gizmoOuterRadius: 7
   gizmoInnerColor: {r: 1, g: 0, b: 0, a: 0.3}
   gizmoOuterColor: {r: 1, g: 1, b: 0, a: 0.2}
+  dashRefreshGracePeriod: 0.2
+  flashEffect: {fileID: 6226501132091115715}
+  tilemapBev: {fileID: 0}
   m_facingRight: 1
   m_facingLeft: 0
   m_hasDashedInAir: 0
@@ -283,10 +308,107 @@ MonoBehaviour:
   isInvulnerable: 0
   invulnerabilityDuration: 1
   healthBar1: {fileID: 0}
+  damageFlashEffect: {fileID: 6226501132091115715}
+  playerController: {fileID: 0}
   cameraShake: {fileID: 0}
   shakeIntensity: 5
   shakeTime: 0.5
-  flashEffect: {fileID: 6226501132091115715}
+--- !u!82 &1594396520840699548
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1865938915375051437}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1865938915660024763
 GameObject:
   m_ObjectHideFlags: 0
@@ -400,7 +522,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 77e2813779c63f443a920a5ba50336b2, type: 2}
+  - {fileID: 2100000, guid: e1a518228703d664ab2561b3eac71862, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -444,9 +566,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05c9527907d7ed244829bca22839521f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damageFlashColor: {r: 1, g: 0, b: 0, a: 1}
   flashTime: 0.25
-  dashRefreshColor: {r: 0, g: 1, b: 1, a: 1}
+  damageFlashColor: {r: 1, g: 0, b: 0, a: 1}
+  dashedFlashColor: {r: 0, g: 1, b: 1, a: 1}
+  dashFlashColor: {r: 0, g: 0.9391718, b: 1, a: 1}
+  noDashColor: {r: 1, g: 1, b: 1, a: 1}
+  defaultColor: {r: 0.878, g: 0.094, b: 0.051, a: 1}
+  flashMaterial: {fileID: 2100000, guid: 77e2813779c63f443a920a5ba50336b2, type: 2}
+  paletteMaterial: {fileID: 2100000, guid: e1a518228703d664ab2561b3eac71862, type: 2}
 --- !u!114 &7616391099933947430
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -475,17 +602,23 @@ MonoBehaviour:
   upwardLaunchEffect: {fileID: 0}
   isInUpwardAttackRecovery: 0
   attackCooldowns:
-  - 0.4
-  - 0.4
+  - 0.25
+  - 0.27
   - 0.8
-  attackSounds: []
+  postAttackDashCooldown: 0.3
+  attackSounds:
+  - {fileID: 8300000, guid: 437d5340f28aeac4e9fd79767ba3a6cb, type: 3}
+  - {fileID: 8300000, guid: 437d5340f28aeac4e9fd79767ba3a6cb, type: 3}
+  - {fileID: 8300000, guid: 437d5340f28aeac4e9fd79767ba3a6cb, type: 3}
   downwardAttackSound: {fileID: 0}
   groundSlamImpactSound: {fileID: 0}
   groundSlamEffect: {fileID: 0}
-  playerController: {fileID: 1865938915375051438}
+  playerController: {fileID: 0}
   playerRigidbody: {fileID: 1865938915375051439}
   shockWaveManager: {fileID: 3060530664688539166}
   attackHitbox: {fileID: 9124252404721817542}
+  pitchRange: {x: 0.9, y: 3}
+  pitchShiftDuration: 0.1
   isGroundSlamming: 0
 --- !u!114 &342462848960985277
 MonoBehaviour:
@@ -732,9 +865,10 @@ GameObject:
   - component: {fileID: 2429490961849194490}
   - component: {fileID: 1186552516697702766}
   - component: {fileID: 3060530664688539166}
+  - component: {fileID: 5657121400180674625}
   m_Layer: 0
   m_Name: Test full screen
-  m_TagString: Untagged
+  m_TagString: Shockwave
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -748,8 +882,8 @@ Transform:
   m_GameObject: {fileID: 4582749534674727592}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.4600067, y: 0, z: 0}
-  m_LocalScale: {x: 2.8304389, y: 2.8304389, z: 2.8304389}
+  m_LocalPosition: {x: 1.27, y: 0, z: 0}
+  m_LocalScale: {x: 4.3515167, y: 4.3515167, z: 4.3515167}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1865938915375051426}
@@ -818,11 +952,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f74c12fad4514446be40dbb28f5ebb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shockWaveTime: 0.75
+  shockWaveTime: 1
   startPosition: -0.1
-  endPosition: 1
-  specialAttackKey: 114
+  endPosition: 0.5
   specialAttackCooldown: 2
+  startSize: 0.05
+  endSize: 0
+  maxColliderRadius: 5.2
+--- !u!58 &5657121400180674625
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4582749534674727592}
+  m_Enabled: 0
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0.0000076293945, y: 0}
+  serializedVersion: 2
+  m_Radius: 0.0001
 --- !u!1 &5796272189899729261
 GameObject:
   m_ObjectHideFlags: 0

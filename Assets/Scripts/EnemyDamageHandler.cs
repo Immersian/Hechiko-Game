@@ -64,6 +64,10 @@ public class EnemyDamageHandler : MonoBehaviour
                 playerController.UpdateStaminaBar();
             }
         }
+        if (TryGetComponent<EnemyHitShake>(out var hitShake))
+        {
+            hitShake.OnHit();
+        }
         // Immediately stop any attack animations
         if (TryGetComponent<EnemyMovement>(out var enemyMovement))
         {

@@ -1,0 +1,426 @@
+fileFormatVersion: 2
+guid: 8f29c2f43336bbe4aa34986c3ef08e34
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 200
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: WOODEN TILES_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 151
+        width: 200
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape:
+      - - {x: -100, y: 7.5}
+        - {x: -100, y: -41.5}
+        - {x: 100, y: -41.5}
+        - {x: 100, y: 7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: ae7067fc4c97ced46ae4009ec87b81cf
+      internalID: -1442619356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WOODEN TILES_1
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 151
+        width: 200
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape:
+      - - {x: -100, y: 7.5}
+        - {x: -100, y: -41.5}
+        - {x: 100, y: -41.5}
+        - {x: 100, y: 7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: dd5cedd3d215fe84586a6e2e3a4342b9
+      internalID: 1211999790
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WOODEN TILES_2
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 151
+        width: 200
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape:
+      - - {x: -100, y: 7.5}
+        - {x: -100, y: -41.5}
+        - {x: 100, y: -41.5}
+        - {x: 100, y: 7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: 36771903961c1a046810c0750c20a661
+      internalID: -2017340272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WOODEN TILES_3
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 151
+        width: 200
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape:
+      - - {x: -100, y: 7.5}
+        - {x: -100, y: -41.5}
+        - {x: 100, y: -41.5}
+        - {x: 100, y: 7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: 784b72958f348bb468bf2843ed97ca85
+      internalID: -1997354989
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WOODEN TILES_4
+      rect:
+        serializedVersion: 2
+        x: 800
+        y: 151
+        width: 200
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape:
+      - - {x: -100, y: 7.5}
+        - {x: -100, y: -41.5}
+        - {x: 100, y: -41.5}
+        - {x: 100, y: 7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: 45e688886f499b44baa996a7271f433b
+      internalID: -315790625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WOODEN TILES_5
+      rect:
+        serializedVersion: 2
+        x: 1000
+        y: 151
+        width: 200
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape:
+      - - {x: -100, y: 7.5}
+        - {x: -100, y: -41.5}
+        - {x: 100, y: -41.5}
+        - {x: 100, y: 7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: 64fe456ce3eafce44a134df4b23a3e26
+      internalID: -503038609
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WOODEN TILES_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 68
+        width: 200
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape:
+      - - {x: -100, y: 7.5}
+        - {x: -100, y: -41.5}
+        - {x: 100, y: -41.5}
+        - {x: 100, y: 7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1852dc696058e2e4da836f49312c4259
+      internalID: 886648361
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WOODEN TILES_7
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 68
+        width: 200
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape:
+      - - {x: -100, y: 7.5}
+        - {x: -100, y: -41.5}
+        - {x: 100, y: -41.5}
+        - {x: 100, y: 7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: a1aa8a32e5d9ed94b87c0f4a5fb51fd0
+      internalID: -1419751842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WOODEN TILES_8
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 68
+        width: 200
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape:
+      - - {x: -100, y: 7.5}
+        - {x: -100, y: -41.5}
+        - {x: 100, y: -41.5}
+        - {x: 100, y: 7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: a460b82a0c3338a46964d27597331287
+      internalID: -821692827
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WOODEN TILES_9
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 68
+        width: 200
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape:
+      - - {x: -100, y: 7.5}
+        - {x: -100, y: -41.5}
+        - {x: 100, y: -41.5}
+        - {x: 100, y: 7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: a3e00fc4a985bf4488d426ed1ed2e059
+      internalID: -1408738527
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WOODEN TILES_10
+      rect:
+        serializedVersion: 2
+        x: 800
+        y: 68
+        width: 200
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape:
+      - - {x: -100, y: 7.5}
+        - {x: -100, y: -41.5}
+        - {x: 100, y: -41.5}
+        - {x: 100, y: 7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: fcf3f7b82eff7814da8c1bfc3b24bbb0
+      internalID: -778213133
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: WOODEN TILES_11
+      rect:
+        serializedVersion: 2
+        x: 1000
+        y: 68
+        width: 200
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape:
+      - - {x: -100, y: 7.5}
+        - {x: -100, y: -41.5}
+        - {x: 100, y: -41.5}
+        - {x: 100, y: 7.5}
+      tessellationDetail: 0
+      bones: []
+      spriteID: ac82750406ec85b469c7406a011f42be
+      internalID: 129638956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      WOODEN TILES_0: -1442619356
+      WOODEN TILES_1: 1211999790
+      WOODEN TILES_10: -778213133
+      WOODEN TILES_11: 129638956
+      WOODEN TILES_2: -2017340272
+      WOODEN TILES_3: -1997354989
+      WOODEN TILES_4: -315790625
+      WOODEN TILES_5: -503038609
+      WOODEN TILES_6: 886648361
+      WOODEN TILES_7: -1419751842
+      WOODEN TILES_8: -821692827
+      WOODEN TILES_9: -1408738527
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

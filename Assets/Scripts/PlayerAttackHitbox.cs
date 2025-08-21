@@ -18,7 +18,7 @@ public class PlayerAttackHitbox : MonoBehaviour
 
     private bool canAttack = true;
     private Collider2D attackCollider;
-    private CameraShake cameraShake;
+    public CameraShake cameraShake;
 
     void Awake()
     {

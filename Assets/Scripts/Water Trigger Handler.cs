@@ -19,8 +19,8 @@ public class WaterTriggerHandler : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if ((_waterMask.value & (1 << collision.gameObject.layer)) > 0) 
-        { 
+        if ((_waterMask.value & (1 << collision.gameObject.layer)) > 0)
+        {
             Rigidbody2D rb = collision.GetComponentInParent<Rigidbody2D>();
             if (rb != null)
             {
