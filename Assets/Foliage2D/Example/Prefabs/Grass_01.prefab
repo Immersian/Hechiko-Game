@@ -101,8 +101,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefabInstanceIsCreated: 0
   pixelsPerUnit: 200
-  width: 2.5
-  height: 2.5
+  width: 1.585
+  height: 0.285
   widthSegments: 3
   heightSegments: 3
 --- !u!114 &114470273382979444

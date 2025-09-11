@@ -14,7 +14,7 @@ public class Phase1BakaState : BakaBossBaseState
 
     public override void UpdateState(BakaBossStateManager baka)
     {
-        if (bossHealth != null && bossHealth.currentHealth <= 999)
+        if (bossHealth != null && bossHealth.currentHealth <= 700)
         {
             // Stop any ongoing attacks before transitioning
             attackManager?.StopAllAttacks();

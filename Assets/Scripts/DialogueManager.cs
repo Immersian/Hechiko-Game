@@ -32,6 +32,8 @@ public class DialogueManager : MonoBehaviour
     private TextMeshProUGUI currentDialogueText;
     private GameObject[] currentChoiceButtons;
     private TextMeshProUGUI[] currentChoicesText;
+    public bool isTyping = false;
+    private bool isDisplayingChoices = false;
 
     private void Awake()
     {
@@ -52,6 +54,7 @@ public class DialogueManager : MonoBehaviour
             choicesText[i] = buttons[i].GetComponentInChildren<TextMeshProUGUI>();
         }
     }
+
     private void Update()
     {
         // Only handle input when dialogue is playing
@@ -60,6 +63,7 @@ public class DialogueManager : MonoBehaviour
             HandleContinueClick();
         }
     }
+
     public void StartDialogue(TextAsset inkJSON, string npcID, bool playerIsLeft)
     {
         // Set up the appropriate UI based on player position
@@ -102,7 +106,22 @@ public class DialogueManager : MonoBehaviour
 
         dialogueIsPlaying = true;
         currentDialogueCanvas.SetActive(true);
+
+        // Reset input state to prevent immediate skipping
+        ResetInputState();
+
         ContinueStory();
+    }
+
+    private void ResetInputState()
+    {
+        // Clear any existing input that might cause immediate skipping
+        canContinueToNextLine = false;
+        isTyping = false;
+        isDisplayingChoices = false;
+
+        // Reset input system
+        InputManager.instance.inputControl.Dialogue.Interact.Reset();
     }
 
     private void ContinueStory()
@@ -114,7 +133,17 @@ public class DialogueManager : MonoBehaviour
                 StopCoroutine(displayLineCoroutine);
             }
 
+            // Reset states for new line
+            canContinueToNextLine = false;
+            isTyping = false;
+            isDisplayingChoices = false;
+            HideChoices();
+
             displayLineCoroutine = StartCoroutine(DisplayLine(currentStory.Continue()));
+        }
+        else if (currentStory.currentChoices.Count > 0)
+        {
+            DisplayChoices();
         }
         else
         {
@@ -131,17 +160,87 @@ public class DialogueManager : MonoBehaviour
         }
 
         currentDialogueText.text = "";
-        canContinueToNextLine = false;
+        isTyping = true;
         HideChoices();
 
-        foreach (char letter in line.ToCharArray())
+        string fullText = line;
+        bool skipped = false;
+
+        // Small delay before starting to type to prevent immediate skip
+        yield return new WaitForSeconds(0.05f);
+
+        // Type out the text character by character
+        foreach (char letter in fullText.ToCharArray())
         {
+            // Check if the player wants to skip the typing
+            if (InputManager.instance.inputControl.Dialogue.Interact.WasPressedThisFrame() && !skipped)
+            {
+                currentDialogueText.text = fullText;
+                skipped = true;
+                break;
+            }
+
             currentDialogueText.text += letter;
             yield return new WaitForSeconds(typingSpeed);
         }
 
-        DisplayChoices();
-        canContinueToNextLine = true;
+        // If skipped, wait a tiny moment before proceeding
+        if (skipped)
+        {
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        isTyping = false;
+
+        // Check if we have choices after this line
+        if (currentStory.currentChoices.Count > 0)
+        {
+            DisplayChoices();
+        }
+        else
+        {
+            canContinueToNextLine = true;
+        }
+    }
+
+    private void HandleContinueClick()
+    {
+        if (InputManager.instance.inputControl.Dialogue.Interact.WasPressedThisFrame())
+        {
+            if (isTyping)
+            {
+                // If currently typing, skip to the end of the current line
+                SkipTyping();
+            }
+            else if (canContinueToNextLine && !isDisplayingChoices)
+            {
+                // If not typing and can continue, go to next line
+                ContinueStory();
+            }
+        }
+    }
+
+    private void SkipTyping()
+    {
+        if (displayLineCoroutine != null)
+        {
+            StopCoroutine(displayLineCoroutine);
+            isTyping = false;
+
+            // Display the full text immediately
+            string currentLine = currentStory.currentText;
+            currentDialogueText.text = currentLine;
+
+            // Check if we have choices after this line
+            if (currentStory.currentChoices.Count > 0)
+            {
+                DisplayChoices();
+            }
+            else
+            {
+                canContinueToNextLine = true;
+            }
+        }
     }
 
     private void DisplayChoices()
@@ -150,7 +249,8 @@ public class DialogueManager : MonoBehaviour
 
         if (currentChoices.Count > 0)
         {
-            InputManager.instance.SetDialogueInputEnabled(false);
+            isDisplayingChoices = true;
+            canContinueToNextLine = false;
 
             for (int i = 0; i < currentChoices.Count; i++)
             {
@@ -176,10 +276,8 @@ public class DialogueManager : MonoBehaviour
         else
         {
             HideChoices();
-            InputManager.instance.SetDialogueInputEnabled(true);
-
-            // Enable continue-on-click when there are no choices
             canContinueToNextLine = true;
+            isDisplayingChoices = false;
         }
     }
 
@@ -202,21 +300,28 @@ public class DialogueManager : MonoBehaviour
 
     public void MakeChoice(int choiceIndex)
     {
-        if (canContinueToNextLine)
+        if (isDisplayingChoices)
         {
             currentStory.ChooseChoiceIndex(choiceIndex);
-            ContinueStory();
+            isDisplayingChoices = false;
+            HideChoices();
+
+            // Add a small delay to prevent instant skipping
+            StartCoroutine(ContinueAfterChoice());
         }
     }
-    private void HandleContinueClick()
+
+    private IEnumerator ContinueAfterChoice()
     {
-        if (InputManager.instance.inputControl.Dialogue.Interact.WasPressedThisFrame() &&
-            canContinueToNextLine &&
-            currentStory.currentChoices.Count == 0)
-        {
-            ContinueStory();
-        }
+        // Reset input to prevent the choice selection from triggering immediate skip
+        InputManager.instance.inputControl.Dialogue.Interact.Reset();
+
+        // Wait one frame to ensure input is cleared
+        yield return null;
+
+        ContinueStory();
     }
+
     private void ExitDialogueMode()
     {
         dialogueIsPlaying = false;

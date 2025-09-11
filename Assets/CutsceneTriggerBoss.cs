@@ -13,11 +13,13 @@ public class CutsceneTriggerBoss : MonoBehaviour
     [Header("Health Bar Settings")]
     [SerializeField] private Image healthBarFill; // Main health bar fill
     [SerializeField] private Image healthBarOutline; // Health bar outline as separate Image
+    [SerializeField] private Image extraImage; // Your extra image that should fade with health bar
     [SerializeField] private float fadeDuration = 1.5f;
     [SerializeField] private float fadeDelay = 0.5f;
 
     private Color initialFillColor;
     private Color initialOutlineColor;
+    private Color initialExtraImageColor;
 
     private void Awake()
     {
@@ -32,6 +34,12 @@ public class CutsceneTriggerBoss : MonoBehaviour
         {
             initialOutlineColor = healthBarOutline.color;
             healthBarOutline.gameObject.SetActive(false);
+        }
+
+        if (extraImage != null)
+        {
+            initialExtraImageColor = extraImage.color;
+            extraImage.gameObject.SetActive(false);
         }
     }
 
@@ -57,6 +65,17 @@ public class CutsceneTriggerBoss : MonoBehaviour
                 );
             }
 
+            if (extraImage != null)
+            {
+                extraImage.gameObject.SetActive(true);
+                extraImage.color = new Color(
+                    initialExtraImageColor.r,
+                    initialExtraImageColor.g,
+                    initialExtraImageColor.b,
+                    0f
+                );
+            }
+
             playableDirector.Play();
             GetComponent<BoxCollider2D>().enabled = false;
 
@@ -67,7 +86,7 @@ public class CutsceneTriggerBoss : MonoBehaviour
 
     private IEnumerator FadeInHealthBar()
     {
-        if (healthBarFill == null && healthBarOutline == null)
+        if (healthBarFill == null && healthBarOutline == null && extraImage == null)
             yield break;
 
         yield return new WaitForSeconds(fadeDelay);
@@ -99,6 +118,17 @@ public class CutsceneTriggerBoss : MonoBehaviour
                 );
             }
 
+            // Fade in extra image
+            if (extraImage != null)
+            {
+                extraImage.color = new Color(
+                    initialExtraImageColor.r,
+                    initialExtraImageColor.g,
+                    initialExtraImageColor.b,
+                    alpha * initialExtraImageColor.a
+                );
+            }
+
             elapsed += Time.deltaTime;
             yield return null;
         }
@@ -113,6 +143,66 @@ public class CutsceneTriggerBoss : MonoBehaviour
         {
             healthBarOutline.color = initialOutlineColor;
         }
+
+        if (extraImage != null)
+        {
+            extraImage.color = initialExtraImageColor;
+        }
+    }
+
+    // Optional: Add a method to fade out all elements including the extra image
+    public IEnumerator FadeOutHealthBar()
+    {
+        if (healthBarFill == null && healthBarOutline == null && extraImage == null)
+            yield break;
+
+        float elapsed = 0f;
+        Color currentFillColor = healthBarFill != null ? healthBarFill.color : Color.clear;
+        Color currentOutlineColor = healthBarOutline != null ? healthBarOutline.color : Color.clear;
+        Color currentExtraColor = extraImage != null ? extraImage.color : Color.clear;
+
+        while (elapsed < fadeDuration)
+        {
+            float alpha = Mathf.Lerp(1f, 0f, elapsed / fadeDuration);
+
+            if (healthBarFill != null)
+            {
+                healthBarFill.color = new Color(
+                    currentFillColor.r,
+                    currentFillColor.g,
+                    currentFillColor.b,
+                    alpha * currentFillColor.a
+                );
+            }
+
+            if (healthBarOutline != null)
+            {
+                healthBarOutline.color = new Color(
+                    currentOutlineColor.r,
+                    currentOutlineColor.g,
+                    currentOutlineColor.b,
+                    alpha * currentOutlineColor.a
+                );
+            }
+
+            if (extraImage != null)
+            {
+                extraImage.color = new Color(
+                    currentExtraColor.r,
+                    currentExtraColor.g,
+                    currentExtraColor.b,
+                    alpha * currentExtraColor.a
+                );
+            }
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // Disable objects after fading out
+        if (healthBarFill != null) healthBarFill.gameObject.SetActive(false);
+        if (healthBarOutline != null) healthBarOutline.gameObject.SetActive(false);
+        if (extraImage != null) extraImage.gameObject.SetActive(false);
     }
 
     private void OnCutsceneFinished(PlayableDirector director)

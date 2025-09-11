@@ -715,6 +715,34 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Exit Credit"",
+            ""id"": ""68b31a97-075e-431d-8ca0-55c87d8b4c31"",
+            ""actions"": [
+                {
+                    ""name"": ""Exit"",
+                    ""type"": ""Button"",
+                    ""id"": ""1d149b8f-4921-4026-b4b9-dd4e8211f651"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""ef8f059d-9a0f-4492-9c6f-4470af1f132c"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Exit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -766,6 +794,9 @@ public partial class @Controller: IInputActionCollection2, IDisposable
         m_Pause_Tab = m_Pause.FindAction("Tab", throwIfNotFound: true);
         m_Pause_RB = m_Pause.FindAction("RB", throwIfNotFound: true);
         m_Pause_LB = m_Pause.FindAction("LB", throwIfNotFound: true);
+        // Exit Credit
+        m_ExitCredit = asset.FindActionMap("Exit Credit", throwIfNotFound: true);
+        m_ExitCredit_Exit = m_ExitCredit.FindAction("Exit", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -1103,6 +1134,52 @@ public partial class @Controller: IInputActionCollection2, IDisposable
         }
     }
     public PauseActions @Pause => new PauseActions(this);
+
+    // Exit Credit
+    private readonly InputActionMap m_ExitCredit;
+    private List<IExitCreditActions> m_ExitCreditActionsCallbackInterfaces = new List<IExitCreditActions>();
+    private readonly InputAction m_ExitCredit_Exit;
+    public struct ExitCreditActions
+    {
+        private @Controller m_Wrapper;
+        public ExitCreditActions(@Controller wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Exit => m_Wrapper.m_ExitCredit_Exit;
+        public InputActionMap Get() { return m_Wrapper.m_ExitCredit; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(ExitCreditActions set) { return set.Get(); }
+        public void AddCallbacks(IExitCreditActions instance)
+        {
+            if (instance == null || m_Wrapper.m_ExitCreditActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_ExitCreditActionsCallbackInterfaces.Add(instance);
+            @Exit.started += instance.OnExit;
+            @Exit.performed += instance.OnExit;
+            @Exit.canceled += instance.OnExit;
+        }
+
+        private void UnregisterCallbacks(IExitCreditActions instance)
+        {
+            @Exit.started -= instance.OnExit;
+            @Exit.performed -= instance.OnExit;
+            @Exit.canceled -= instance.OnExit;
+        }
+
+        public void RemoveCallbacks(IExitCreditActions instance)
+        {
+            if (m_Wrapper.m_ExitCreditActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        public void SetCallbacks(IExitCreditActions instance)
+        {
+            foreach (var item in m_Wrapper.m_ExitCreditActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_ExitCreditActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    public ExitCreditActions @ExitCredit => new ExitCreditActions(this);
     private int m_GamepadSchemeIndex = -1;
     public InputControlScheme GamepadScheme
     {
@@ -1148,5 +1225,9 @@ public partial class @Controller: IInputActionCollection2, IDisposable
         void OnTab(InputAction.CallbackContext context);
         void OnRB(InputAction.CallbackContext context);
         void OnLB(InputAction.CallbackContext context);
+    }
+    public interface IExitCreditActions
+    {
+        void OnExit(InputAction.CallbackContext context);
     }
 }

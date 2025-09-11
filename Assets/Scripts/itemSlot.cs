@@ -93,9 +93,9 @@ public class ItemSlot : MonoBehaviour, ISelectHandler, IDeselectHandler
         }
 
         if (ItemDescriptionNameText != null)
-            ItemDescriptionNameText.text = "No Item";
+            ItemDescriptionNameText.text = "";
 
         if (ItemDescriptionText != null)
-            ItemDescriptionText.text = "Select an item to view its description";
+            ItemDescriptionText.text = "This slot is paw-fully empty";
     }
 }

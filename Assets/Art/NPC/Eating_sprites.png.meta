@@ -1,0 +1,422 @@
+fileFormatVersion: 2
+guid: af97c1c4c34a3654c8de045c16f30d85
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 200
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Eating_sprites_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1942
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a5a617dfcddb52f40ab3121280356f22
+      internalID: -1035645098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eating_sprites_1
+      rect:
+        serializedVersion: 2
+        x: 647
+        y: 1942
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 516b1ca763d52c141a9e4e640e682767
+      internalID: 823086450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eating_sprites_2
+      rect:
+        serializedVersion: 2
+        x: 1294
+        y: 1942
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b0e1e532147251845a040830e1fa40f9
+      internalID: 111159209
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eating_sprites_3
+      rect:
+        serializedVersion: 2
+        x: 1941
+        y: 1942
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: baf5f23a80b16f645a453e166c051783
+      internalID: 1053601664
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eating_sprites_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1295
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1f7f6a3522af55a458a313b9b106969f
+      internalID: 709979141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eating_sprites_5
+      rect:
+        serializedVersion: 2
+        x: 647
+        y: 1295
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b4dfac2a6ebccc740b34259d5ca68037
+      internalID: 1202634788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eating_sprites_6
+      rect:
+        serializedVersion: 2
+        x: 1294
+        y: 1295
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2d9e6442d3c0cf64b9279ef99e25dff2
+      internalID: 2065010713
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eating_sprites_7
+      rect:
+        serializedVersion: 2
+        x: 1941
+        y: 1295
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bd3c20ba35257904380a1304f1d8aeff
+      internalID: -638639924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eating_sprites_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 648
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1d51b7e0d720a444281ae83cef91c8fe
+      internalID: 2054374404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eating_sprites_9
+      rect:
+        serializedVersion: 2
+        x: 647
+        y: 648
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fbce0d8f0645d1e47a6e841b2620e9d4
+      internalID: -1363807054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eating_sprites_10
+      rect:
+        serializedVersion: 2
+        x: 1294
+        y: 648
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2061776f42c2284429431c3694f6b02b
+      internalID: 602890093
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eating_sprites_11
+      rect:
+        serializedVersion: 2
+        x: 1941
+        y: 648
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 294273427d50ab1488cc5b755e648eb8
+      internalID: 902616632
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eating_sprites_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7df42931ee4ee5047a1c4aec7d9f7b1f
+      internalID: -506658183
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Eating_sprites_13
+      rect:
+        serializedVersion: 2
+        x: 647
+        y: 1
+        width: 647
+        height: 647
+      alignment: 9
+      pivot: {x: 0.33, y: 0.27}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f6233b97d2111704bb6dff9f48bc9baf
+      internalID: 44460461
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      Eating_sprites_0: -1035645098
+      Eating_sprites_1: 823086450
+      Eating_sprites_10: 602890093
+      Eating_sprites_11: 902616632
+      Eating_sprites_12: -506658183
+      Eating_sprites_13: 44460461
+      Eating_sprites_2: 111159209
+      Eating_sprites_3: 1053601664
+      Eating_sprites_4: 709979141
+      Eating_sprites_5: 1202634788
+      Eating_sprites_6: 2065010713
+      Eating_sprites_7: -638639924
+      Eating_sprites_8: 2054374404
+      Eating_sprites_9: -1363807054
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

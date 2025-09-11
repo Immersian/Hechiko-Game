@@ -6,10 +6,10 @@ VAR interaction_count = 0
 }
 { interaction_count == 1:
     Need some help for figuring the clunky game out?
-    *   [Nah go away] 
-        -> End
-    *   [Yes pls] 
+    *   [Yes please] 
         -> Basic
+    *   [No go awy] 
+        -> End
     -> END
 }
 
@@ -40,10 +40,6 @@ Ight, what would u like to learn?
         -> End
        *[Parrying]
         -> Parrying
-       *[Attacking]
-        -> Attacking
-       *[Special Attack] 
-        -> SpecialAttack
 -> END
 
 === End ===
