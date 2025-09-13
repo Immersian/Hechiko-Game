@@ -73,6 +73,7 @@ Transform:
   - {fileID: 1865938915660024764}
   - {fileID: 7330492011942998529}
   - {fileID: 2429490961849194490}
+  - {fileID: 87627217640663628}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!61 &1865938915375051424
@@ -188,17 +189,17 @@ MonoBehaviour:
   staminaRegenDelay: 0
   staminaBar1: {fileID: 0}
   playerAttack: {fileID: 7616391099933947430}
-  jumpSound: {fileID: 0}
+  jumpSound: {fileID: 8300000, guid: 3f2abbad58681414eb7cec01c4b5b1bf, type: 3}
   doubleJumpSound: {fileID: 0}
-  dashSound: {fileID: 0}
-  landSound: {fileID: 0}
-  wallGrabSound: {fileID: 0}
-  wallJumpSound: {fileID: 0}
-  footstepSound: {fileID: 8300000, guid: d440eb51e5d3c3e458ee88b5cfac1c64, type: 3}
+  dashSound: {fileID: 8300000, guid: 9989779956623c74d9d844c107b6934b, type: 3}
+  landSound: {fileID: 8300000, guid: d440eb51e5d3c3e458ee88b5cfac1c64, type: 3}
+  wallGrabSound: {fileID: 8300000, guid: b73ff43269e3fbc40a8d9811b81c9e0f, type: 3}
+  wallJumpSound: {fileID: 8300000, guid: 3f2abbad58681414eb7cec01c4b5b1bf, type: 3}
+  footstepSound: {fileID: 8300000, guid: b73ff43269e3fbc40a8d9811b81c9e0f, type: 3}
   groundSlamSound: {fileID: 0}
   staminaRefillSound: {fileID: 0}
   footstepInterval: 0.3
-  footstepVolume: 0.1
+  footstepVolume: 0.3
   isGrounded: 1
   moveInput: 0
   canMove: 1
@@ -613,7 +614,7 @@ MonoBehaviour:
   downwardAttackSound: {fileID: 0}
   groundSlamImpactSound: {fileID: 0}
   groundSlamEffect: {fileID: 0}
-  playerController: {fileID: 0}
+  playerController: {fileID: 4583491911232822983}
   playerRigidbody: {fileID: 1865938915375051439}
   shockWaveManager: {fileID: 3060530664688539166}
   attackHitbox: {fileID: 9124252404721817542}
@@ -810,6 +811,7 @@ MonoBehaviour:
     m_Bits: 0
   hitEffect: {fileID: 0}
   effectDestroyTime: 0.5
+  cameraShake: {fileID: 0}
 --- !u!114 &4191108144601080450
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -831,6 +833,12 @@ MonoBehaviour:
   cameraShake: {fileID: 0}
   shakeIntensity: 5
   shakeTime: 0.2
+  hitstopDuration: 0.1
+  hitstopTimeScale: 0.1
+  parrySound: {fileID: 8300000, guid: 14fdb596c9653c94a9075f004633745d, type: 3}
+  blockSound: {fileID: 0}
+  parrySoundVolume: 0.8
+  blockSoundVolume: 0.6
 --- !u!114 &990234941490039109
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -866,6 +874,7 @@ GameObject:
   - component: {fileID: 1186552516697702766}
   - component: {fileID: 3060530664688539166}
   - component: {fileID: 5657121400180674625}
+  - component: {fileID: 4112403827115600007}
   m_Layer: 0
   m_Name: Test full screen
   m_TagString: Shockwave
@@ -882,7 +891,7 @@ Transform:
   m_GameObject: {fileID: 4582749534674727592}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.27, y: 0, z: 0}
+  m_LocalPosition: {x: 1.31, y: 0, z: 0}
   m_LocalScale: {x: 4.3515167, y: 4.3515167, z: 4.3515167}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -994,6 +1003,26 @@ CircleCollider2D:
   m_Offset: {x: 0.0000076293945, y: 0}
   serializedVersion: 2
   m_Radius: 0.0001
+--- !u!114 &4112403827115600007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4582749534674727592}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e77c5df6a2df28e4eb97af38a06c2d57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 20
+  attackCooldown: 0.5
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  hitEffect: {fileID: 0}
+  effectDestroyTime: 0.5
+  cameraShake: {fileID: 0}
 --- !u!1 &5796272189899729261
 GameObject:
   m_ObjectHideFlags: 0
@@ -5933,3 +5962,128 @@ MonoBehaviour:
     m_Bits: 512
   hitEffect: {fileID: 0}
   effectDestroyTime: 0.5
+  cameraShake: {fileID: 0}
+--- !u!1 &8838585026288688610
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 87627217640663628}
+  - component: {fileID: 4685794746448717233}
+  - component: {fileID: 7167675044459644563}
+  - component: {fileID: 7008990914630355886}
+  m_Layer: 0
+  m_Name: Circle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &87627217640663628
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8838585026288688610}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 1865938915375051426}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!331 &4685794746448717233
+SpriteMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8838585026288688610}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 15d0c3709176029428a0da2f8cecf0b5, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_Sprite: {fileID: -2413806693520163455, guid: 4adeaf2d2b1c7417e89f026626d8264f,
+    type: 3}
+  m_MaskAlphaCutoff: 0.2
+  m_FrontSortingLayerID: 0
+  m_BackSortingLayerID: 0
+  m_FrontSortingLayer: 0
+  m_BackSortingLayer: 0
+  m_FrontSortingOrder: 0
+  m_BackSortingOrder: 0
+  m_IsCustomRangeActive: 0
+  m_SpriteSortPoint: 0
+--- !u!95 &7167675044459644563
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8838585026288688610}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 12ca7504a2828bf4a8c6770df8c6c610, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &7008990914630355886
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8838585026288688610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ff441867797bcc43b1cbac9747a5c1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  objectsToDelete:
+  - {fileID: 0}
+  - {fileID: 8838585026288688610}
+  animator: {fileID: 7167675044459644563}
+  animationName: Intro
