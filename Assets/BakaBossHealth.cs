@@ -20,6 +20,10 @@ public class BakaBossHealth : MonoBehaviour
     [SerializeField] private float shakeIntensity = 3f;
     [SerializeField] private float shakeTime = 0.3f;
 
+    [Header("Stun Settings")]
+    [SerializeField] private BakaBossStateManager stateManager;
+    [SerializeField] private int stunDamage = 0;
+
     private Collider2D[] colliders;
 
     void Start()
@@ -28,7 +32,11 @@ public class BakaBossHealth : MonoBehaviour
         colliders = GetComponentsInChildren<Collider2D>();
         currentHealth = maxHealth;
 
-        // Initialize health bar
+        if (stateManager == null)
+        {
+            stateManager = GetComponent<BakaBossStateManager>();
+        }
+
         if (bossHealthBar != null)
         {
             healthBarFullWidth = bossHealthBar.sizeDelta.x;
@@ -38,7 +46,6 @@ public class BakaBossHealth : MonoBehaviour
 
     void Update()
     {
-        // Update invulnerability timer
         if (invulnerabilityTimer > 0)
         {
             invulnerabilityTimer -= Time.deltaTime;
@@ -66,11 +73,9 @@ public class BakaBossHealth : MonoBehaviour
         currentHealth -= damage;
         currentHealth = Mathf.Max(0, currentHealth);
 
-        // Start invulnerability period
         invulnerabilityTimer = invulnerabilityDuration;
         isInvulnerable = true;
 
-        // Visual feedback
         if (flashEffect != null)
         {
             flashEffect.CallHurtFlash();
@@ -89,8 +94,33 @@ public class BakaBossHealth : MonoBehaviour
         }
     }
 
+    public void TakeStun(Vector2 hitDirection)
+    {
+        if (isDead || isInvulnerable) return;
+
+        invulnerabilityTimer = invulnerabilityDuration;
+        isInvulnerable = true;
+
+        if (flashEffect != null)
+        {
+            flashEffect.CallHurtFlash();
+        }
+
+        if (cameraShake != null)
+        {
+            cameraShake.ShakeCamera(shakeIntensity * 1.5f, shakeTime * 1.5f);
+        }
+
+        if (stateManager != null)
+        {
+            stateManager.TriggerStun();
+        }
+    }
+
     private void Die()
     {
+        if (isDead) return;
+
         isDead = true;
 
         // Disable all colliders
@@ -99,14 +129,27 @@ public class BakaBossHealth : MonoBehaviour
             collider.enabled = false;
         }
 
-        // Add any additional death logic here
+        // Trigger death cutscene through state manager
+        if (stateManager != null)
+        {
+            stateManager.TriggerDeathCutscene();
+        }
+        else
+        {
+            Debug.LogError("StateManager reference is missing in BakaBossHealth!");
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag("Player Attack")) return;
+        if (!other.CompareTag("Player Attack") && !other.CompareTag("Shockwave")) return;
 
-        if (other.TryGetComponent<PlayerAttackHitbox>(out var attack))
+        if (other.CompareTag("Shockwave"))
+        {
+            Vector2 hitDirection = (transform.position - other.transform.position).normalized;
+            TakeStun(hitDirection);
+        }
+        else if (other.CompareTag("Player Attack") && other.TryGetComponent<PlayerAttackHitbox>(out var attack))
         {
             Vector2 hitDirection = (transform.position - other.transform.position).normalized;
             TakeDamage(attack.damage, hitDirection);

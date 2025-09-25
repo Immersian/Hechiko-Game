@@ -134,6 +134,9 @@ namespace SupanthaPaul
         [Header("Tilemap Phasing")]
         [SerializeField] private TilemapBev tilemapBev;
 
+        [Header("Effector Layer")]
+        [SerializeField] private LayerMask whatIsEffector;
+
         private Rigidbody2D m_rb;
         private ParticleSystem m_dustParticle;
         public bool m_facingRight = true;
@@ -227,6 +230,12 @@ namespace SupanthaPaul
             Vector2 moveInputVector = moveAction.ReadValue<Vector2>();
             moveInput = moveInputVector.x;
 
+            ParryScript parryScript = GetComponentInChildren<ParryScript>();
+            if (parryScript != null && parryScript.IsBlocking)
+            {
+                moveInput = 0f; // Zero out movement input while blocking
+            }
+
             m_groundedRemember -= Time.deltaTime;
             if (isGrounded)
             {
@@ -298,12 +307,20 @@ namespace SupanthaPaul
 
         private void FixedUpdate()
         {
-            isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, whatIsGround);
+            // Check if player is on either ground or effector
+            bool onGround = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, whatIsGround);
+            bool onEffector = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, whatIsEffector);
+            isGrounded = onGround || onEffector;
+
+            // Check for walls (excluding effectors)
             var position = transform.position;
-            m_onWall = Physics2D.OverlapCircle((Vector2)position + grabRightOffset, grabCheckRadius, whatIsGround)
-                      || Physics2D.OverlapCircle((Vector2)position + grabLeftOffset, grabCheckRadius, whatIsGround);
-            m_onRightWall = Physics2D.OverlapCircle((Vector2)position + grabRightOffset, grabCheckRadius, whatIsGround);
-            m_onLeftWall = Physics2D.OverlapCircle((Vector2)position + grabLeftOffset, grabCheckRadius, whatIsGround);
+            m_onRightWall = Physics2D.OverlapCircle((Vector2)position + grabRightOffset, grabCheckRadius, whatIsGround) &&
+                           !Physics2D.OverlapCircle((Vector2)position + grabRightOffset, grabCheckRadius, whatIsEffector);
+
+            m_onLeftWall = Physics2D.OverlapCircle((Vector2)position + grabLeftOffset, grabCheckRadius, whatIsGround) &&
+                          !Physics2D.OverlapCircle((Vector2)position + grabLeftOffset, grabCheckRadius, whatIsEffector);
+
+            m_onWall = m_onRightWall || m_onLeftWall;
 
             CalculateSides();
             CheckGroundSlam();
@@ -324,6 +341,9 @@ namespace SupanthaPaul
             }
 
             if (!isCurrentlyPlayable) return;
+
+            ParryScript parryScript = GetComponentInChildren<ParryScript>();
+            bool isBlocking = parryScript != null && parryScript.IsBlocking;
 
             if (isDashing)
             {
@@ -355,7 +375,7 @@ namespace SupanthaPaul
             }
             else
             {
-                if (canMove && !m_wallGrabbing)
+                if (canMove && !m_wallGrabbing && !isBlocking)
                 {
                     if (m_wallJumping)
                     {
@@ -368,7 +388,7 @@ namespace SupanthaPaul
                         m_rb.velocity = new Vector2(moveInput * speed, m_rb.velocity.y);
                     }
                 }
-                else if (!canMove)
+                else if (!canMove || isBlocking) // Added isBlocking check
                 {
                     m_rb.velocity = new Vector2(0f, m_rb.velocity.y);
                 }
@@ -425,6 +445,12 @@ namespace SupanthaPaul
 
         private void ExecuteDash(Vector2 inputDirection)
         {
+            ParryScript parryScript = GetComponentInChildren<ParryScript>();
+            if (parryScript != null && parryScript.IsBlocking)
+            {
+                parryScript.ForceEndBlock();
+            }
+
             float dashDuration = horizontalDashDuration;
             flashEffect.DashingTrans();
 
@@ -476,7 +502,7 @@ namespace SupanthaPaul
             main.startRotation = rotationAngle;
 
             cameraShake.ShakeCamera(shakeIntensity, shakeTime);
-            RumbleManager.instance.RumblePulse(1f, 1f, 0.15f);
+            RumbleManager.instance.RumblePulse(0.5f, 0.5f, 0.15f);
         }
 
         private void TryHeal()
@@ -672,7 +698,10 @@ namespace SupanthaPaul
         {
             if (!isGrounded)
             {
-                RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, Mathf.Infinity, whatIsGround);
+                // Check for both ground and effector layers
+                int combinedLayers = whatIsGround | whatIsEffector;
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, Mathf.Infinity, combinedLayers);
+
                 if (hit.collider != null)
                 {
                     float heightAboveGround = transform.position.y - hit.point.y;
@@ -730,7 +759,10 @@ namespace SupanthaPaul
             transform.localScale = newScale;
             _cameraFollowObject.CallTurn();
         }
-
+        private bool IsEffectorWall(Vector2 checkPosition)
+        {
+            return Physics2D.OverlapCircle(checkPosition, grabCheckRadius, whatIsEffector);
+        }
         void CalculateSides()
         {
             m_onWallSide = m_onRightWall ? 1 : (m_onLeftWall ? -1 : 0);

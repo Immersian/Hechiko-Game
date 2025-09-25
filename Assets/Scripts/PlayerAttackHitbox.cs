@@ -6,7 +6,7 @@ public class PlayerAttackHitbox : MonoBehaviour
 {
     [Header("Attack Settings")]
     [SerializeField] public int damage = 20;
-    [SerializeField] private float attackCooldown = 0.5f;
+    [SerializeField] private float attackCooldown = 0f;
     //[SerializeField] private float knockbackForce = 3f;
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private GameObject hitEffect;

@@ -1,5 +1,7 @@
 using UnityEngine;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using SupanthaPaul;
 
 public class PlayerHealth : MonoBehaviour
@@ -25,9 +27,22 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] public float shakeIntensity = 5;
     [SerializeField] public float shakeTime = 0.1f;
 
+    [Header("Death Animation")]
+    [SerializeField] private string deathTrigger = "Die"; // Animation trigger parameter
+
+    [Header("Respawn Settings")]
+    [SerializeField] private CrossFade crossFade;
+    [SerializeField] private float fadeInDelay = 1f; // Delay before starting fade to black
+    [SerializeField] private float fadeInDuration = 0.5f;
+    [SerializeField] private float fadeOutDelay = 1f; // Time screen stays black before fading out
+    [SerializeField] private float fadeOutDuration = 0.5f;
+    [SerializeField] private float respawnStabilizeTime = 0.1f; // Time to stabilize player after respawn
+    private Vector3 checkpointPosition;
+
     void Start()
     {
         currentHealth = maxHealth;
+        checkpointPosition = transform.position; // Set initial checkpoint to starting position
 
         if (healthBar1 != null)
         {
@@ -44,10 +59,17 @@ public class PlayerHealth : MonoBehaviour
         {
             playerController = GetComponent<PlayerController>();
         }
+
+        if (crossFade == null)
+        {
+            crossFade = FindObjectOfType<CrossFade>();
+        }
     }
 
     void Update()
     {
+        if (isDead) return; // Don't update invulnerability if dead
+
         if (invulnerabilityTimer > 0)
         {
             invulnerabilityTimer -= Time.deltaTime;
@@ -68,7 +90,6 @@ public class PlayerHealth : MonoBehaviour
 
     public event Action<int> OnTakeDamage;
 
-    // In PlayerHealth.cs
     public void TakeDamage(int damageAmount, GameObject damageSource = null)
     {
         if (isDead) return;
@@ -111,6 +132,8 @@ public class PlayerHealth : MonoBehaviour
 
     public void Heal(int healAmount)
     {
+        if (isDead) return; // Can't heal if dead
+
         currentHealth = Mathf.Min(maxHealth, currentHealth + healAmount);
         UpdateHealthBars();
     }
@@ -119,6 +142,194 @@ public class PlayerHealth : MonoBehaviour
     {
         isDead = true;
         Debug.Log("Player has died!");
-        // Add death handling here
+
+        // Disable player movement and attacks
+        if (playerController != null)
+        {
+            playerController.DisableMovement();
+            playerController.FreezePlayer();
+        }
+
+        // Play death animation
+        Animator animator = GetComponentInChildren<Animator>();
+        if (animator != null)
+        {
+            animator.SetTrigger(deathTrigger);
+        }
+
+        // Disable any attack components
+        PlayerAttack playerAttack = GetComponentInChildren<PlayerAttack>();
+        if (playerAttack != null)
+        {
+            playerAttack.enabled = false;
+        }
+
+        // Disable parry/blocking
+        ParryScript parryScript = GetComponentInChildren<ParryScript>();
+        if (parryScript != null)
+        {
+            parryScript.enabled = false;
+        }
+
+        // Stop all movement
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.isKinematic = true; // Prevent physics interactions
+        }
+
+        // Disable colliders to prevent further damage/interaction
+        Collider2D[] colliders = GetComponents<Collider2D>();
+        foreach (Collider2D collider in colliders)
+        {
+            collider.enabled = false;
+        }
+
+        // Start the respawn sequence
+        StartCoroutine(RespawnSequence());
+
+        // Trigger any death events
+        OnDeath?.Invoke();
+    }
+
+    private IEnumerator RespawnSequence()
+    {
+        // Wait for the configured delay before starting fade
+        yield return new WaitForSeconds(fadeInDelay);
+
+        // Fade in to black
+        if (crossFade != null)
+        {
+            yield return crossFade.FadeIn(fadeInDuration);
+        }
+
+        // Wait while screen is completely black
+        yield return new WaitForSeconds(fadeOutDelay);
+
+        // Reset player at checkpoint (teleport while screen is black)
+        RespawnAtCheckpoint();
+
+        // Wait a moment for physics to stabilize and player to be grounded
+        yield return new WaitForSeconds(respawnStabilizeTime);
+
+        // Ensure player is properly positioned and not falling
+        StabilizePlayer();
+
+        // Fade out from black
+        if (crossFade != null)
+        {
+            yield return crossFade.FadeOut(fadeOutDuration);
+        }
+    }
+
+    // Add this to your PlayerHealth class (around line 20, with other events)
+    public static event Action OnPlayerRespawn;
+
+    // Then in the RespawnAtCheckpoint method, trigger the event:
+    private void RespawnAtCheckpoint()
+    {
+        // Reset player position to checkpoint (this happens while screen is black)
+        transform.position = checkpointPosition;
+
+        // Reset health
+        currentHealth = maxHealth;
+        UpdateHealthBars();
+
+        // Re-enable everything
+        isDead = false;
+
+        // Re-enable player movement
+        if (playerController != null)
+        {
+            playerController.EnableMovement();
+            playerController.UnfreezePlayer();
+        }
+
+        // Re-enable attack components
+        PlayerAttack playerAttack = GetComponentInChildren<PlayerAttack>();
+        if (playerAttack != null)
+        {
+            playerAttack.enabled = true;
+        }
+
+        // Re-enable parry/blocking
+        ParryScript parryScript = GetComponentInChildren<ParryScript>();
+        if (parryScript != null)
+        {
+            parryScript.enabled = true;
+        }
+
+        // Re-enable physics
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+        }
+
+        // Re-enable colliders
+        Collider2D[] colliders = GetComponents<Collider2D>();
+        foreach (Collider2D collider in colliders)
+        {
+            collider.enabled = true;
+        }
+
+        // Reset animation to idle
+        Animator animator = GetComponentInChildren<Animator>();
+        if (animator != null)
+        {
+            animator.ResetTrigger(deathTrigger);
+            animator.Play("Idle", 0, 0f);
+        }
+
+        // Trigger respawn event for enemies
+        OnPlayerRespawn?.Invoke();
+    }
+
+    private void StabilizePlayer()
+    {
+        // Ensure player is not falling or moving
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+        }
+
+        // Force ground check to ensure player is properly grounded
+        if (playerController != null)
+        {
+            // You might need to add a method in PlayerController to force ground detection
+            // or manually check if player is grounded here
+        }
+    }
+
+    // Method to set new checkpoint position (call this from your InteractiveObject script)
+    public void SetCheckpoint(Vector3 newCheckpointPosition)
+    {
+        checkpointPosition = newCheckpointPosition;
+        Debug.Log($"Checkpoint set at: {checkpointPosition}");
+    }
+
+    // Event for other scripts to listen to player death
+    public event Action OnDeath;
+
+    // Add these methods to your PlayerHealth class
+
+    public void HealToFull()
+    {
+        if (isDead) return;
+
+        currentHealth = maxHealth;
+        UpdateHealthBars();
+        Debug.Log("Player healed to full health!");
+    }
+    // Add this method to your PlayerHealth class
+    public static void TriggerRespawnEvent()
+    {
+        OnPlayerRespawn?.Invoke();
+    }
+    public bool IsFullHealth()
+    {
+        return currentHealth >= maxHealth;
     }
 }

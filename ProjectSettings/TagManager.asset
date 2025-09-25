@@ -12,6 +12,9 @@ TagManager:
   - Shockwave
   - Lethal
   - SpecialAttack
+  - Flying Enemy
+  - BossBorder
+  - Claw
   layers:
   - Default
   - TransparentFX
@@ -33,9 +36,9 @@ TagManager:
   - post
   - On
   - Off
-  - 
-  - 
-  - 
+  - Effector
+  - Claw
+  - BossBorder
   - 
   - 
   - 

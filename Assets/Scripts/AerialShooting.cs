@@ -16,6 +16,20 @@ public class AerialEnemy : MonoBehaviour
     [SerializeField] private float retreatSpeed = 5f;
     [SerializeField] private float deactivateRange = 20f;
 
+    [Header("Stun Settings")]
+    [SerializeField] private float stunDuration = 2f;
+    [SerializeField] private string hurtTrigger = "Hurt"; // Animation trigger for hurt animation
+    [SerializeField] private string stunBool = "IsStunned"; // Animation bool for stun state
+    private bool isStunned = false;
+    private float stunTimer = 0f;
+    private bool hasPlayedHurtAnimation = false;
+
+    [Header("Enemy Repulsion")]
+    [SerializeField] private float enemyRepelForce = 5f;
+    [SerializeField] private float enemyRepelRadius = 3f;
+    [SerializeField] private LayerMask enemyLayer;
+    [SerializeField] private float enemyRepelSmoothness = 2f;
+
     [Header("Ground Repulsion")]
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private float groundRepelForce = 5f;
@@ -30,7 +44,6 @@ public class AerialEnemy : MonoBehaviour
     [SerializeField] private float groundRepelSmoothness = 5f;
     [SerializeField] private float groundRepelMaxForce = 10f;
     [SerializeField] private float groundSafetyMargin = 0.5f;
-
 
     [Header("Visuals")]
     [SerializeField] private Transform graphics;
@@ -47,10 +60,22 @@ public class AerialEnemy : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = 0;
         player = GameObject.FindGameObjectWithTag("Player").transform;
+
+        // Set up enemy layer mask if not configured
+        if (enemyLayer == 0)
+        {
+            enemyLayer = LayerMask.GetMask("Default"); // Fallback to default layer
+        }
     }
 
     private void Update()
     {
+        if (isStunned)
+        {
+            HandleStunState();
+            return;
+        }
+
         if (player == null) return;
 
         float distance = Vector2.Distance(transform.position, player.position);
@@ -63,8 +88,59 @@ public class AerialEnemy : MonoBehaviour
 
         HandleMovement();
         HandleCombat();
+        HandleEnemyRepulsion();
         UpdateFacing();
         HandleGroundRepulsion();
+    }
+
+    private void HandleStunState()
+    {
+        stunTimer -= Time.deltaTime;
+
+        // Play the hurt animation if not already played
+        if (!hasPlayedHurtAnimation && animator != null)
+        {
+            animator.SetTrigger(hurtTrigger);
+            // SET THE STUN BOOL TO TRUE IMMEDIATELY SO IT STAYS IN STUN STATE
+            animator.SetBool(stunBool, true);
+            hasPlayedHurtAnimation = true;
+        }
+
+        // Stop movement while stunned
+        rb.velocity = Vector2.Lerp(rb.velocity, Vector2.zero, Time.deltaTime * 10f);
+
+        // When stun is over, return to normal
+        if (stunTimer <= 0)
+        {
+            EndStun();
+        }
+    }
+
+    private void EndStun()
+    {
+        isStunned = false;
+        hasPlayedHurtAnimation = false;
+
+        // Reset stun animation parameters - SET STUN BOOL TO FALSE
+        if (animator != null)
+        {
+            animator.SetBool(stunBool, false);
+            animator.ResetTrigger(hurtTrigger);
+        }
+
+        Debug.Log("Stun ended - returning to normal behavior");
+    }
+
+    private void StartStun()
+    {
+        isStunned = true;
+        stunTimer = stunDuration;
+        hasPlayedHurtAnimation = false;
+
+        // Stop any current movement
+        rb.velocity = Vector2.zero;
+
+        Debug.Log("Enemy stunned!");
     }
 
     private void HandleMovement()
@@ -91,8 +167,50 @@ public class AerialEnemy : MonoBehaviour
         }
     }
 
+    private void HandleEnemyRepulsion()
+    {
+        // Don't repel other enemies while stunned
+        if (isStunned) return;
+
+        // Find all nearby flying enemies
+        Collider2D[] nearbyEnemies = Physics2D.OverlapCircleAll(transform.position, enemyRepelRadius, enemyLayer);
+
+        Vector2 totalRepelForce = Vector2.zero;
+        int repelCount = 0;
+
+        foreach (Collider2D enemyCollider in nearbyEnemies)
+        {
+            // Check if it's a flying enemy (by tag or by component)
+            if (enemyCollider.gameObject != gameObject &&
+                (enemyCollider.CompareTag("Flying Enemy") || enemyCollider.GetComponent<AerialEnemy>() != null))
+            {
+                Vector2 toEnemy = enemyCollider.transform.position - transform.position;
+                float distance = toEnemy.magnitude;
+
+                if (distance > 0.1f) // Avoid division by zero
+                {
+                    // Calculate repulsion force (stronger when closer)
+                    float forceMultiplier = 1 - (distance / enemyRepelRadius);
+                    Vector2 repelDirection = -toEnemy.normalized;
+                    totalRepelForce += repelDirection * forceMultiplier * enemyRepelForce;
+                    repelCount++;
+                }
+            }
+        }
+
+        // Apply average repulsion force
+        if (repelCount > 0)
+        {
+            totalRepelForce /= repelCount;
+            rb.AddForce(totalRepelForce * enemyRepelSmoothness * Time.deltaTime, ForceMode2D.Force);
+        }
+    }
+
     private void HandleCombat()
     {
+        // Don't attack while stunned
+        if (isStunned) return;
+
         float distance = Vector2.Distance(transform.position, player.position);
 
         // Only attack when in ideal range
@@ -108,6 +226,9 @@ public class AerialEnemy : MonoBehaviour
 
     private void Attack()
     {
+        // Don't attack while stunned
+        if (isStunned) return;
+
         Vector2 attackDir = (player.position - transform.position).normalized;
 
         if (animator != null)
@@ -123,6 +244,9 @@ public class AerialEnemy : MonoBehaviour
     // Call this from animation event
     public void OnAttackAnimationEvent()
     {
+        // Don't execute attack while stunned
+        if (isStunned) return;
+
         Vector2 attackDir = (player.position - transform.position).normalized;
         ExecuteAttack(attackDir);
     }
@@ -139,7 +263,8 @@ public class AerialEnemy : MonoBehaviour
 
     private void UpdateFacing()
     {
-        if (graphics == null) return;
+        // Don't update facing while stunned
+        if (isStunned || graphics == null) return;
 
         float xDiff = player.position.x - transform.position.x;
         bool shouldFaceRight = xDiff > 0;
@@ -150,8 +275,10 @@ public class AerialEnemy : MonoBehaviour
             graphics.localScale = new Vector3(facingRight ? -1 : 1, 1, 1);
         }
     }
+
     private void HandleGroundRepulsion()
     {
+        // Still handle ground repulsion while stunned to avoid falling through ground
         Vector2 totalRepelForce = Vector2.zero;
         float closestDistance = float.MaxValue;
         Vector2 closestDirection = Vector2.zero;
@@ -185,7 +312,7 @@ public class AerialEnemy : MonoBehaviour
 
             rb.AddForce(totalRepelForce, ForceMode2D.Force);
         }
-        else
+        else if (!isStunned) // Only apply downward force if not stunned
         {
             // Gentle downward force when far from ground to prevent floating
             rb.AddForce(Vector2.down * 0.5f, ForceMode2D.Force);
@@ -199,6 +326,14 @@ public class AerialEnemy : MonoBehaviour
         {
             closestDistance = hit.distance;
             closestDirection = (Vector2)transform.position - hit.point;
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Shockwave") && !isStunned)
+        {
+            StartStun();
         }
     }
 
@@ -236,5 +371,9 @@ public class AerialEnemy : MonoBehaviour
             Gizmos.color = Color.white;
             Gizmos.DrawWireCube(transform.position, Vector3.one * 0.2f);
         }
+
+        // Draw enemy repulsion radius
+        Gizmos.color = new Color(1, 0.5f, 0, 0.3f); // Orange transparent
+        Gizmos.DrawWireSphere(transform.position, enemyRepelRadius);
     }
 }

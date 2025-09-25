@@ -13,14 +13,15 @@ public class DebrisSpawner : MonoBehaviour
     [SerializeField] private bool disableAfterComplete = true;
 
     private float spawnTimer;
-    private bool movingRight = true; // Current direction
+    private bool movingRight = true;
     private int currentSpawnIndex;
-    private int patternsCompleted; // Track completed patterns
+    private int patternsCompleted;
 
     void OnEnable()
     {
-        spawnTimer = spawnInterval;
-        currentSpawnIndex = movingRight ? 0 : spawnCount - 1;
+        spawnTimer = 0f; // Start spawning immediately
+        movingRight = true;
+        currentSpawnIndex = 0;
         patternsCompleted = 0;
     }
 
@@ -41,43 +42,78 @@ public class DebrisSpawner : MonoBehaviour
     {
         if (debrisPrefab == null) return;
 
-        // Calculate normalized position in pattern (0 to 1)
-        float t = (float)currentSpawnIndex / (spawnCount - 1);
+        // Get debris from pool
+        GameObject debris = ObjectPool.SharedInstance.GetPooledObject();
+        if (debris == null)
+        {
+            Debug.LogWarning("No available debris in pool!");
+            return;
+        }
 
-        // Calculate x position based on direction
+        // Calculate spawn position based on current pattern
+        float t = (float)currentSpawnIndex / (spawnCount - 1);
         float xOffset;
+
         if (movingRight)
         {
-            // Left to right movement
+            // Left to right: index 0 = left, index spawnCount-1 = right
             xOffset = Mathf.Lerp(-spawnWidth / 2, spawnWidth / 2, t);
         }
         else
         {
-            // Right to left movement
-            xOffset = Mathf.Lerp(spawnWidth / -2, -spawnWidth / -2, t);
+            // Right to left: index 0 = right, index spawnCount-1 = left
+            xOffset = Mathf.Lerp(spawnWidth / 2, -spawnWidth / 2, t);
         }
 
         Vector3 spawnPos = transform.position + new Vector3(xOffset, yOffset, 0f);
-        Instantiate(debrisPrefab, spawnPos, Quaternion.identity);
+
+        // Set up the debris
+        debris.transform.position = spawnPos;
+        debris.transform.rotation = Quaternion.identity;
+        debris.SetActive(true);
+
+        // Debug log to see the pattern
+        Debug.Log($"Spawned debris at index {currentSpawnIndex}, position: {spawnPos}, direction: {(movingRight ? "Right" : "Left")}");
 
         // Update position in pattern
-        currentSpawnIndex += movingRight ? 1 : -1;
-
-        // Check if pattern complete
-        if ((movingRight && currentSpawnIndex >= spawnCount) ||
-            (!movingRight && currentSpawnIndex < 0))
+        if (movingRight)
         {
-            patternsCompleted++;
-
-            if (patternsCompleted < 2) // Only do two patterns (right then left)
+            currentSpawnIndex++;
+            // Check if we've completed right-moving pattern
+            if (currentSpawnIndex >= spawnCount)
             {
-                // Switch direction
-                movingRight = !movingRight;
-                currentSpawnIndex = movingRight ? 0 : spawnCount - 1;
+                patternsCompleted++;
+                if (patternsCompleted < 2)
+                {
+                    // Switch to left-moving pattern
+                    movingRight = false;
+                    currentSpawnIndex = 0; // Start from right side
+                }
+                else if (disableAfterComplete)
+                {
+                    this.enabled = false;
+                    return;
+                }
             }
-            else if (disableAfterComplete)
+        }
+        else
+        {
+            currentSpawnIndex++;
+            // Check if we've completed left-moving pattern
+            if (currentSpawnIndex >= spawnCount)
             {
-                this.enabled = false;
+                patternsCompleted++;
+                if (patternsCompleted < 2)
+                {
+                    // Switch back to right-moving pattern (if you want more than 2 patterns)
+                    movingRight = true;
+                    currentSpawnIndex = 0; // Start from left side
+                }
+                else if (disableAfterComplete)
+                {
+                    this.enabled = false;
+                    return;
+                }
             }
         }
     }
@@ -93,5 +129,28 @@ public class DebrisSpawner : MonoBehaviour
         Gizmos.DrawSphere(leftPos, 0.2f);
         Gizmos.DrawSphere(rightPos, 0.2f);
         Gizmos.DrawSphere(center, 0.1f);
+
+        // Draw spawn points for current pattern
+        Gizmos.color = Color.yellow;
+        if (Application.isPlaying)
+        {
+            for (int i = 0; i < spawnCount; i++)
+            {
+                float t = (float)i / (spawnCount - 1);
+                float xOffset;
+
+                if (movingRight)
+                {
+                    xOffset = Mathf.Lerp(-spawnWidth / 2, spawnWidth / 2, t);
+                }
+                else
+                {
+                    xOffset = Mathf.Lerp(spawnWidth / 2, -spawnWidth / 2, t);
+                }
+
+                Vector3 spawnPoint = center + new Vector3(xOffset, 0, 0);
+                Gizmos.DrawWireCube(spawnPoint, new Vector3(0.3f, 0.3f, 0.3f));
+            }
+        }
     }
 }

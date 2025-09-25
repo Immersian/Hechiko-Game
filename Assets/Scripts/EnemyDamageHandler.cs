@@ -1,6 +1,7 @@
 using SupanthaPaul;
 using UnityEditor;
 using UnityEngine;
+using System.Collections;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(Animator))]
 public class EnemyDamageHandler : MonoBehaviour
@@ -9,13 +10,15 @@ public class EnemyDamageHandler : MonoBehaviour
     public int maxHealth = 100;
     public int currentHealth;
     public bool isDead = false;
-    public GameObject EnemyObject;
+
+    [Header("Respawn Settings")]
+    [SerializeField] private bool respawnOnPlayerDeath = true;
+    [SerializeField] private float deathAnimationDelay = 1f;
 
     [Header("Damage Feedback")]
     [SerializeField] private float invulnerabilityTime = 0.3f;
     [SerializeField] private string hurtTrigger = "Hurt";
     [SerializeField] private string deathTrigger = "Die";
-    [SerializeField] private float deathDestroyDelay = 2f;
     [SerializeField] private AudioClip hurtSound;
     [SerializeField] private AudioClip deathSound;
     [SerializeField] private Vector2 soundPitchRange = new Vector2(0.9f, 1.1f);
@@ -24,7 +27,7 @@ public class EnemyDamageHandler : MonoBehaviour
     [SerializeField] private bool useKnockback = true;
     [SerializeField] private float knockbackResistance = 0.5f;
 
-    [Header("Dash Attack Settings")]  // New section
+    [Header("Dash Attack Settings")]
     [SerializeField] private bool consumeAttackerStamina = true;
     [SerializeField] private float staminaCostPercent = 0.2f;
     [SerializeField] private PlayerController attacker;
@@ -35,6 +38,8 @@ public class EnemyDamageHandler : MonoBehaviour
     private SimpleFlash flashEffect;
     private Collider2D[] colliders;
     private AudioSource audioSource;
+    private Coroutine deathCoroutine;
+    private EnemyRespawnManager spawnManager;
 
     void Start()
     {
@@ -43,6 +48,9 @@ public class EnemyDamageHandler : MonoBehaviour
         animator = GetComponent<Animator>();
         flashEffect = GetComponent<SimpleFlash>();
         colliders = GetComponentsInChildren<Collider2D>();
+
+        // Try to find the spawn manager in parent
+        spawnManager = GetComponentInParent<EnemyRespawnManager>();
 
         // Add AudioSource if not present
         if (!TryGetComponent<AudioSource>(out audioSource))
@@ -54,6 +62,7 @@ public class EnemyDamageHandler : MonoBehaviour
     public void TakeDamage(int damage, Vector2 hitDirection)
     {
         if (isDead || Time.time < lastDamageTime + invulnerabilityTime) return;
+
         if (consumeAttackerStamina && attacker != null)
         {
             PlayerController playerController = attacker.GetComponent<PlayerController>();
@@ -64,11 +73,12 @@ public class EnemyDamageHandler : MonoBehaviour
                 playerController.UpdateStaminaBar();
             }
         }
+
         if (TryGetComponent<EnemyHitShake>(out var hitShake))
         {
             hitShake.OnHit();
         }
-        // Immediately stop any attack animations
+
         if (TryGetComponent<EnemyMovement>(out var enemyMovement))
         {
             enemyMovement.CancelAttack();
@@ -77,19 +87,16 @@ public class EnemyDamageHandler : MonoBehaviour
         currentHealth -= damage;
         lastDamageTime = Time.time;
 
-        // Visual Feedback
         flashEffect.CallHurtFlash();
         animator.ResetTrigger(hurtTrigger);
         animator.SetTrigger(hurtTrigger);
 
-        // Sound Feedback
         if (hurtSound != null)
         {
             audioSource.pitch = Random.Range(soundPitchRange.x, soundPitchRange.y);
             audioSource.PlayOneShot(hurtSound);
         }
 
-        // Knockback
         if (useKnockback && rb != null)
         {
             rb.AddForce(hitDirection * (damage * knockbackResistance), ForceMode2D.Impulse);
@@ -103,37 +110,54 @@ public class EnemyDamageHandler : MonoBehaviour
 
     private void Die()
     {
+        if (isDead) return;
         isDead = true;
 
-        // Force stop all animations and transitions
+        // Notify spawn manager
+        if (spawnManager != null)
+        {
+            spawnManager.OnEnemyDeath();
+        }
+
         animator.ResetTrigger(hurtTrigger);
         animator.ResetTrigger(deathTrigger);
         animator.SetBool("Stun", false);
         animator.SetTrigger(deathTrigger);
 
-        // Play death sound
         if (deathSound != null)
         {
-            audioSource.pitch = 1f; // Reset to normal pitch for death sound
+            audioSource.pitch = 1f;
             audioSource.PlayOneShot(deathSound);
         }
 
-        // Disable all colliders
+        DisableEnemy();
+
+        if (deathCoroutine != null)
+            StopCoroutine(deathCoroutine);
+        deathCoroutine = StartCoroutine(WaitForDeathAnimation());
+    }
+
+    private void DisableEnemy()
+    {
         foreach (var collider in colliders)
         {
             collider.enabled = false;
         }
 
-        // Disable physics and movement
         if (rb != null) rb.simulated = false;
 
-        // Disable enemy behavior scripts
         if (TryGetComponent<EnemyMovement>(out var movement))
         {
             movement.enabled = false;
         }
+    }
 
-        Destroy(EnemyObject, deathDestroyDelay);
+    private IEnumerator WaitForDeathAnimation()
+    {
+        yield return new WaitForSeconds(deathAnimationDelay);
+
+        // Just destroy this instance - the spawn manager will create a new one
+        Destroy(gameObject);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -144,6 +168,14 @@ public class EnemyDamageHandler : MonoBehaviour
         {
             Vector2 hitDirection = (transform.position - other.transform.position).normalized;
             TakeDamage(attack.damage, hitDirection);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (deathCoroutine != null)
+        {
+            StopCoroutine(deathCoroutine);
         }
     }
 

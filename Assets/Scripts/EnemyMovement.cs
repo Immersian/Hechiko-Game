@@ -46,16 +46,21 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
     [Header("Stun Settings")]
     [SerializeField] private float stunDuration = 2f;
-    [SerializeField] private string stunBool = "Stun"; // Animation trigger name
+    [SerializeField] private float recoveryAnimationDelay = 0.1667f; // 1/6th of a second delay
+    [SerializeField] private string stunTrigger = "Stunned"; // Animation trigger name for initial stun
+    [SerializeField] private string stunBool = "Stun"; // Animation bool name for ongoing stun
+    [SerializeField] private string recoveredTrigger = "Recovered"; // Animation trigger for recovery
     private bool isStunned = false;
+    private bool isRecovering = false;
     private float stunTimer = 0f;
+    private bool hasPlayedStunAnimation = false;
 
     // Animation parameter
     private const string IS_ATTACKING = "isAttacking";
 
     [Header("Facing Direction")]
     [SerializeField] private bool facingLeft = true;  // Changed from facingRight to facingLeft
-/*    [SerializeField] private bool flipSprite = true;*/  // Option to flip sprite vs scale
+    /*    [SerializeField] private bool flipSprite = true;*/  // Option to flip sprite vs scale
 
     private float lastFlipTime;
     [SerializeField] private float flipCooldown = 0.5f;
@@ -86,7 +91,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     private const string IS_RUNNING = "isRunning";
 
     [Header("Detection")]
-    [SerializeField] private EnemyDetectionZone detectionZone;
+    [SerializeField] public EnemyDetectionZone detectionZone;
 
     void Start()
     {
@@ -121,15 +126,9 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
     void Update()
     {
-        if (isStunned)
+        if (isStunned || isRecovering)
         {
-            stunTimer -= Time.deltaTime;
-            if (stunTimer <= 0)
-            {
-                isStunned = false;
-                animator.SetBool(stunBool, false);
-                ReturnToNearestPatrolPoint();
-            }
+            HandleStunState();
             return;
         }
 
@@ -233,6 +232,61 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         UpdateAnimations();
         UpdateFacingDirection();
     }
+
+    private void HandleStunState()
+    {
+        if (isStunned)
+        {
+            stunTimer -= Time.deltaTime;
+
+            // Play the initial stun trigger animation if not already played
+            if (!hasPlayedStunAnimation)
+            {
+                animator.SetTrigger(stunTrigger);
+                hasPlayedStunAnimation = true;
+                // Set the stun bool to true for the ongoing stun animation
+                animator.SetBool(stunBool, true);
+            }
+
+            // When stun is over, trigger recovery
+            if (stunTimer <= 0)
+            {
+                StartRecovery();
+            }
+        }
+        else if (isRecovering)
+        {
+            // Recovery state - just wait for the delay to complete
+            stunTimer -= Time.deltaTime;
+            if (stunTimer <= 0)
+            {
+                EndRecovery();
+            }
+        }
+    }
+
+    private void StartRecovery()
+    {
+        isStunned = false;
+        isRecovering = true;
+        hasPlayedStunAnimation = false;
+
+        // Set stun bool to false
+        animator.SetBool(stunBool, false);
+
+        // Trigger the recovery animation
+        animator.SetTrigger(recoveredTrigger);
+
+        // Set timer for recovery delay
+        stunTimer = recoveryAnimationDelay;
+    }
+
+    private void EndRecovery()
+    {
+        isRecovering = false;
+        ReturnToNearestPatrolPoint();
+    }
+
     public bool HasLineOfSightToPlayer()
     {
         return PlayerInSight();
@@ -325,7 +379,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
     void UpdateAnimations()
     {
-        if (isStunned) return; // Don't change animations while stunned
+        if (isStunned || isRecovering) return; // Don't change animations while stunned or recovering
 
         bool isMoving = rb.velocity.magnitude > 0.1f && !isAttacking;
         animator.SetBool(IS_WALKING, isMoving && !isChasing);
@@ -350,7 +404,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     }
     void UpdateFacingDirection()
     {
-        if (isAttacking || isStunned) return;
+        if (isAttacking || isStunned || isRecovering) return;
 
         bool shouldFaceLeft = facingLeft;
 
@@ -501,28 +555,29 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     }
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Shockwave") && !isStunned)
+        if (other.CompareTag("Shockwave") && !isStunned && !isRecovering)
         {
             if (TryGetComponent<EnemyDamageHandler>(out var health) && health.isDead)
                 return;
 
-            isStunned = true;
-            stunTimer = stunDuration;
-            rb.velocity = Vector2.zero; // Stop movement
-
-            // Trigger stun animation
-            if (animator != null)
-            {
-                animator.SetBool(stunBool, true);
-            }
-
-            // Cancel any current actions
-            isChasing = false;
-            isDetectingPlayer = false;
-            isAttacking = false;
-            isWaiting = false;
+            StartStun();
         }
     }
+
+    private void StartStun()
+    {
+        isStunned = true;
+        stunTimer = stunDuration;
+        hasPlayedStunAnimation = false; // Reset for new stun
+        rb.velocity = Vector2.zero; // Stop movement
+
+        // Cancel any current actions
+        isChasing = false;
+        isDetectingPlayer = false;
+        isAttacking = false;
+        isWaiting = false;
+    }
+
     void CheckFacePlayerAfterAttack()
     {
         if (isAttacking || player == null) return;

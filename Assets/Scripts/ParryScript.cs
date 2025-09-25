@@ -33,6 +33,8 @@ public class ParryScript : MonoBehaviour
     [SerializeField] private float parrySoundVolume = 0.8f;
     [SerializeField] private float blockSoundVolume = 0.6f;
 
+    [SerializeField] private Transform parryTarget;
+
     // Public properties for other scripts to check
     public bool IsParryingRight { get; private set; }
     public bool IsParryingLeft { get; private set; }
@@ -69,6 +71,22 @@ public class ParryScript : MonoBehaviour
     {
         HandleParryInput();
         UpdateTimers();
+    }
+
+    private void StartBlockMovementRestrictions()
+    {
+        if (playerController != null)
+        {
+            playerController.canMove = false;
+        }
+    }
+
+    private void EndBlockMovementRestrictions()
+    {
+        if (playerController != null)
+        {
+            playerController.canMove = true;
+        }
     }
 
     private void HandleParryInput()
@@ -117,6 +135,9 @@ public class ParryScript : MonoBehaviour
         animator.SetBool(blockBool, true);
         lastParryTime = Time.time;
 
+        // Apply movement restrictions
+        StartBlockMovementRestrictions();
+
         // Play block sound
         PlaySound(blockSound, blockSoundVolume);
     }
@@ -133,6 +154,7 @@ public class ParryScript : MonoBehaviour
         {
             isHoldingBlock = true;
             animator.SetBool(blockBool, true);
+            StartBlockMovementRestrictions(); // Add this to handle late block starts
         }
     }
 
@@ -140,6 +162,24 @@ public class ParryScript : MonoBehaviour
     {
         isHoldingBlock = false;
         animator.SetBool(blockBool, false);
+        EndBlockMovementRestrictions(); // Add this to restore movement
+    }
+
+    public void ForceEndBlock()
+    {
+        // Simply call EndBlock to handle everything cleanly
+        if (isHoldingBlock)
+        {
+            EndBlock();
+
+            // Also reset the parry timer if active
+            if (parryTimer > 0)
+            {
+                parryTimer = 0;
+                animator.ResetTrigger(parryTrigger);
+                ResetParryDirections();
+            }
+        }
     }
 
     /// <summary>
@@ -158,6 +198,7 @@ public class ParryScript : MonoBehaviour
                (IsParryingLeft && enemy.EnemyFacingRight);
     }
 
+    // In the ParryScript class, modify the Parried() method:
     public void Parried()
     {
         // Apply hitstop effect
@@ -177,10 +218,11 @@ public class ParryScript : MonoBehaviour
             parryChargeSystem.AddCharge();
         }
 
-        // Trigger small shockwave effect
+        // Trigger small shockwave effect at parry position
         if (ShockWaveManager.Instance != null)
         {
-            ShockWaveManager.Instance.CallSmallShockwave();
+            // Pass the parry target transform to position the shockwave
+            ShockWaveManager.Instance.CallSmallShockwave(parryTarget);
         }
     }
 

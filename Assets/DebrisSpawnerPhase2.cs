@@ -3,26 +3,34 @@ using UnityEngine;
 public class DebrisSpawnerPhase2 : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    [SerializeField] private GameObject debrisPrefab;
-    [SerializeField] private float spawnInterval = 0.5f; // Time between row spawns
-    [SerializeField] private int columns = 7;
-    [SerializeField] private float spacing = 1.5f;
-    [SerializeField] private float yOffset = 0f;
-    [SerializeField] private float xOffset = 0f;
-    [SerializeField] private float rowSeparation = 1f; // Vertical space between rows
-    [SerializeField] private int greenSpawnCycles = 5; // Green row spawn count
-    [SerializeField] private int blueSpawnCycles = 3;  // Blue row spawn count
+    [SerializeField] private GameObject debrisPrefab; // Keep the prefab reference
+    [SerializeField] private float spawnInterval = 0.5f;
 
-    [Header("Gizmos Colors")]
+    [Header("Row 1 Settings")]
+    [SerializeField] private int row1Columns = 7;
+    [SerializeField] private float row1Spacing = 1.5f;
+    [SerializeField] private float row1YOffset = 0f;
+    [SerializeField] private float row1XOffset = 0f;
+    [SerializeField] private int row1SpawnCycles = 5;
     [SerializeField] private Color row1Color = Color.green;
+
+    [Header("Row 2 Settings")]
+    [SerializeField] private int row2Columns = 7;
+    [SerializeField] private float row2Spacing = 1.5f;
+    [SerializeField] private float row2YOffset = 1f;
+    [SerializeField] private float row2XOffset = 0f;
+    [SerializeField] private int row2SpawnCycles = 3;
     [SerializeField] private Color row2Color = Color.blue;
+
+    [Header("Gizmos Settings")]
+    [SerializeField] private bool alwaysShowGizmos = true;
 
     private float timer;
     private int currentCycle;
-    private int currentRow; // 0 or 1
+    private int currentRow;
     private bool isActive;
-    private int greenSpawnCount;
-    private int blueSpawnCount;
+    private int row1SpawnCount;
+    private int row2SpawnCount;
 
     void OnEnable()
     {
@@ -34,8 +42,8 @@ public class DebrisSpawnerPhase2 : MonoBehaviour
         timer = 0f;
         currentCycle = 0;
         currentRow = 0;
-        greenSpawnCount = 0;
-        blueSpawnCount = 0;
+        row1SpawnCount = 0;
+        row2SpawnCount = 0;
         isActive = true;
     }
 
@@ -49,18 +57,17 @@ public class DebrisSpawnerPhase2 : MonoBehaviour
             SpawnCurrentRow();
             timer = 0f;
 
-            // Move to next row or cycle
             currentRow++;
             if (currentRow >= 2)
             {
                 currentRow = 0;
                 currentCycle++;
 
-                // Check if both rows have completed their cycles
-                if (greenSpawnCount >= greenSpawnCycles && blueSpawnCount >= blueSpawnCycles)
+                if (row1SpawnCount >= row1SpawnCycles && row2SpawnCount >= row2SpawnCycles)
                 {
                     isActive = false;
                     enabled = false;
+                    Debug.Log("Phase 2 spawner completed all cycles");
                 }
             }
         }
@@ -74,62 +81,113 @@ public class DebrisSpawnerPhase2 : MonoBehaviour
             return;
         }
 
-        // Skip if this row has completed its cycles
-        if ((currentRow == 0 && greenSpawnCount >= greenSpawnCycles) ||
-            (currentRow == 1 && blueSpawnCount >= blueSpawnCycles))
+        if ((currentRow == 0 && row1SpawnCount >= row1SpawnCycles) ||
+            (currentRow == 1 && row2SpawnCount >= row2SpawnCycles))
         {
             return;
         }
 
-        float startX = -((columns - 1) * spacing) / 2f + xOffset;
-        float rowY = transform.position.y + yOffset + (currentRow * rowSeparation);
+        int columns = currentRow == 0 ? row1Columns : row2Columns;
+        float spacing = currentRow == 0 ? row1Spacing : row2Spacing;
+        float xOffset = currentRow == 0 ? row1XOffset : row2XOffset;
+        float yOffset = currentRow == 0 ? row1YOffset : row2YOffset;
+
+        // Calculate the center position for this row
+        Vector3 rowCenter = transform.position + new Vector3(xOffset, yOffset, 0);
+
+        // Calculate starting position (leftmost point of the row)
+        float startX = rowCenter.x - ((columns - 1) * spacing) / 2f;
 
         for (int col = 0; col < columns; col++)
         {
-            if ((col + currentRow) % 2 == 0) // Optional pattern
+            // Get debris from pool using the prefab name
+            GameObject debris = ObjectPool.SharedInstance.GetPooledObject(debrisPrefab.name);
+            if (debris == null)
             {
-                Vector3 spawnPos = new Vector3(
-                    startX + col * spacing,
-                    rowY,
-                    transform.position.z
-                );
-                Instantiate(debrisPrefab, spawnPos, Quaternion.identity);
+                Debug.LogWarning($"No available debris of type '{debrisPrefab.name}' in pool!");
+                continue;
             }
+
+            Vector3 spawnPos = new Vector3(
+                startX + col * spacing,
+                rowCenter.y,
+                rowCenter.z
+            );
+
+            // Set up the debris from pool
+            debris.transform.position = spawnPos;
+            debris.transform.rotation = Quaternion.identity;
+            debris.SetActive(true);
         }
 
-        // Increment the appropriate counter
         if (currentRow == 0)
         {
-            greenSpawnCount++;
+            row1SpawnCount++;
         }
         else
         {
-            blueSpawnCount++;
+            row2SpawnCount++;
         }
     }
 
     void OnDrawGizmos()
     {
-        float startX = -((columns - 1) * spacing) / 2f + xOffset;
+        // Always draw gizmos regardless of whether the script is enabled
+        DrawSpawnGizmos();
+    }
 
+    void OnDrawGizmosSelected()
+    {
+        // Also draw when selected for better visibility
+        DrawSpawnGizmos();
+    }
+
+    private void DrawSpawnGizmos()
+    {
         for (int row = 0; row < 2; row++)
         {
+            int columns = row == 0 ? row1Columns : row2Columns;
+            float spacing = row == 0 ? row1Spacing : row2Spacing;
+            float xOffset = row == 0 ? row1XOffset : row2XOffset;
+            float yOffset = row == 0 ? row1YOffset : row2YOffset;
+
             Gizmos.color = row == 0 ? row1Color : row2Color;
-            float rowY = transform.position.y + yOffset + (row * rowSeparation);
+
+            // Calculate the center position for this row
+            Vector3 rowCenter = transform.position + new Vector3(xOffset, yOffset, 0);
+
+            // Calculate starting position (leftmost point of the row)
+            float startX = rowCenter.x - ((columns - 1) * spacing) / 2f;
+
+            // Draw the row line
+            Vector3 rowStart = new Vector3(startX, rowCenter.y, rowCenter.z);
+            Vector3 rowEnd = new Vector3(startX + (columns - 1) * spacing, rowCenter.y, rowCenter.z);
+            Gizmos.DrawLine(rowStart, rowEnd);
 
             for (int col = 0; col < columns; col++)
             {
-                if ((col + row) % 2 == 0)
-                {
-                    Vector3 pos = new Vector3(
-                        startX + col * spacing,
-                        rowY,
-                        transform.position.z
-                    );
-                    Gizmos.DrawWireSphere(pos, 0.3f);
-                }
+                Vector3 pos = new Vector3(
+                    startX + col * spacing,
+                    rowCenter.y,
+                    rowCenter.z
+                );
+
+                // Draw a sphere at each spawn position
+                Gizmos.DrawWireSphere(pos, 0.3f);
+
+                // Draw a small cross to make it more visible
+                Gizmos.DrawLine(pos - Vector3.right * 0.1f, pos + Vector3.right * 0.1f);
+                Gizmos.DrawLine(pos - Vector3.up * 0.1f, pos + Vector3.up * 0.1f);
             }
+
+            // Draw the row center point
+            Gizmos.color = Color.white;
+            Gizmos.DrawWireCube(rowCenter, new Vector3(0.3f, 0.3f, 0.3f));
         }
+
+        // Draw the main transform center indicator
+        Gizmos.color = Color.white;
+        Gizmos.DrawWireCube(transform.position, new Vector3(0.5f, 0.5f, 0.5f));
     }
 
     public void RestartSpawning()

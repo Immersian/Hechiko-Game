@@ -17,6 +17,10 @@ public class CutsceneTriggerBoss : MonoBehaviour
     [SerializeField] private float fadeDuration = 1.5f;
     [SerializeField] private float fadeDelay = 0.5f;
 
+    [Header("Border Settings")]
+    [SerializeField] private GameObject borderObject; // The border that should be enabled during cutscene
+    [SerializeField] private bool disableBorderAfterCutscene = true; // Whether to disable border after cutscene
+
     private Color initialFillColor;
     private Color initialOutlineColor;
     private Color initialExtraImageColor;
@@ -41,12 +45,35 @@ public class CutsceneTriggerBoss : MonoBehaviour
             initialExtraImageColor = extraImage.color;
             extraImage.gameObject.SetActive(false);
         }
+
+        // Ensure border is disabled initially
+        if (borderObject != null)
+        {
+            borderObject.SetActive(false);
+        }
+    }
+
+    private void Start()
+    {
+        // Double-check that border is disabled on start
+        if (borderObject != null && borderObject.activeSelf)
+        {
+            Debug.LogWarning("Border was enabled on start, disabling it");
+            borderObject.SetActive(false);
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player"))
         {
+            // Enable border before cutscene starts
+            if (borderObject != null)
+            {
+                borderObject.SetActive(true);
+                Debug.Log("Border enabled for cutscene");
+            }
+
             // Activate with full transparency
             if (healthBarFill != null)
             {
@@ -72,7 +99,7 @@ public class CutsceneTriggerBoss : MonoBehaviour
                     initialExtraImageColor.r,
                     initialExtraImageColor.g,
                     initialExtraImageColor.b,
-                    0f
+                   0f
                 );
             }
 
@@ -150,7 +177,7 @@ public class CutsceneTriggerBoss : MonoBehaviour
         }
     }
 
-    // Optional: Add a method to fade out all elements including the extra image
+    // CHANGED: Make this public so it can be called from other scripts
     public IEnumerator FadeOutHealthBar()
     {
         if (healthBarFill == null && healthBarOutline == null && extraImage == null)
@@ -203,15 +230,48 @@ public class CutsceneTriggerBoss : MonoBehaviour
         if (healthBarFill != null) healthBarFill.gameObject.SetActive(false);
         if (healthBarOutline != null) healthBarOutline.gameObject.SetActive(false);
         if (extraImage != null) extraImage.gameObject.SetActive(false);
+
+        Debug.Log("Health bar faded out");
+    }
+
+    // NEW: Public method to start the fade out coroutine from other scripts
+    public void StartFadeOutHealthBar()
+    {
+        StartCoroutine(FadeOutHealthBar());
     }
 
     private void OnCutsceneFinished(PlayableDirector director)
     {
         playableDirector.stopped -= OnCutsceneFinished;
 
+        // Disable border after cutscene if configured to do so
+        if (disableBorderAfterCutscene && borderObject != null)
+        {
+            borderObject.SetActive(false);
+            Debug.Log("Border disabled after cutscene");
+        }
+
         if (bossStateManager != null)
         {
             bossStateManager.SwitchState(bossStateManager.Phase1State);
+        }
+    }
+
+    // Optional: Public method to manually disable border if needed
+    public void DisableBorder()
+    {
+        if (borderObject != null && borderObject.activeSelf)
+        {
+            borderObject.SetActive(false);
+        }
+    }
+
+    // Optional: Public method to manually enable border if needed
+    public void EnableBorder()
+    {
+        if (borderObject != null && !borderObject.activeSelf)
+        {
+            borderObject.SetActive(true);
         }
     }
 }

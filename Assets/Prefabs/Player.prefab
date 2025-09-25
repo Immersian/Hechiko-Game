@@ -74,6 +74,8 @@ Transform:
   - {fileID: 7330492011942998529}
   - {fileID: 2429490961849194490}
   - {fileID: 87627217640663628}
+  - {fileID: 7332125470233336199}
+  - {fileID: 550298960870259375}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!61 &1865938915375051424
@@ -243,6 +245,9 @@ MonoBehaviour:
   dashRefreshGracePeriod: 0.2
   flashEffect: {fileID: 6226501132091115715}
   tilemapBev: {fileID: 0}
+  whatIsEffector:
+    serializedVersion: 2
+    m_Bits: 1048576
   m_facingRight: 1
   m_facingLeft: 0
   m_hasDashedInAir: 0
@@ -839,6 +844,7 @@ MonoBehaviour:
   blockSound: {fileID: 0}
   parrySoundVolume: 0.8
   blockSoundVolume: 0.6
+  parryTarget: {fileID: 550298960870259375}
 --- !u!114 &990234941490039109
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -862,6 +868,68 @@ MonoBehaviour:
   activeColor: {r: 1, g: 1, b: 1, a: 1}
   fullChargeColor: {r: 0.9960785, g: 0.7803922, b: 0.25490198, a: 1}
   partialChargeIndicatorColor: {r: 0, g: 0, b: 0, a: 1}
+--- !u!1 &2662094227955703762
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7332125470233336199}
+  m_Layer: 10
+  m_Name: Special Transform
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7332125470233336199
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2662094227955703762}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.9, y: -0.32, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1865938915375051426}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4379423863168797385
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 550298960870259375}
+  m_Layer: 10
+  m_Name: Parry Transform
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &550298960870259375
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4379423863168797385}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.31, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1865938915375051426}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4582749534674727592
 GameObject:
   m_ObjectHideFlags: 0
@@ -968,6 +1036,8 @@ MonoBehaviour:
   startSize: 0.05
   endSize: 0
   maxColliderRadius: 5.2
+  specialAttackTarget: {fileID: 7332125470233336199}
+  parryTarget: {fileID: 550298960870259375}
 --- !u!58 &5657121400180674625
 CircleCollider2D:
   m_ObjectHideFlags: 0

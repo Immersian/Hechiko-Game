@@ -9,8 +9,13 @@ public class RespawnPoint : MonoBehaviour
 
     [Header("Fade Settings")]
     [SerializeField] private float respawnDelay = 0.2f;
-    [SerializeField] private float fadeDuration = 0.5f; // This will be used for both fade in and out
+    [SerializeField] private float fadeDuration = 0.5f;
     [SerializeField] private CrossFade crossFade;
+
+    [Header("Respawn Cooldown")]
+    [SerializeField] private float respawnCooldown = 1f;
+    private float lastRespawnTime = -Mathf.Infinity;
+    private bool isRespawning = false;
 
     private void Awake()
     {
@@ -69,11 +74,18 @@ public class RespawnPoint : MonoBehaviour
 
     public void TriggerRespawn(Transform playerTransform)
     {
+        // Prevent multiple rapid respawns
+        if (isRespawning || Time.time < lastRespawnTime + respawnCooldown)
+            return;
+
         StartCoroutine(RespawnPlayer(playerTransform));
     }
 
     private IEnumerator RespawnPlayer(Transform playerTransform)
     {
+        isRespawning = true;
+        lastRespawnTime = Time.time;
+
         // Freeze player during respawn
         var playerMovement = playerTransform.GetComponent<PlayerController>();
         if (playerMovement != null) playerMovement.DisableMovement();
@@ -98,6 +110,13 @@ public class RespawnPoint : MonoBehaviour
 
         // Unfreeze player
         if (playerMovement != null) playerMovement.EnableMovement();
+
+        isRespawning = false;
+    }
+
+    // Public method to check if currently respawning
+    public bool IsRespawning()
+    {
+        return isRespawning;
     }
 }
-

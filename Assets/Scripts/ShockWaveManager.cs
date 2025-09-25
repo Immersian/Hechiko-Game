@@ -15,15 +15,20 @@ public class ShockWaveManager : MonoBehaviour
     [SerializeField] private float endSize = 0f;
     [SerializeField] private float maxColliderRadius = 5.56f;
 
+    [Header("Shockwave Position")]
+    [SerializeField] private Transform specialAttackTarget; // Assign your empty object here
+    [SerializeField] private Transform parryTarget; // Add this for parry position
+
     private CircleCollider2D shockWaveCollider;
     private Coroutine shockWaveCoroutine;
     private Material shockWaveMaterial;
     private static int waveDistanceFromCenter;
-    private static int waveSize; // New property ID for size
+    private static int waveSize;
     private bool isShockwaveActive;
     private float lastSpecialAttackTime;
     private bool canSpecialAttack = true;
     private Animator playerAnimator;
+    private Vector3 originalPosition; // Store original position
 
     public event System.Action onShockWave;
 
@@ -39,6 +44,14 @@ public class ShockWaveManager : MonoBehaviour
             return;
         }
 
+        // Get components first
+        shockWaveCollider = GetComponent<CircleCollider2D>();
+        shockWaveMaterial = GetComponent<SpriteRenderer>().material;
+
+        // Store original position
+        originalPosition = transform.position;
+
+        // DISABLE COLLIDER IMMEDIATELY
         if (shockWaveCollider != null)
         {
             shockWaveCollider.enabled = false;
@@ -46,9 +59,7 @@ public class ShockWaveManager : MonoBehaviour
         }
 
         waveDistanceFromCenter = Shader.PropertyToID("_Wave_Distance_From_Centre");
-        waveSize = Shader.PropertyToID("_Size"); // Initialize size property
-        shockWaveCollider = GetComponent<CircleCollider2D>();
-        shockWaveMaterial = GetComponent<SpriteRenderer>().material;
+        waveSize = Shader.PropertyToID("_Size");
 
         // Find player animator automatically
         playerAnimator = GameObject.FindGameObjectWithTag("Player Attack")?.GetComponent<Animator>();
@@ -58,32 +69,53 @@ public class ShockWaveManager : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        // Double-check that collider is disabled at start
+        if (shockWaveCollider != null && shockWaveCollider.enabled)
+        {
+            Debug.LogWarning("Shockwave collider was still enabled in Start(), disabling now.");
+            shockWaveCollider.enabled = false;
+            shockWaveCollider.radius = 0f;
+        }
+    }
+
     private void Update()
     {
-
         // Existing test input
         if (InputManager.instance.inputControl.Gameplay.ShockwaveTest.WasPressedThisFrame())
         {
-            TriggerSpecialAttack();
+            TrySpecialAttack();
+        }
+    }
+
+    public void TrySpecialAttack()
+    {
+        ParryChargeSystem parryChargeSystem = FindObjectOfType<ParryChargeSystem>();
+
+        if (parryChargeSystem != null && parryChargeSystem.HasFullCharge())
+        {
+            // We have charges, trigger the animation which will call CallShockwave
+            if (playerAnimator != null)
+            {
+                playerAnimator.SetTrigger("SpecialAttack");
+                canSpecialAttack = false;
+                lastSpecialAttackTime = Time.time;
+                StartCoroutine(ResetSpecialAttackCooldown());
+            }
+        }
+        else
+        {
+            // Provide feedback that attack can't be used
+            Debug.Log("Special attack not available - need full charges!");
+            // You could play a sound, show UI feedback, etc.
         }
     }
 
     private bool CanPerformSpecialAttack()
     {
-        // Check if player is grounded through the animator (assuming you have a "IsGrounded" parameter)
         bool isGrounded = playerAnimator != null && playerAnimator.GetBool("IsGrounded");
         return canSpecialAttack && isGrounded && !isShockwaveActive;
-    }
-
-    private void TriggerSpecialAttack()
-    {
-        if (playerAnimator != null)
-        {
-            playerAnimator.SetTrigger("SpecialAttack");
-            canSpecialAttack = false;
-            lastSpecialAttackTime = Time.time;
-            StartCoroutine(ResetSpecialAttackCooldown());
-        }
     }
 
     private IEnumerator ResetSpecialAttackCooldown()
@@ -102,6 +134,11 @@ public class ShockWaveManager : MonoBehaviour
         if (parryChargeSystem == null || !parryChargeSystem.HasFullCharge())
         {
             Debug.Log("Not enough parry charges for shockwave!");
+
+            if (fromAnimation && playerAnimator != null)
+            {
+                playerAnimator.SetTrigger("SpecialAttackFailed");
+            }
             return;
         }
 
@@ -123,25 +160,36 @@ public class ShockWaveManager : MonoBehaviour
             StartCoroutine(ResetSpecialAttackCooldown());
         }
     }
-    public void CallSmallShockwave()
+
+    // Modified to accept a position parameter
+    public void CallSmallShockwave(Transform targetPosition = null)
     {
         if (shockWaveCoroutine != null)
         {
             StopCoroutine(shockWaveCoroutine);
         }
-        shockWaveCoroutine = StartCoroutine(SmallShockwaveAction());
+        shockWaveCoroutine = StartCoroutine(SmallShockwaveAction(targetPosition));
     }
 
-    private IEnumerator SmallShockwaveAction()
+    private IEnumerator SmallShockwaveAction(Transform targetPosition = null)
     {
         isShockwaveActive = true;
+
+        // Store current position
+        Vector3 previousPosition = transform.position;
+
+        // Move to target position if provided
+        if (targetPosition != null)
+        {
+            transform.position = targetPosition.position;
+        }
 
         // Set initial values for a smaller effect
         float smallStartPos = 0f;
         float smallEndPos = 0.10f;
         float smallStartSize = 0.03f;
         float smallEndSize = 0f;
-        float duration = 0.4f; // Half second duration
+        float duration = 0.4f;
 
         shockWaveMaterial.SetFloat(waveDistanceFromCenter, smallStartPos);
         shockWaveMaterial.SetFloat(waveSize, smallStartSize);
@@ -152,7 +200,6 @@ public class ShockWaveManager : MonoBehaviour
             elapsedTime += Time.deltaTime;
             float progress = elapsedTime / duration;
 
-            // Animate visual properties
             float distance = Mathf.Lerp(smallStartPos, smallEndPos, progress);
             float size = Mathf.Lerp(smallStartSize, smallEndSize, progress);
             shockWaveMaterial.SetFloat(waveDistanceFromCenter, distance);
@@ -161,14 +208,27 @@ public class ShockWaveManager : MonoBehaviour
             yield return null;
         }
 
-        // Reset values
         shockWaveMaterial.SetFloat(waveDistanceFromCenter, endPosition);
         shockWaveMaterial.SetFloat(waveSize, endSize);
+
+        // Return to original position
+        transform.position = previousPosition;
+
         isShockwaveActive = false;
     }
+
     private IEnumerator ShockWaveAction()
     {
         isShockwaveActive = true;
+
+        // Store current position
+        Vector3 previousPosition = transform.position;
+
+        // Move to special attack target position if available
+        if (specialAttackTarget != null)
+        {
+            transform.position = specialAttackTarget.position;
+        }
 
         // Initialize visual properties
         shockWaveMaterial.SetFloat(waveDistanceFromCenter, startPosition);
@@ -213,9 +273,11 @@ public class ShockWaveManager : MonoBehaviour
             shockWaveCollider.enabled = false;
         }
 
+        // Return to original position
+        transform.position = previousPosition;
+
         isShockwaveActive = false;
     }
-
 
     private void OnDestroy()
     {
