@@ -31,7 +31,6 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     [SerializeField] private float ledgeCheckDistance = 0.5f;
     [SerializeField] private LayerMask groundLayer;
     //[SerializeField] private float chaseLedgeStopDistance = 1f; // How close to get to ledge while chasing
-    [SerializeField] private float chaseLedgeWaitTime = 2f; // How long to wait at ledge before giving up chase
     [SerializeField] private float returnToPatrolDelay = 1f; // Delay before returning to patrol
     private float returnToPatrolTimer = 0f;
     private bool shouldReturnToPatrol = false;
@@ -44,6 +43,12 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     private float lastAttackTime;
     private bool isAttacking = false;
 
+    [Header("Alert Settings")]
+    [SerializeField] private float alertAnimationDuration = 1f; // Duration of the alerted animation
+    private bool isAlerted = false;
+    private float alertTimer = 0f;
+    private bool hasBeenAlertedThisDetection = false; // NEW: Track if alerted during current detection
+
     [Header("Stun Settings")]
     [SerializeField] private float stunDuration = 2f;
     [SerializeField] private float recoveryAnimationDelay = 0.1667f; // 1/6th of a second delay
@@ -55,8 +60,9 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     private float stunTimer = 0f;
     private bool hasPlayedStunAnimation = false;
 
-    // Animation parameter
+    // Animation parameters
     private const string IS_ATTACKING = "isAttacking";
+    private const string ALERTED_TRIGGER = "Alerted";
 
     [Header("Facing Direction")]
     [SerializeField] private bool facingLeft = true;  // Changed from facingRight to facingLeft
@@ -68,7 +74,6 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     // Public properties updated for left-facing
     public bool EnemyFacingLeft => facingLeft;
     public bool EnemyFacingRight => !facingLeft;
-
 
     private bool isDetectingPlayer = false;
     private float currentDetectionTime;
@@ -82,9 +87,6 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     private float waitTimer;
     private bool isWaiting = false;
     private Animator animator;
-
-    private float chaseLedgeTimer = 0f;
-
 
     // Animation parameters
     private const string IS_WALKING = "isWalking";
@@ -109,6 +111,12 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
         currentTarget = pointA;
         FindPlayer();
+
+        // Set initial radius to normal
+        if (detectionZone != null)
+        {
+            detectionZone.SetNormalRadius();
+        }
     }
 
     void FindPlayer()
@@ -132,12 +140,20 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
             return;
         }
 
+        // Handle alerted state
+        if (isAlerted)
+        {
+            HandleAlertedState();
+            return;
+        }
+
         // Rest of your existing Update() logic...
         if (TryGetComponent<EnemyDamageHandler>(out var health) && health.isDead)
         {
             rb.velocity = Vector2.zero;
             return;
         }
+
         if (shouldReturnToPatrol)
         {
             returnToPatrolTimer += Time.deltaTime;
@@ -147,6 +163,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
                 shouldReturnToPatrol = false;
             }
         }
+
         // Check for ledges - only when moving
         if (rb.velocity.magnitude > 0.1f)
         {
@@ -164,20 +181,6 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
             shouldReturnToPatrol = false;
 
             atLedge = !Physics2D.Raycast(ledgeCheck.position, Vector2.down, ledgeCheckDistance, groundLayer);
-
-            if (atLedge)
-            {
-                chaseLedgeTimer += Time.deltaTime;
-
-                if (chaseLedgeTimer > chaseLedgeWaitTime)
-                {
-                    GiveUpChase();
-                }
-            }
-            else
-            {
-                chaseLedgeTimer = 0f;
-            }
         }
 
         if (player != null)
@@ -201,26 +204,34 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
             {
                 HandleDetectionDelay();
             }
-            else if (playerInSight && !isChasing && !isAttacking)
+            else if (playerInSight && !isChasing && !isAttacking && !isAlerted)
             {
-                StartDetection();
+                // NEW: Check if we've already been alerted during this detection period
+                if (!hasBeenAlertedThisDetection)
+                {
+                    Debug.Log($"{gameObject.name}: Conditions met for starting detection - starting detection process");
+                    StartDetection();
+                }
+                else
+                {
+                    Debug.Log($"{gameObject.name}: Player in sight but already alerted during this detection - waiting for player to leave zone");
+                }
             }
         }
 
         // Stop movement if at ledge and not chasing player
-        if (atLedge && !isChasing && !isWaiting)
+        if (atLedge && !isChasing && !isWaiting && !isAlerted)
         {
             rb.velocity = Vector2.zero;
             StartWaiting();
             return;
         }
 
-        if (isChasing && !isAttacking)
+        if (isChasing && !isAttacking && !isAlerted)
         {
             ChasePlayer();
         }
-
-        else if (!isWaiting && !isDetectingPlayer && !isAttacking)
+        else if (!isWaiting && !isDetectingPlayer && !isAttacking && !isAlerted)
         {
             Patrol();
         }
@@ -231,6 +242,32 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
         UpdateAnimations();
         UpdateFacingDirection();
+    }
+
+    private void HandleAlertedState()
+    {
+        // Stop movement during alerted animation
+        rb.velocity = Vector2.zero;
+
+        // Update timer
+        alertTimer += Time.deltaTime;
+
+        // Face the player during alerted state
+        if (player != null)
+        {
+            bool shouldFaceLeft = player.position.x < transform.position.x;
+            if (shouldFaceLeft != facingLeft && Time.time >= lastFlipTime + flipCooldown)
+            {
+                Flip();
+            }
+        }
+
+        // When alerted animation is complete, start chasing
+        if (alertTimer >= alertAnimationDuration)
+        {
+            isAlerted = false;
+            isChasing = true;
+        }
     }
 
     private void HandleStunState()
@@ -246,11 +283,13 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
                 hasPlayedStunAnimation = true;
                 // Set the stun bool to true for the ongoing stun animation
                 animator.SetBool(stunBool, true);
+                Debug.Log($"{gameObject.name}: Stunned, playing stun animation");
             }
 
             // When stun is over, trigger recovery
             if (stunTimer <= 0)
             {
+                Debug.Log($"{gameObject.name}: Stun duration over, starting recovery");
                 StartRecovery();
             }
         }
@@ -260,6 +299,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
             stunTimer -= Time.deltaTime;
             if (stunTimer <= 0)
             {
+                Debug.Log($"{gameObject.name}: Recovery complete");
                 EndRecovery();
             }
         }
@@ -343,9 +383,38 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
             if (playerInSight)
             {
-                isChasing = true;
+                // Instead of immediately chasing, play alerted animation first
+                StartAlertedState();
+            }
+            else
+            {
+                Debug.Log($"{gameObject.name}: Player lost during detection, returning to normal");
             }
         }
+    }
+
+    private void StartAlertedState()
+    {
+        isAlerted = true;
+        alertTimer = 0f;
+        animator.SetTrigger(ALERTED_TRIGGER);
+
+        // NEW: Set alert radius when enemy becomes alerted
+        if (detectionZone != null)
+        {
+            detectionZone.SetAlertRadius();
+            Debug.Log($"{gameObject.name}: Setting alert radius");
+        }
+
+        // NEW: Mark that we've been alerted during this detection period
+        hasBeenAlertedThisDetection = true;
+
+        // Stop all movement
+        rb.velocity = Vector2.zero;
+
+        // Cancel any current actions
+        isDetectingPlayer = false;
+        isWaiting = false;
     }
 
     bool CanAttackPlayer()
@@ -354,7 +423,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         if (TryGetComponent<EnemyDamageHandler>(out var health) && health.isDead)
             return false;
 
-        if (player == null || isAttacking) return false;
+        if (player == null || isAttacking || isAlerted) return false;
 
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
         bool inAttackRange = distanceToPlayer <= attackRange;
@@ -369,28 +438,32 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         rb.velocity = Vector2.zero; // Stop moving
         animator.SetTrigger(IS_ATTACKING);
         lastAttackTime = Time.time; // Reset cooldown timer
+        Debug.Log($"{gameObject.name}: Starting attack");
     }
 
     public void OnAttackEnd()
     {
         isAttacking = false;
+        Debug.Log($"{gameObject.name}: Attack ended");
         CheckFacePlayerAfterAttack(); // Add this line
     }
 
     void UpdateAnimations()
     {
-        if (isStunned || isRecovering) return; // Don't change animations while stunned or recovering
+        if (isStunned || isRecovering || isAlerted) return; // Don't change animations while stunned, recovering, or alerted
 
         bool isMoving = rb.velocity.magnitude > 0.1f && !isAttacking;
         animator.SetBool(IS_WALKING, isMoving && !isChasing);
         animator.SetBool(IS_RUNNING, isMoving && isChasing);
     }
+
     void StartWaiting()
     {
         isWaiting = true;
         rb.velocity = Vector2.zero;
         waitTimer = Random.Range(minWaitTime, maxWaitTime);
         animator.SetBool(IS_WALKING, false);
+        Debug.Log($"{gameObject.name}: Starting wait at point for {waitTimer:F2}s");
     }
 
     void WaitAtPoint()
@@ -400,11 +473,13 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         {
             isWaiting = false;
             currentTarget = currentTarget == pointA ? pointB : pointA;
+            Debug.Log($"{gameObject.name}: Wait finished, switching to target: {currentTarget.name}");
         }
     }
+
     void UpdateFacingDirection()
     {
-        if (isAttacking || isStunned || isRecovering) return;
+        if (isAttacking || isStunned || isRecovering || isAlerted) return;
 
         bool shouldFaceLeft = facingLeft;
 
@@ -426,7 +501,6 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         }
     }
 
-
     void Patrol()
     {
         // Only check for ledges when actually moving toward a target
@@ -435,6 +509,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
             if (atLedge)
             {
                 rb.velocity = Vector2.zero;
+                Debug.Log($"{gameObject.name}: At ledge during patrol, stopping movement");
 
                 // Face toward patrol point while at ledge
                 bool targetOnLeft = currentTarget.position.x < transform.position.x;
@@ -456,10 +531,9 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         }
     }
 
-
     void ChasePlayer()
     {
-        if (player == null || isAttacking) return;
+        if (player == null || isAttacking || isAlerted) return;
 
         if (Time.time < lastAttackTime + attackRecoveryTime)
         {
@@ -478,18 +552,12 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         if (atLedge)
         {
             rb.velocity = Vector2.zero;
-            chaseLedgeTimer += Time.deltaTime;
 
             // Face toward player while at ledge
             bool playerOnLeft = player.position.x < transform.position.x;
             if (playerOnLeft != facingLeft && Time.time >= lastFlipTime + flipCooldown)
             {
                 Flip();
-            }
-
-            if (chaseLedgeTimer > chaseLedgeWaitTime)
-            {
-                GiveUpChase();
             }
             return;
         }
@@ -501,7 +569,10 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     bool PlayerInSight()
     {
         if (detectionZone == null || !detectionZone.playerInZone || player == null)
+        {
+            Debug.Log($"{gameObject.name}: PlayerInSight failed - detectionZone: {detectionZone != null}, playerInZone: {detectionZone?.playerInZone}, player: {player != null}");
             return false;
+        }
 
         // Use the raycast origin position if assigned, otherwise use enemy position
         Vector2 origin = raycastOrigin != null ? raycastOrigin.position : transform.position;
@@ -517,7 +588,10 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         Debug.DrawRay(origin, direction * distance,
                      hit.collider == null ? Color.green : Color.red);
 
-        return hit.collider == null || hit.collider.CompareTag("Player");
+        bool hasSight = hit.collider == null || hit.collider.CompareTag("Player");
+        Debug.Log($"{gameObject.name}: PlayerInSight check - HasSight: {hasSight}, Hit: {hit.collider?.name}");
+
+        return hasSight;
     }
 
     Transform GetNearestPatrolPoint()
@@ -525,34 +599,61 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         return Vector2.Distance(transform.position, pointA.position) <
                Vector2.Distance(transform.position, pointB.position) ? pointA : pointB;
     }
+
     void GiveUpChase()
     {
         isChasing = false;
-        chaseLedgeTimer = 0f;
         shouldReturnToPatrol = true;
         returnToPatrolTimer = 0f;
+
+        // NEW: Set back to normal radius when giving up chase
+        if (detectionZone != null)
+        {
+            detectionZone.SetNormalRadius();
+            Debug.Log($"{gameObject.name}: Setting normal radius (giving up chase)");
+        }
     }
 
     void ReturnToNearestPatrolPoint()
     {
         currentTarget = GetNearestPatrolPoint();
         isWaiting = false;
+
+        // NEW: Set back to normal radius when returning to patrol
+        if (detectionZone != null)
+        {
+            detectionZone.SetNormalRadius();
+            Debug.Log($"{gameObject.name}: Setting normal radius (returning to patrol)");
+        }
     }
 
     // Interface implementation
     public void OnPlayerDetected()
     {
-        isChasing = true;
-        Debug.Log("Player detected in zone");
+        // Don't immediately chase - let the detection system handle it
+        Debug.Log($"{gameObject.name}: Player detected in zone");
     }
+
     public void OnPlayerLost()
     {
         isChasing = false;
         isDetectingPlayer = false;
+        isAlerted = false; // Cancel alerted state if player is lost
+
+        // NEW: Set back to normal radius when player is lost
+        if (detectionZone != null)
+        {
+            detectionZone.SetNormalRadius();
+            Debug.Log($"{gameObject.name}: Setting normal radius (player lost)");
+        }
+
+        // NEW: Reset the alerted flag when player leaves the zone
+        hasBeenAlertedThisDetection = false;
+
         shouldReturnToPatrol = true;
         returnToPatrolTimer = 0f;
-        Debug.Log("Player left detection zone - returning to patrol");
     }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Shockwave") && !isStunned && !isRecovering)
@@ -576,6 +677,14 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         isDetectingPlayer = false;
         isAttacking = false;
         isWaiting = false;
+        isAlerted = false; // Also cancel alerted state
+
+        // NEW: Set back to normal radius when stunned
+        if (detectionZone != null)
+        {
+            detectionZone.SetNormalRadius();
+            Debug.Log($"{gameObject.name}: Setting normal radius (stunned)");
+        }
     }
 
     void CheckFacePlayerAfterAttack()
@@ -594,6 +703,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
             }
         }
     }
+
     public void CancelAttack()
     {
         // Immediately stop attacking state
@@ -601,9 +711,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
         // Reset attack animation if needed
         animator.ResetTrigger(IS_ATTACKING);
-
-        // Optional: Play a transition animation if you have one
-        // animator.Play("HitReaction", 0, 0f);
+        Debug.Log($"{gameObject.name}: Attack cancelled");
     }
 
     void Flip()
@@ -616,6 +724,7 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         transform.localScale = scale;
 
         lastFlipTime = Time.time;
+        Debug.Log($"{gameObject.name}: Flipped, now facing left: {facingLeft}");
     }
 
     private void OnDrawGizmosSelected()

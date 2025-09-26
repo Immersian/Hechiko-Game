@@ -879,7 +879,26 @@ namespace SupanthaPaul
                 audioSource.PlayOneShot(clip, volume);
             }
         }
+        public void ResetControllerState()
+        {
+            // Reset all movement flags to default
+            canMove = true;
+            canFlip = true;
+            canJump = true;
+            canDash = true;
+            isDashing = false;
+            isKnockback = false;
 
+            // Reset any timers or state variables
+            m_dashCooldownRemaining = 0f;
+            m_hasDashedInAir = false;
+
+            // Ensure Rigidbody is in correct state
+            if (m_rb != null)
+            {
+                m_rb.velocity = Vector2.zero;
+            }
+        }
         private void OnDrawGizmosSelected()
         {
             if (groundCheck != null)

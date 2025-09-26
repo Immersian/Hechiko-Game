@@ -15,6 +15,7 @@ TagManager:
   - Flying Enemy
   - BossBorder
   - Claw
+  - Enemy
   layers:
   - Default
   - TransparentFX

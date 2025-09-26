@@ -122,7 +122,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c37b1b11f44b8e4b84fd7b965697c01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damageAmount: 10
+  damageAmount: 20
   destroyOnContact: 0
   continuousDamage: 0
   damageInterval: 1
@@ -156,7 +156,7 @@ GameObject:
   - component: {fileID: 6684090285155267849}
   m_Layer: 0
   m_Name: Enemy
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -169,7 +169,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7657866772306624162}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -1.2, z: 0.01354398}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -341,8 +341,8 @@ MonoBehaviour:
   minWaitTime: 1
   maxWaitTime: 3
   maxDetectionDistance: 10
-  minDetectionTime: 0.2
-  maxDetectionTime: 2
+  minDetectionTime: 0
+  maxDetectionTime: 0
   frontDetectionMultiplier: 0.7
   rearDetectionMultiplier: 1.5
   chaseSpeed: 4
@@ -359,11 +359,11 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 256
-  chaseLedgeWaitTime: 2
   returnToPatrolDelay: 1
   attackRange: 6
   attackCooldown: 2
   attackRecoveryTime: 1
+  alertAnimationDuration: 1
   stunDuration: 6
   recoveryAnimationDelay: 0.1667
   stunTrigger: Stunned
@@ -449,7 +449,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c37b1b11f44b8e4b84fd7b965697c01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damageAmount: 90
+  damageAmount: 10
   destroyOnContact: 0
   continuousDamage: 0
   damageInterval: 1
@@ -485,11 +485,21 @@ MonoBehaviour:
   hurtSound: {fileID: 8300000, guid: 33d0b3ad5d61f6e4f94a199b4ce82aad, type: 3}
   deathSound: {fileID: 0}
   soundPitchRange: {x: 0.9, y: 1.1}
+  hurtParticleSystem: {fileID: 2124110727802433656, guid: 1967005340d4b0043a35fb153e19fde7,
+    type: 3}
+  particleSpawnPoint: {fileID: 0}
+  spawnParticleAtHitPoint: 0
+  particleDestroyDelay: 2
   useKnockback: 0
   knockbackResistance: 0.5
   consumeAttackerStamina: 1
-  staminaCostPercent: 0.2
-  attacker: {fileID: 0}
+  staminaCostPercent: 0.5
+  enableCameraShake: 1
+  cameraShakeIntensity: 1
+  cameraShakeDuration: 0.2
+  deathCameraShakeIntensity: 2
+  deathCameraShakeDuration: 0.3
+  cameraShake: {fileID: 0}
 --- !u!114 &6684090285155267849
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -143,17 +143,17 @@ public class PlayerHealth : MonoBehaviour
         isDead = true;
         Debug.Log("Player has died!");
 
-        // Disable player movement and attacks
+        // Disable the entire PlayerController component first
         if (playerController != null)
         {
-            playerController.DisableMovement();
-            playerController.FreezePlayer();
+            playerController.enabled = false; // This stops all controller logic
         }
 
         // Play death animation
         Animator animator = GetComponentInChildren<Animator>();
         if (animator != null)
         {
+            animator.applyRootMotion = false; // Prevent animation movement
             animator.SetTrigger(deathTrigger);
         }
 
@@ -171,12 +171,12 @@ public class PlayerHealth : MonoBehaviour
             parryScript.enabled = false;
         }
 
-        // Stop all movement
+        // Stop all movement - Use Kinematic instead of Static
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb != null)
         {
             rb.velocity = Vector2.zero;
-            rb.isKinematic = true; // Prevent physics interactions
+            rb.bodyType = RigidbodyType2D.Kinematic; // Better for controlled objects
         }
 
         // Disable colliders to prevent further damage/interaction
@@ -239,13 +239,30 @@ public class PlayerHealth : MonoBehaviour
         // Re-enable everything
         isDead = false;
 
-        // Re-enable player movement
-        if (playerController != null)
+        // Re-enable colliders first
+        Collider2D[] colliders = GetComponents<Collider2D>();
+        foreach (Collider2D collider in colliders)
         {
-            playerController.EnableMovement();
-            playerController.UnfreezePlayer();
+            collider.enabled = true;
         }
 
+        // Re-enable physics BEFORE enabling the controller
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.bodyType = RigidbodyType2D.Dynamic;
+            rb.velocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+            rb.simulated = true; // Ensure physics simulation is enabled
+        }
+
+        // Re-enable the PlayerController component
+        // Re-enable the PlayerController component
+        if (playerController != null)
+        {
+            playerController.ResetControllerState(); // Add this line
+            playerController.enabled = true;
+        }
         // Re-enable attack components
         PlayerAttack playerAttack = GetComponentInChildren<PlayerAttack>();
         if (playerAttack != null)
@@ -260,24 +277,11 @@ public class PlayerHealth : MonoBehaviour
             parryScript.enabled = true;
         }
 
-        // Re-enable physics
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
-        if (rb != null)
-        {
-            rb.isKinematic = false;
-        }
-
-        // Re-enable colliders
-        Collider2D[] colliders = GetComponents<Collider2D>();
-        foreach (Collider2D collider in colliders)
-        {
-            collider.enabled = true;
-        }
-
-        // Reset animation to idle
+        // Re-enable root motion
         Animator animator = GetComponentInChildren<Animator>();
         if (animator != null)
         {
+            animator.applyRootMotion = true;
             animator.ResetTrigger(deathTrigger);
             animator.Play("Idle", 0, 0f);
         }

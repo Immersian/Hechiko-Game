@@ -2,6 +2,7 @@ using UnityEngine;
 using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
+using SupanthaPaul;
 
 public class InteractiveObject : MonoBehaviour
 {
@@ -101,7 +102,11 @@ public class InteractiveObject : MonoBehaviour
     {
         _isConquered = true;
         SetAllUIPromptsVisible(false); // Hide all UI after interaction
-
+        PlayerController playerController = _player?.GetComponent<PlayerController>();
+        if (playerController != null)
+        {
+            playerController.enabled = false;
+        }
         // Set this as the new checkpoint
         if (_player != null && _playerHealth != null)
         {
@@ -137,6 +142,13 @@ public class InteractiveObject : MonoBehaviour
         _isHealing = true;
         SetAllUIPromptsVisible(false); // Hide UI during rest sequence
 
+        // Disable player movement
+        PlayerController playerController = _player?.GetComponent<PlayerController>();
+        if (playerController != null)
+        {
+            playerController.enabled = false;
+        }
+
         // First, trigger a small camera shake
         if (cameraShake != null)
         {
@@ -170,6 +182,12 @@ public class InteractiveObject : MonoBehaviour
             yield return crossFade2.FadeOut(restFadeOutDuration);
         }
 
+        // Re-enable player movement after fade out
+        if (playerController != null)
+        {
+            playerController.enabled = true;
+        }
+
         _isHealing = false;
 
         // Show UI prompts again if player is still in trigger
@@ -178,6 +196,8 @@ public class InteractiveObject : MonoBehaviour
             UpdateUIPrompts();
         }
     }
+
+   
 
     private IEnumerator HealPlayerOverTime()
     {
@@ -322,6 +342,11 @@ public class InteractiveObject : MonoBehaviour
         if (_playerInTrigger)
         {
             UpdateUIPrompts();
+        }
+        PlayerController playerController = _player?.GetComponent<PlayerController>();
+        if (playerController != null)
+        {
+            playerController.enabled = true;
         }
     }
 

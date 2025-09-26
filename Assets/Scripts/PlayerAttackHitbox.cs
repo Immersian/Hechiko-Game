@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using SupanthaPaul;
 
 [RequireComponent(typeof(Collider2D))]
 public class PlayerAttackHitbox : MonoBehaviour
@@ -7,14 +8,9 @@ public class PlayerAttackHitbox : MonoBehaviour
     [Header("Attack Settings")]
     [SerializeField] public int damage = 20;
     [SerializeField] private float attackCooldown = 0f;
-    //[SerializeField] private float knockbackForce = 3f;
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private GameObject hitEffect;
     [SerializeField] private float effectDestroyTime = 0.5f;
-
-    //[Header("Audio")]
-    //[SerializeField] private AudioClip hitSound;
-    //[SerializeField] private float soundVolume = 0.7f;
 
     private bool canAttack = true;
     private Collider2D attackCollider;
@@ -43,13 +39,26 @@ public class PlayerAttackHitbox : MonoBehaviour
     {
         if (!IsInLayerMask(other.gameObject.layer, enemyLayer)) return;
 
-        Vector2 hitDirection = (other.transform.position - transform.position).normalized;
+        // Get player's facing direction for proper particle orientation
+        PlayerController player = GetComponentInParent<PlayerController>();
+        Vector2 playerFacingDirection = Vector2.right; // Default to right
+
+        if (player != null)
+        {
+            playerFacingDirection = player.m_facingRight ? Vector2.right : Vector2.left;
+        }
+        else
+        {
+            // Fallback to hit direction if player not found
+            playerFacingDirection = (other.transform.position - transform.position).normalized;
+        }
+
+        Vector2 hitPoint = other.ClosestPoint(transform.position);
 
         if (other.TryGetComponent<EnemyDamageHandler>(out var enemy))
         {
-            enemy.TakeDamage(damage, hitDirection);
-            SpawnHitEffect(other.ClosestPoint(transform.position));
-            //PlayHitSound();
+            enemy.TakeDamage(damage, playerFacingDirection, player, hitPoint);
+            SpawnHitEffect(hitPoint);
 
             if (cameraShake != null)
             {
@@ -71,14 +80,6 @@ public class PlayerAttackHitbox : MonoBehaviour
             Destroy(effect, effectDestroyTime);
         }
     }
-
-    //private void PlayHitSound()
-    //{
-    //    if (hitSound != null)
-    //    {
-    //        AudioSource.PlayClipAtPoint(hitSound, transform.position, soundVolume);
-    //    }
-    //}
 
     private IEnumerator AttackCooldown()
     {

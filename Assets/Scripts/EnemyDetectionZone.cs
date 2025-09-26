@@ -14,6 +14,11 @@ public class EnemyDetectionZone : MonoBehaviour
     [SerializeField] private string playerTag = "Player";
     [SerializeField] private bool ignoreWeaponColliders = true;
 
+    [Header("Alert Settings")]
+    [SerializeField] private float normalRadius = 13.92f;
+    [SerializeField] private float alertRadius = 20f;
+    private CircleCollider2D zoneCollider;
+
     public bool playerInZone { get; private set; }
 
     private Transform targetEnemy; // The specific enemy instance to follow
@@ -30,7 +35,15 @@ public class EnemyDetectionZone : MonoBehaviour
 
     private void Start()
     {
-        GetComponent<Collider2D>().isTrigger = true;
+        zoneCollider = GetComponent<CircleCollider2D>();
+        if (zoneCollider == null)
+        {
+            Debug.LogError("EnemyDetectionZone requires a CircleCollider2D!", this);
+            return;
+        }
+
+        zoneCollider.isTrigger = true;
+        zoneCollider.radius = normalRadius; // Set initial radius
     }
 
     // Public method for spawn manager to set which enemy to follow
@@ -123,6 +136,21 @@ public class EnemyDetectionZone : MonoBehaviour
             return false;
 
         return collider.CompareTag(playerTag) || ((1 << collider.gameObject.layer) & playerLayer) != 0;
+    }
+    public void SetAlertRadius()
+    {
+        if (zoneCollider != null)
+        {
+            zoneCollider.radius = alertRadius;
+        }
+    }
+
+    public void SetNormalRadius()
+    {
+        if (zoneCollider != null)
+        {
+            zoneCollider.radius = normalRadius;
+        }
     }
 
     // Visual debug
