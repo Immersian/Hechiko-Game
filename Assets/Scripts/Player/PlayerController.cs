@@ -137,6 +137,10 @@ namespace SupanthaPaul
         [Header("Effector Layer")]
         [SerializeField] private LayerMask whatIsEffector;
 
+        [Header("Potion Fade Settings")]
+        [SerializeField] private float potionFadeDuration = 0.5f;
+        [SerializeField] private float potionFadeDelay = 0.2f;
+
         private Rigidbody2D m_rb;
         private ParticleSystem m_dustParticle;
         public bool m_facingRight = true;
@@ -323,7 +327,7 @@ namespace SupanthaPaul
             m_onWall = m_onRightWall || m_onLeftWall;
 
             CalculateSides();
-            CheckGroundSlam();
+            //CheckGroundSlam();
 
             if (isKnockback)
             {
@@ -531,6 +535,7 @@ namespace SupanthaPaul
             canMove = false;
             canDash = false;
             canFlip = false;
+            canJump = false; // Add this line to disable jumping
 
             if (healSound != null && audioSource != null)
                 audioSource.PlayOneShot(healSound);
@@ -559,6 +564,7 @@ namespace SupanthaPaul
             canMove = true;
             canDash = true;
             canFlip = true;
+            canJump = true; // Add this line to re-enable jumping
         }
 
         public void InterruptHealing()
@@ -570,6 +576,10 @@ namespace SupanthaPaul
                 canMove = true;
                 canDash = true;
                 canFlip = true;
+                canJump = true;
+
+                // Update potion images to ensure correct visibility
+                UpdatePotionImages();
             }
         }
 
@@ -578,7 +588,16 @@ namespace SupanthaPaul
             for (int i = 0; i < potionImages.Length; i++)
             {
                 int reverseIndex = potionImages.Length - 1 - i;
-                potionImages[i].enabled = (reverseIndex < currentPotions);
+                bool shouldBeVisible = (reverseIndex < currentPotions);
+
+                if (potionImages[i] != null)
+                {
+                    potionImages[i].enabled = true; // Always enable the image object
+
+                    Color color = potionImages[i].color;
+                    color.a = shouldBeVisible ? 1f : 0f; // Set alpha based on visibility
+                    potionImages[i].color = color;
+                }
             }
         }
 
@@ -587,20 +606,44 @@ namespace SupanthaPaul
             if (currentPotions < maxPotions)
             {
                 currentPotions++;
+                // Just update the images immediately for single potion pickups
                 UpdatePotionImages();
             }
         }
 
+        private IEnumerator FadeInNewPotion()
+        {
+            // Wait one frame to ensure currentPotions is updated
+            yield return null;
+
+            // Find which potion was just added (the first one that should be visible but isn't fully opaque)
+            for (int i = 0; i < potionImages.Length; i++)
+            {
+                int reverseIndex = potionImages.Length - 1 - i;
+                if (reverseIndex < currentPotions && potionImages[i] != null)
+                {
+                    // Check if this potion needs to be faded in
+                    if (potionImages[i].color.a < 0.9f)
+                    {
+                        yield return StartCoroutine(FadeInPotionImage(potionImages[i]));
+                        break;
+                    }
+                }
+            }
+        }
         public void RefillAllPotions()
         {
-            currentPotions = maxPotions;
-            UpdatePotionImages();
+            RefillAllPotionsWithFade();
         }
 
         private void HandleJumping()
         {
             if (jumpAction.triggered)
             {
+                // Add this check at the beginning of the method
+                if (isHealing)
+                    return;
+
                 if ((m_onWall && !isGrounded) || m_wallGrabbing)
                 {
                     PerformWallJump();
@@ -694,29 +737,30 @@ namespace SupanthaPaul
                 m_wallGrabbing = false;
         }
 
-        private void CheckGroundSlam()
-        {
-            if (!isGrounded)
-            {
-                // Check for both ground and effector layers
-                int combinedLayers = whatIsGround | whatIsEffector;
-                RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, Mathf.Infinity, combinedLayers);
+        //private void CheckGroundSlam()
+        //{
 
-                if (hit.collider != null)
-                {
-                    float heightAboveGround = transform.position.y - hit.point.y;
-                    canGroundSlam = heightAboveGround >= groundSlamMinHeight;
-                }
-                else
-                {
-                    canGroundSlam = false;
-                }
-            }
-            else
-            {
-                canGroundSlam = false;
-            }
-        }
+        //    if (!isGrounded)
+        //    {
+        //        // Check for both ground and effector layers
+        //        int combinedLayers = whatIsGround | whatIsEffector;
+        //        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, Mathf.Infinity, combinedLayers);
+
+        //        if (hit.collider != null)
+        //        {
+        //            float heightAboveGround = transform.position.y - hit.point.y;
+        //            canGroundSlam = heightAboveGround >= groundSlamMinHeight;
+        //        }
+        //        else
+        //        {
+        //            canGroundSlam = false;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        canGroundSlam = false;
+        //    }
+        //}
 
         public void ApplyKnockback(Vector2 knockbackForce)
         {
@@ -898,6 +942,89 @@ namespace SupanthaPaul
             {
                 m_rb.velocity = Vector2.zero;
             }
+        }
+        public void RefillAllPotionsWithFade()
+        {
+            StartCoroutine(FadeInMissingPotions());
+        }
+
+        private IEnumerator FadeInMissingPotions()
+        {
+            // Store the current potion count before refilling
+            int potionsBeforeRefill = currentPotions;
+
+            // Refill to max
+            currentPotions = maxPotions;
+
+            // Only fade in the potions that were missing
+            for (int i = 0; i < potionImages.Length; i++)
+            {
+                // Use the same index for both array access and visibility check
+                int potionIndex = potionImages.Length - 1 - i;
+
+                // Check if this potion should be visible now
+                bool shouldBeVisibleNow = i < currentPotions;
+                bool wasVisibleBefore = i < potionsBeforeRefill;
+
+                if (potionImages[potionIndex] != null && shouldBeVisibleNow && !wasVisibleBefore)
+                {
+                    // This potion was missing and needs to be faded in
+                    yield return StartCoroutine(FadeInPotionImage(potionImages[potionIndex]));
+                    yield return new WaitForSeconds(potionFadeDelay);
+                }
+                else if (potionImages[potionIndex] != null && shouldBeVisibleNow && wasVisibleBefore)
+                {
+                    // This potion was already there - ensure it's fully visible
+                    Color color = potionImages[potionIndex].color;
+                    color.a = 1f;
+                    potionImages[potionIndex].color = color;
+                }
+            }
+        }
+
+        private IEnumerator FadeInPotionsOneByOne()
+        {
+            // First, ensure all potion images are hidden
+            for (int i = 0; i < potionImages.Length; i++)
+            {
+                if (potionImages[i] != null)
+                {
+                    potionImages[i].enabled = true;
+                    // Set alpha to 0 initially
+                    Color color = potionImages[i].color;
+                    color.a = 0f;
+                    potionImages[i].color = color;
+                }
+            }
+
+            // Then fade them in one by one
+            for (int i = 0; i < potionImages.Length; i++)
+            {
+                int reverseIndex = potionImages.Length - 1 - i;
+                if (potionImages[reverseIndex] != null)
+                {
+                    yield return StartCoroutine(FadeInPotionImage(potionImages[reverseIndex]));
+                    yield return new WaitForSeconds(potionFadeDelay);
+                }
+            }
+        }
+
+        private IEnumerator FadeInPotionImage(Image potionImage)
+        {
+            float elapsedTime = 0f;
+            Color startColor = potionImage.color;
+            Color targetColor = potionImage.color;
+            targetColor.a = 1f;
+
+            while (elapsedTime < potionFadeDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                float t = elapsedTime / potionFadeDuration;
+                potionImage.color = Color.Lerp(startColor, targetColor, t);
+                yield return null;
+            }
+
+            potionImage.color = targetColor;
         }
         private void OnDrawGizmosSelected()
         {

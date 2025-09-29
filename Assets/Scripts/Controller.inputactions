@@ -281,6 +281,17 @@
                 },
                 {
                     "name": "",
+                    "id": "6af5f94d-00a0-4d54-b0a6-1c5fa928794b",
+                    "path": "<Mouse>/middleButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Dash",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "32ef0dda-50dc-4f48-bd4e-df60d979d810",
                     "path": "<DualSenseGamepadHID>/rightStick",
                     "interactions": "",
@@ -381,7 +392,7 @@
                 {
                     "name": "",
                     "id": "7a71997d-1476-4295-b09a-9246c7e7d881",
-                    "path": "<Keyboard>/r",
+                    "path": "<Keyboard>/q",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard",
@@ -435,12 +446,12 @@
                 },
                 {
                     "name": "",
-                    "id": "f1efdbaa-c36e-4641-8546-d1add16c406f",
-                    "path": "<Keyboard>/i",
+                    "id": "e5735db0-6a8d-47ab-8277-8de873cc610a",
+                    "path": "<Mouse>/leftButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard",
-                    "action": "Special",
+                    "action": "Attack",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -501,8 +512,19 @@
                 },
                 {
                     "name": "",
-                    "id": "05f53e76-93b4-4737-a40b-abd9b4a6dca3",
-                    "path": "<Keyboard>/1",
+                    "id": "7ea91e84-8eca-4e7b-a259-32baebc1bb88",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Parry",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d9e8bd6b-6997-42ba-98a1-de8b669dfca5",
+                    "path": "<Keyboard>/r",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard",
@@ -684,10 +706,21 @@
                 {
                     "name": "",
                     "id": "1f7e5590-cde5-479b-85f8-d74b937a64f3",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Mouse",
+                    "action": "RB",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d4515bde-72df-4520-946d-bbb1ea19feb7",
                     "path": "<Keyboard>/p",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard",
                     "action": "RB",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -695,10 +728,21 @@
                 {
                     "name": "",
                     "id": "7bd337be-b0b1-4073-958c-8fcd872a69bf",
-                    "path": "<Keyboard>/o",
+                    "path": "<Mouse>/leftButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
+                    "action": "LB",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c7f34db1-92da-4c8e-b161-a7d129f7a578",
+                    "path": "<Keyboard>/o",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
                     "action": "LB",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -752,6 +796,17 @@
             "devices": [
                 {
                     "devicePath": "<Keyboard>",
+                    "isOptional": false,
+                    "isOR": false
+                }
+            ]
+        },
+        {
+            "name": "Mouse",
+            "bindingGroup": "Mouse",
+            "devices": [
+                {
+                    "devicePath": "<Mouse>",
                     "isOptional": false,
                     "isOR": false
                 }

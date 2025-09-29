@@ -1,56 +1,39 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
 
-public class CameraPanScript : MonoBehaviour
+public class CameraManager : MonoBehaviour
 {
-    [Header("Camera Settings")]
-    [Tooltip("Main virtual camera (should have lower priority)")]
-    [SerializeField] private CinemachineVirtualCamera mainVirtualCamera;
+    static List<CinemachineVirtualCamera> cameras = new List<CinemachineVirtualCamera>();
 
-    [Tooltip("Trigger virtual camera (should have higher priority)")]
-    [SerializeField] private CinemachineVirtualCamera triggerVirtualCamera;
+    public static CinemachineVirtualCamera ActiveCamera = null;
 
-    [Header("Trigger Settings")]
-    [Tooltip("Layer mask for objects that trigger the camera change")]
-    [SerializeField] private LayerMask triggerLayer;
-
-    [Tooltip("Should the camera revert when exiting the trigger?")]
-    [SerializeField] private bool revertOnExit = true;
-
-    [SerializeField] private string playerTag = "Player";
-    private Collider2D playerMainCollider;
-    private void OnTriggerEnter2D(Collider2D other)
+    public static bool IsActiveCamera(CinemachineVirtualCamera camera)
     {
-        if (playerMainCollider == null && other.CompareTag(playerTag))
+        return camera == ActiveCamera;
+    }
+
+    public static void SwitchCamera(CinemachineVirtualCamera newCamera)
+    {
+        newCamera.Priority = 10;
+        ActiveCamera = newCamera;
+
+        foreach (CinemachineVirtualCamera cam in cameras)
         {
-            if (((1 << other.gameObject.layer) & triggerLayer) != 0)
+            if (cam != newCamera)
             {
-                if (triggerVirtualCamera != null)
-                {
-                    // Set the trigger camera to highest priority
-                    triggerVirtualCamera.Priority = 100;
-                }
+                cam.Priority = 0;
             }
         }
     }
 
-    private void OnTriggerExit2D(Collider2D other)
+    public static void Register(CinemachineVirtualCamera camera)
     {
-        if (playerMainCollider == null && other.CompareTag(playerTag))
-        {
-            if (((1 << other.gameObject.layer) & triggerLayer) != 0 && revertOnExit)
-            {
-                if (mainVirtualCamera != null)
-                {
-                    // Return priority to main camera
-                    mainVirtualCamera.Priority = 100;
-                    // Reset trigger camera priority to lower value
-                    if (triggerVirtualCamera != null)
-                    {
-                        triggerVirtualCamera.Priority = 0;
-                    }
-                }
-            }
-        }
+        cameras.Add(camera);
+    }
+
+    public static void Unregister(CinemachineVirtualCamera camera)
+    {
+        cameras.Remove(camera);
     }
 }

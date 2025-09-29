@@ -13,6 +13,9 @@ public class ParryChargeSystem : MonoBehaviour
     [SerializeField] private Color fullChargeColor = Color.green;
     [SerializeField] private Color partialChargeIndicatorColor = Color.blue; // New color for partial charge state
 
+    [Header("Full Charge Object")]
+    [SerializeField] private GameObject fullChargeObject; // Object to enable/disable based on full charge
+
     private int currentCharges = 0;
     private const int maxCharges = 5;
 
@@ -30,6 +33,9 @@ public class ParryChargeSystem : MonoBehaviour
 
         // Update full charge indicator
         fullChargeIndicator.color = (currentCharges == maxCharges) ? fullChargeColor : partialChargeIndicatorColor;
+
+        // Update full charge object
+        UpdateFullChargeObject();
     }
 
     public void ResetAllCharges()
@@ -37,6 +43,9 @@ public class ParryChargeSystem : MonoBehaviour
         currentCharges = 0;
         UpdateChargeDisplay();
         fullChargeIndicator.color = partialChargeIndicatorColor;
+
+        // Update full charge object
+        UpdateFullChargeObject();
     }
 
     private void UpdateChargeDisplay()
@@ -46,10 +55,20 @@ public class ParryChargeSystem : MonoBehaviour
             chargeImages[i].color = (i < currentCharges) ? activeColor : inactiveColor;
         }
     }
+
+    private void UpdateFullChargeObject()
+    {
+        if (fullChargeObject != null)
+        {
+            fullChargeObject.SetActive(HasFullCharge());
+        }
+    }
+
     public bool HasFullCharge()
     {
         return currentCharges >= maxCharges;
     }
+
     // For testing in editor without parrying
     [ContextMenu("Add Test Charge")]
     private void AddTestCharge()

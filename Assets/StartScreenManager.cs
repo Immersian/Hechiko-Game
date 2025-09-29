@@ -48,6 +48,10 @@ public class StartScreenManager : MonoBehaviour
     private CanvasGroup textCanvasGroup;
     private CanvasGroup imageCanvasGroup;
     private InputAction interactAction;
+    private InputAction navigateAction;
+    private InputAction pointAction; // To detect mouse movement/click
+    private bool buttonsActive = false;
+    private Button lastSelectedButton;
 
     private void Start()
     {
@@ -84,6 +88,9 @@ public class StartScreenManager : MonoBehaviour
             {
                 buttonCanvasGroups[i] = menuButtons[i].gameObject.AddComponent<CanvasGroup>();
             }
+
+            // Add event triggers to handle selection when mouse interacts
+            AddButtonEventTriggers(menuButtons[i]);
         }
 
         // Initialize fade overlay - START WITH FULL OPACITY (BLACK)
@@ -104,6 +111,14 @@ public class StartScreenManager : MonoBehaviour
             Debug.LogWarning("Interact Action Reference not set in StartScreenManager!");
         }
 
+        // Set up navigate action for controller/keyboard navigation
+        navigateAction = new InputAction("Navigate", InputActionType.Value, "<Gamepad>/leftStick, <Gamepad>/dpad, <Keyboard>/arrowKeys");
+        navigateAction.Enable();
+
+        // Set up point action to detect mouse movement
+        pointAction = new InputAction("Point", InputActionType.Value, "<Mouse>/position");
+        pointAction.Enable();
+
         // Initialize UI state
         InitializeUI();
 
@@ -112,6 +127,117 @@ public class StartScreenManager : MonoBehaviour
 
         // Start fading out the overlay
         StartCoroutine(FadeOutOverlay());
+    }
+
+    private void AddButtonEventTriggers(Button button)
+    {
+        EventTrigger trigger = button.gameObject.GetComponent<EventTrigger>();
+        if (trigger == null)
+        {
+            trigger = button.gameObject.AddComponent<EventTrigger>();
+        }
+
+        // Add pointer enter event
+        EventTrigger.Entry pointerEnterEntry = new EventTrigger.Entry();
+        pointerEnterEntry.eventID = EventTriggerType.PointerEnter;
+        pointerEnterEntry.callback.AddListener((data) => { OnButtonPointerEnter(button); });
+        trigger.triggers.Add(pointerEnterEntry);
+
+        // Add pointer exit event
+        EventTrigger.Entry pointerExitEntry = new EventTrigger.Entry();
+        pointerExitEntry.eventID = EventTriggerType.PointerExit;
+        pointerExitEntry.callback.AddListener((data) => { OnButtonPointerExit(button); });
+        trigger.triggers.Add(pointerExitEntry);
+
+        // Add pointer click event
+        EventTrigger.Entry pointerClickEntry = new EventTrigger.Entry();
+        pointerClickEntry.eventID = EventTriggerType.PointerClick;
+        pointerClickEntry.callback.AddListener((data) => { OnButtonPointerClick(button); });
+        trigger.triggers.Add(pointerClickEntry);
+
+        // Add select event
+        EventTrigger.Entry selectEntry = new EventTrigger.Entry();
+        selectEntry.eventID = EventTriggerType.Select;
+        selectEntry.callback.AddListener((data) => { OnButtonSelected(button); });
+        trigger.triggers.Add(selectEntry);
+
+        // Add deselect event
+        EventTrigger.Entry deselectEntry = new EventTrigger.Entry();
+        deselectEntry.eventID = EventTriggerType.Deselect;
+        deselectEntry.callback.AddListener((data) => { OnButtonDeselected(button); });
+        trigger.triggers.Add(deselectEntry);
+    }
+
+    private void OnButtonPointerEnter(Button button)
+    {
+        if (buttonsActive && !isTransitioning)
+        {
+            // Select the button when mouse hovers over it
+            EventSystem.current.SetSelectedGameObject(button.gameObject);
+            lastSelectedButton = button;
+        }
+    }
+
+    private void OnButtonPointerExit(Button button)
+    {
+        // Don't deselect when mouse exits - keep the last selected button active
+    }
+
+    private void OnButtonPointerClick(Button button)
+    {
+        if (buttonsActive && !isTransitioning)
+        {
+            // Ensure the clicked button remains selected
+            EventSystem.current.SetSelectedGameObject(button.gameObject);
+            lastSelectedButton = button;
+        }
+    }
+
+    private void OnButtonSelected(Button button)
+    {
+        lastSelectedButton = button;
+    }
+
+    private void OnButtonDeselected(Button button)
+    {
+        // If this button is being deselected and it was the last selected one,
+        // try to prevent the deselection or immediately reselect it
+        if (lastSelectedButton == button && buttonsActive && !isTransitioning)
+        {
+            // Check if we're deselecting because of a mouse click elsewhere
+            if (IsMouseOverUI())
+            {
+                // Mouse is over UI, allow the selection to change
+                return;
+            }
+
+            // Reselect the button if nothing else is being selected
+            StartCoroutine(ReselectButtonAfterFrame(button));
+        }
+    }
+
+    private IEnumerator ReselectButtonAfterFrame(Button button)
+    {
+        yield return null; // Wait one frame
+
+        // If after one frame no other button is selected, reselect this one
+        if (EventSystem.current.currentSelectedGameObject == null && buttonsActive && !isTransitioning)
+        {
+            EventSystem.current.SetSelectedGameObject(button.gameObject);
+            lastSelectedButton = button;
+        }
+    }
+
+    private bool IsMouseOverUI()
+    {
+        // Check if mouse is over any UI element
+        PointerEventData eventData = new PointerEventData(EventSystem.current);
+        eventData.position = Mouse.current.position.ReadValue();
+
+        var results = new System.Collections.Generic.List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, results);
+
+        return results.Count > 0;
     }
 
     private IEnumerator FadeOutOverlay()
@@ -140,6 +266,14 @@ public class StartScreenManager : MonoBehaviour
         {
             interactAction.Enable();
         }
+        if (navigateAction != null)
+        {
+            navigateAction.Enable();
+        }
+        if (pointAction != null)
+        {
+            pointAction.Enable();
+        }
     }
 
     private void OnDisable()
@@ -147,6 +281,14 @@ public class StartScreenManager : MonoBehaviour
         if (interactAction != null)
         {
             interactAction.Disable();
+        }
+        if (navigateAction != null)
+        {
+            navigateAction.Disable();
+        }
+        if (pointAction != null)
+        {
+            pointAction.Disable();
         }
     }
 
@@ -188,7 +330,6 @@ public class StartScreenManager : MonoBehaviour
         {
             pressAnyButtonImage.gameObject.SetActive(true);
             pressAnyButtonImage.color = normalColor; // Set to normal color, no fade
-                                                     // REMOVED the StartCoroutine(FadeOutImage()) call
         }
 
         // Hide buttons initially and make them non-interactable
@@ -212,27 +353,6 @@ public class StartScreenManager : MonoBehaviour
         }
     }
 
-
-    //private IEnumerator FadeOutImage()
-    //{
-    //    if (pressAnyButtonImage == null) yield break;
-
-    //    float timer = 0f;
-    //    Color startColor = pressAnyButtonImage.color;
-    //    Color targetColor = new Color(startColor.r, startColor.g, startColor.b, 0f);
-
-    //    while (timer < initialImageFadeDuration)
-    //    {
-    //        timer += Time.deltaTime;
-    //        float progress = timer / initialImageFadeDuration;
-    //        pressAnyButtonImage.color = Color.Lerp(startColor, targetColor, progress);
-    //        yield return null;
-    //    }
-
-    //    // Ensure fully transparent
-    //    pressAnyButtonImage.color = targetColor;
-    //}
-
     private void Update()
     {
         if (waitingForInput && !inputDetected && !isTransitioning)
@@ -252,6 +372,9 @@ public class StartScreenManager : MonoBehaviour
             }
         }
 
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
         // Check for interact button press to activate selected button
         if (!waitingForInput && !isTransitioning && interactAction != null && interactAction.triggered)
         {
@@ -265,6 +388,24 @@ public class StartScreenManager : MonoBehaviour
                 }
             }
         }
+
+        // Ensure a button is always selected when buttons are active
+        if (buttonsActive && !isTransitioning && EventSystem.current.currentSelectedGameObject == null)
+        {
+            // If nothing is selected, select the last selected button or the first button
+            GameObject buttonToSelect = lastSelectedButton != null ? lastSelectedButton.gameObject : menuButtons[0].gameObject;
+            EventSystem.current.SetSelectedGameObject(buttonToSelect);
+        }
+
+        // Detect navigation input and ensure selection stays on buttons
+        if (buttonsActive && !isTransitioning && navigateAction != null && navigateAction.triggered)
+        {
+            // Navigation input detected, ensure something is selected
+            if (EventSystem.current.currentSelectedGameObject == null)
+            {
+                EventSystem.current.SetSelectedGameObject(lastSelectedButton != null ? lastSelectedButton.gameObject : menuButtons[0].gameObject);
+            }
+        }
     }
 
     private void CheckForInput()
@@ -274,8 +415,7 @@ public class StartScreenManager : MonoBehaviour
         {
             HandleInputPressed();
         }
-        else if (Mouse.current != null && (Mouse.current.leftButton.isPressed ||
-                 Mouse.current.rightButton.isPressed || Mouse.current.middleButton.isPressed))
+        else if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) // Changed to wasPressedThisFrame
         {
             HandleInputPressed();
         }
@@ -371,8 +511,10 @@ public class StartScreenManager : MonoBehaviour
         if (menuButtons.Length > 0 && EventSystem.current != null)
         {
             EventSystem.current.SetSelectedGameObject(menuButtons[0].gameObject);
+            lastSelectedButton = menuButtons[0];
         }
 
+        buttonsActive = true;
         isTransitioning = false;
     }
 
@@ -398,6 +540,7 @@ public class StartScreenManager : MonoBehaviour
         if (isTransitioning) return;
 
         isTransitioning = true;
+        buttonsActive = false;
         Debug.Log("Start Game button clicked! Playing embark animation.");
 
         // Play the "Embark" animation
@@ -421,6 +564,7 @@ public class StartScreenManager : MonoBehaviour
         if (isTransitioning) return;
 
         isTransitioning = true;
+        buttonsActive = false;
         Debug.Log("Credits button clicked!");
 
         // Play animation if available
@@ -441,6 +585,7 @@ public class StartScreenManager : MonoBehaviour
         if (isTransitioning) return;
 
         isTransitioning = true;
+        buttonsActive = false;
         Debug.Log("Quit Game button clicked!");
 
         // Play animation if available
@@ -602,6 +747,8 @@ public class StartScreenManager : MonoBehaviour
         inputDetected = false;
         inputHoldTimer = 0f;
         isTransitioning = false;
+        buttonsActive = false;
+        lastSelectedButton = null;
 
         // Reset text
         textCanvasGroup.alpha = 1f;

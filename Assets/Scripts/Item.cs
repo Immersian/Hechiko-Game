@@ -7,22 +7,26 @@ public class Item : MonoBehaviour
     [TextArea]
     [SerializeField] private string itemDescription;
 
-
     [Header("Collision")]
     [SerializeField] private bool useTrigger = true;
 
+    private InventoryManager inventoryManager;
+
     private void Start()
     {
-        // Check if this item already exists in inventory
-        if (InventoryManager.Instance.HasItem(itemName))
+        // Find the InventoryManager in the scene
+        inventoryManager = FindObjectOfType<InventoryManager>();
+
+        if (inventoryManager == null)
         {
-            Destroy(gameObject);
+            Debug.LogError("No InventoryManager found in scene!");
             return;
         }
 
-        if (InventoryManager.Instance == null)
+        // Check if this item already exists in inventory
+        if (inventoryManager.HasItem(itemName))
         {
-            Debug.LogError("No InventoryManager found in scene!");
+            Destroy(gameObject);
         }
     }
 
@@ -44,9 +48,15 @@ public class Item : MonoBehaviour
 
     private void TryAddItemToInventory()
     {
-        if (InventoryManager.Instance != null)
+        if (inventoryManager == null)
         {
-            bool added = InventoryManager.Instance.AddItem(itemName, sprite, itemDescription);
+            // Try to find it again in case it wasn't available at Start
+            inventoryManager = FindObjectOfType<InventoryManager>();
+        }
+
+        if (inventoryManager != null)
+        {
+            bool added = inventoryManager.AddItem(itemName, sprite, itemDescription);
             if (added)
             {
                 Destroy(gameObject);

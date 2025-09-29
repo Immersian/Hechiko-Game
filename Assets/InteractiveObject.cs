@@ -3,6 +3,7 @@ using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
 using SupanthaPaul;
+using UnityEngine.UI;
 
 public class InteractiveObject : MonoBehaviour
 {
@@ -19,6 +20,10 @@ public class InteractiveObject : MonoBehaviour
     [Header("UI References - After Conquering")]
     public GameObject keyboardUIPromptConquered;    // UI for keyboard input (E-Rest)
     public GameObject controllerUIPromptConquered;  // UI for controller input (After conquering)
+
+    [Header("UI Fade Settings")]
+    [SerializeField] private float uiFadeInDuration = 0.3f;
+    [SerializeField] private float uiFadeOutDuration = 0.2f;
 
     [Header("Settings")]
     public float shakeIntensity = 2f;
@@ -41,17 +46,48 @@ public class InteractiveObject : MonoBehaviour
     private bool _isHealing = false;
     private GameObject _player;
     private PlayerHealth _playerHealth;
+    private bool _isActivating = false;
+
+    // CanvasGroup references for smooth fading
+    private CanvasGroup _keyboardUIPromptCanvasGroup;
+    private CanvasGroup _controllerUIPromptCanvasGroup;
+    private CanvasGroup _keyboardUIPromptConqueredCanvasGroup;
+    private CanvasGroup _controllerUIPromptConqueredCanvasGroup;
 
     private void Start()
     {
+        // Get CanvasGroup components for smooth fading
+        InitializeCanvasGroups();
+
         // Hide all UI prompts initially
-        SetAllUIPromptsVisible(false);
+        SetAllUIPromptsVisible(false, true); // Force immediate hide
 
         // Subscribe to device changes
         if (InputManager.instance != null)
         {
             InputManager.instance.onDeviceChanged += OnInputDeviceChanged;
         }
+    }
+
+    private void InitializeCanvasGroups()
+    {
+        // Get or add CanvasGroup components to all UI prompts
+        _keyboardUIPromptCanvasGroup = GetOrAddCanvasGroup(keyboardUIPrompt);
+        _controllerUIPromptCanvasGroup = GetOrAddCanvasGroup(controllerUIPrompt);
+        _keyboardUIPromptConqueredCanvasGroup = GetOrAddCanvasGroup(keyboardUIPromptConquered);
+        _controllerUIPromptConqueredCanvasGroup = GetOrAddCanvasGroup(controllerUIPromptConquered);
+    }
+
+    private CanvasGroup GetOrAddCanvasGroup(GameObject uiObject)
+    {
+        if (uiObject == null) return null;
+
+        CanvasGroup canvasGroup = uiObject.GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+        {
+            canvasGroup = uiObject.AddComponent<CanvasGroup>();
+        }
+        return canvasGroup;
     }
 
     private void OnDestroy()
@@ -81,12 +117,15 @@ public class InteractiveObject : MonoBehaviour
             _playerInTrigger = false;
             _player = null;
             _playerHealth = null;
-            SetAllUIPromptsVisible(false);
+            SetAllUIPromptsVisible(false, false); // Smooth fade out
         }
     }
 
     private void Update()
     {
+        // Don't process interactions if activation is already in progress
+        if (_isActivating || _isHealing) return;
+
         if (_playerInTrigger && !_isConquered && InputManager.instance.inputControl.Gameplay.Interact.WasPressedThisFrame())
         {
             ActivateCheckpoint();
@@ -100,13 +139,27 @@ public class InteractiveObject : MonoBehaviour
 
     private void ActivateCheckpoint()
     {
+        // Prevent multiple activations
+        if (_isActivating) return;
+
+        _isActivating = true;
+
         _isConquered = true;
-        SetAllUIPromptsVisible(false); // Hide all UI after interaction
+        SetAllUIPromptsVisible(false, false); // Smooth fade out
+
         PlayerController playerController = _player?.GetComponent<PlayerController>();
         if (playerController != null)
         {
             playerController.enabled = false;
+
+            // ADD THIS: Stop any movement immediately
+            Rigidbody2D rb = _player.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.velocity = Vector2.zero;
+            }
         }
+
         // Set this as the new checkpoint
         if (_player != null && _playerHealth != null)
         {
@@ -130,8 +183,19 @@ public class InteractiveObject : MonoBehaviour
     {
         if (_isHealing || _playerHealth == null) return;
 
-        // Don't heal if already at full health
-        if (_playerHealth.IsFullHealth()) return;
+        // Stop player movement immediately before starting rest sequence
+        PlayerController playerController = _player?.GetComponent<PlayerController>();
+        if (playerController != null)
+        {
+            playerController.enabled = false;
+
+            // ADD THIS: Stop any movement immediately
+            Rigidbody2D rb = _player.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.velocity = Vector2.zero;
+            }
+        }
 
         // Start the rest sequence with camera shake first
         StartCoroutine(RestSequence());
@@ -140,7 +204,7 @@ public class InteractiveObject : MonoBehaviour
     private IEnumerator RestSequence()
     {
         _isHealing = true;
-        SetAllUIPromptsVisible(false); // Hide UI during rest sequence
+        SetAllUIPromptsVisible(false, false); // Smooth fade out
 
         // Disable player movement
         PlayerController playerController = _player?.GetComponent<PlayerController>();
@@ -166,6 +230,12 @@ public class InteractiveObject : MonoBehaviour
 
         // Set this as the checkpoint again (in case player wants to respawn here)
         _playerHealth.SetCheckpoint(transform.position);
+
+        // REFILL POTIONS (while screen is black)
+        if (playerController != null)
+        {
+            playerController.RefillAllPotionsWithFade();
+        }
 
         // RESPAWN ENEMIES (while screen is black)
         PlayerHealth.TriggerRespawnEvent();
@@ -196,8 +266,6 @@ public class InteractiveObject : MonoBehaviour
             UpdateUIPrompts();
         }
     }
-
-   
 
     private IEnumerator HealPlayerOverTime()
     {
@@ -241,59 +309,161 @@ public class InteractiveObject : MonoBehaviour
     {
         if (InputManager.instance == null) return;
 
-        SetAllUIPromptsVisible(true);
-
         bool isGamepad = InputManager.instance.IsGamepad();
 
         if (_isConquered)
         {
-            // Show conquered UI (E-Rest)
-            if (keyboardUIPrompt != null) keyboardUIPrompt.SetActive(false);
-            if (controllerUIPrompt != null) controllerUIPrompt.SetActive(false);
-            if (keyboardUIPromptConquered != null) keyboardUIPromptConquered.SetActive(!isGamepad);
-            if (controllerUIPromptConquered != null) controllerUIPromptConquered.SetActive(isGamepad);
+            // Show conquered UI (E-Rest) with smooth fade
+            StartCoroutine(ShowConqueredUIPrompts(isGamepad));
         }
         else
         {
-            // Show pre-conquered UI (E-Cleanse)
-            if (keyboardUIPrompt != null) keyboardUIPrompt.SetActive(!isGamepad);
-            if (controllerUIPrompt != null) controllerUIPrompt.SetActive(isGamepad);
-            if (keyboardUIPromptConquered != null) keyboardUIPromptConquered.SetActive(false);
-            if (controllerUIPromptConquered != null) controllerUIPromptConquered.SetActive(false);
+            // Show pre-conquered UI (E-Cleanse) with smooth fade
+            StartCoroutine(ShowPreConqueredUIPrompts(isGamepad));
         }
     }
 
-    // Helper method to show/hide all UI prompts
-    private void SetAllUIPromptsVisible(bool visible)
+    private IEnumerator ShowPreConqueredUIPrompts(bool isGamepad)
     {
-        if (!visible)
+        // Fade out all prompts first
+        yield return StartCoroutine(FadeOutAllPrompts());
+
+        // Then fade in the appropriate ones
+        if (!isGamepad)
         {
-            // Hide all prompts
-            if (keyboardUIPrompt != null) keyboardUIPrompt.SetActive(false);
-            if (controllerUIPrompt != null) controllerUIPrompt.SetActive(false);
-            if (keyboardUIPromptConquered != null) keyboardUIPromptConquered.SetActive(false);
-            if (controllerUIPromptConquered != null) controllerUIPromptConquered.SetActive(false);
+            yield return StartCoroutine(FadeInCanvasGroup(_keyboardUIPromptCanvasGroup));
         }
         else
         {
-            // Show the appropriate prompts based on current state without creating a loop
+            yield return StartCoroutine(FadeInCanvasGroup(_controllerUIPromptCanvasGroup));
+        }
+    }
+
+    private IEnumerator ShowConqueredUIPrompts(bool isGamepad)
+    {
+        // Fade out all prompts first
+        yield return StartCoroutine(FadeOutAllPrompts());
+
+        // Then fade in the appropriate ones
+        if (!isGamepad)
+        {
+            yield return StartCoroutine(FadeInCanvasGroup(_keyboardUIPromptConqueredCanvasGroup));
+        }
+        else
+        {
+            yield return StartCoroutine(FadeInCanvasGroup(_controllerUIPromptConqueredCanvasGroup));
+        }
+    }
+
+    private IEnumerator FadeOutAllPrompts()
+    {
+        // Create a list of all canvas groups that need to be faded out
+        List<CanvasGroup> groupsToFadeOut = new List<CanvasGroup>();
+
+        if (_keyboardUIPromptCanvasGroup != null && _keyboardUIPromptCanvasGroup.alpha > 0)
+            groupsToFadeOut.Add(_keyboardUIPromptCanvasGroup);
+        if (_controllerUIPromptCanvasGroup != null && _controllerUIPromptCanvasGroup.alpha > 0)
+            groupsToFadeOut.Add(_controllerUIPromptCanvasGroup);
+        if (_keyboardUIPromptConqueredCanvasGroup != null && _keyboardUIPromptConqueredCanvasGroup.alpha > 0)
+            groupsToFadeOut.Add(_keyboardUIPromptConqueredCanvasGroup);
+        if (_controllerUIPromptConqueredCanvasGroup != null && _controllerUIPromptConqueredCanvasGroup.alpha > 0)
+            groupsToFadeOut.Add(_controllerUIPromptConqueredCanvasGroup);
+
+        // Fade out all groups simultaneously
+        if (groupsToFadeOut.Count > 0)
+        {
+            float elapsedTime = 0f;
+            while (elapsedTime < uiFadeOutDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                float t = elapsedTime / uiFadeOutDuration;
+
+                foreach (var group in groupsToFadeOut)
+                {
+                    if (group != null)
+                        group.alpha = Mathf.Lerp(1f, 0f, t);
+                }
+                yield return null;
+            }
+
+            // Ensure all are fully transparent
+            foreach (var group in groupsToFadeOut)
+            {
+                if (group != null)
+                    group.alpha = 0f;
+            }
+        }
+    }
+
+    private IEnumerator FadeInCanvasGroup(CanvasGroup canvasGroup)
+    {
+        if (canvasGroup == null) yield break;
+
+        // Ensure the GameObject is active
+        canvasGroup.gameObject.SetActive(true);
+
+        float elapsedTime = 0f;
+        while (elapsedTime < uiFadeInDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / uiFadeInDuration;
+            canvasGroup.alpha = Mathf.Lerp(0f, 1f, t);
+            yield return null;
+        }
+
+        canvasGroup.alpha = 1f;
+    }
+
+    private IEnumerator FadeOutCanvasGroup(CanvasGroup canvasGroup)
+    {
+        if (canvasGroup == null) yield break;
+
+        float elapsedTime = 0f;
+        float startAlpha = canvasGroup.alpha;
+
+        while (elapsedTime < uiFadeOutDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / uiFadeOutDuration;
+            canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, t);
+            yield return null;
+        }
+
+        canvasGroup.alpha = 0f;
+        canvasGroup.gameObject.SetActive(false);
+    }
+
+    // Helper method to show/hide all UI prompts
+    private void SetAllUIPromptsVisible(bool visible, bool immediate = false)
+    {
+        if (!visible)
+        {
+            if (immediate)
+            {
+                // Immediate hide
+                if (keyboardUIPrompt != null) keyboardUIPrompt.SetActive(false);
+                if (controllerUIPrompt != null) controllerUIPrompt.SetActive(false);
+                if (keyboardUIPromptConquered != null) keyboardUIPromptConquered.SetActive(false);
+                if (controllerUIPromptConquered != null) controllerUIPromptConquered.SetActive(false);
+            }
+            else
+            {
+                // Smooth fade out
+                StartCoroutine(FadeOutAllPrompts());
+            }
+        }
+        else
+        {
+            // Show the appropriate prompts based on current state
             bool isGamepad = InputManager.instance != null && InputManager.instance.IsGamepad();
 
             if (_isConquered)
             {
-                // Show conquered UI (E-Rest)
-                if (keyboardUIPrompt != null) keyboardUIPrompt.SetActive(false);
-                if (controllerUIPrompt != null) controllerUIPrompt.SetActive(false);
-                if (keyboardUIPromptConquered != null) keyboardUIPromptConquered.SetActive(!isGamepad);
-                if (controllerUIPromptConquered != null) controllerUIPromptConquered.SetActive(isGamepad);
+                StartCoroutine(ShowConqueredUIPrompts(isGamepad));
             }
             else
             {
-                // Show pre-conquered UI (E-Cleanse)
-                if (keyboardUIPrompt != null) keyboardUIPrompt.SetActive(!isGamepad);
-                if (controllerUIPrompt != null) controllerUIPrompt.SetActive(isGamepad);
-                if (keyboardUIPromptConquered != null) keyboardUIPromptConquered.SetActive(false);
-                if (controllerUIPromptConquered != null) controllerUIPromptConquered.SetActive(false);
+                StartCoroutine(ShowPreConqueredUIPrompts(isGamepad));
             }
         }
     }
@@ -312,11 +482,19 @@ public class InteractiveObject : MonoBehaviour
             yield return crossFade.FadeIn(fadeInDuration);
         }
 
-        // REFILL PLAYER HEALTH HERE (while screen is black)
-        if (refillHealthOnActivation && _playerHealth != null)
+        // REFILL PLAYER HEALTH AND POTIONS HERE (while screen is black)
+        if (_playerHealth != null)
         {
             _playerHealth.HealToFull();
-            Debug.Log("Player health refilled at checkpoint!");
+
+            // Also refill potions when conquering checkpoint
+            PlayerController playerController = _player?.GetComponent<PlayerController>();
+            if (playerController != null)
+            {
+                playerController.RefillAllPotionsWithFade();
+            }
+
+            Debug.Log("Player health and potions refilled at checkpoint!");
         }
 
         // RESPAWN ENEMIES when conquering checkpoint (while screen is black)
@@ -343,11 +521,16 @@ public class InteractiveObject : MonoBehaviour
         {
             UpdateUIPrompts();
         }
-        PlayerController playerController = _player?.GetComponent<PlayerController>();
-        if (playerController != null)
+
+        // Use the playerController variable that was already declared above, or get it again
+        PlayerController controller = _player?.GetComponent<PlayerController>();
+        if (controller != null)
         {
-            playerController.enabled = true;
+            controller.enabled = true;
         }
+
+        // Reset activation flag after everything is complete
+        _isActivating = false;
     }
 
     // Public method to manually trigger the checkpoint activation (for testing)
@@ -364,6 +547,7 @@ public class InteractiveObject : MonoBehaviour
     {
         _isConquered = false;
         _isHealing = false;
+        _isActivating = false; // Reset activation flag
 
         // Reset animation if needed
         if (animator != null)

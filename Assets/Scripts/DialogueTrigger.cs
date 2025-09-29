@@ -42,6 +42,7 @@ public class DialogueTrigger : MonoBehaviour
         }
         else
         {
+            // Hide cues when dialogue is playing or player not in range
             if (keyboardCue != null) keyboardCue.SetActive(false);
             if (gamepadCue != null) gamepadCue.SetActive(false);
         }
@@ -49,19 +50,7 @@ public class DialogueTrigger : MonoBehaviour
 
     private void CheckCurrentControlScheme()
     {
-        // Simplified input detection
-        if (Gamepad.current != null &&
-            (Gamepad.current.leftStick.ReadValue().magnitude > 0.1f ||
-             Gamepad.current.buttonSouth.wasPressedThisFrame))
-        {
-            isGamepad = true;
-        }
-        else if (Keyboard.current != null &&
-                (Keyboard.current.anyKey.wasPressedThisFrame ||
-                 Mouse.current.leftButton.wasPressedThisFrame))
-        {
-            isGamepad = false;
-        }
+        isGamepad = InputManager.instance.IsGamepad();
     }
 
     private void UpdateVisualCues()

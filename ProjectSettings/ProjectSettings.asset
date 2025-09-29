@@ -166,7 +166,7 @@ PlayerSettings:
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
     Android: com.aciraa.rekosnightmare
-    Standalone: com.Company.ProductName
+    Standalone: com.DefaultCompany.Hachiko
   buildNumber:
     Standalone: 0
     VisionOS: 0

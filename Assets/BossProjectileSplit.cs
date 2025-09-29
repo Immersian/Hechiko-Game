@@ -10,13 +10,38 @@ public class BossProjectileSplit : MonoBehaviour
     [Header("Effects")]
     public GameObject destroyEffect;
 
+    [Header("Rotation Settings")]
+    public float spinSpeed = 180f; // Degrees per second
+
     private bool hitPlayer = false;
+    private SpriteRenderer spriteRenderer;
+
+    private void Start()
+    {
+        // Get the SpriteRenderer component
+        spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
+    private void Update()
+    {
+        // Spin the projectile at constant speed
+        if (spriteRenderer != null)
+        {
+            transform.Rotate(0f, 0f, spinSpeed * Time.deltaTime);
+        }
+    }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
             hitPlayer = true;
+        }
+
+        // Destroy on impact with BossBorder
+        if (other.CompareTag("BossBorder"))
+        {
+            Destroy(gameObject);
         }
     }
 

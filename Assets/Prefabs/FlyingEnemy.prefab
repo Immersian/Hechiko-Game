@@ -64,11 +64,12 @@ Transform:
   m_GameObject: {fileID: 3385470439144900079}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 779.96, y: 2.850006, z: -0.18607211}
+  m_LocalPosition: {x: 779.96, y: 2.850006, z: -0.1860721}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3082741777645297496}
+  - {fileID: 4102447887577833998}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &1545881246456922694
@@ -252,18 +253,32 @@ MonoBehaviour:
   currentHealth: 0
   isDead: 0
   respawnOnPlayerDeath: 1
-  deathAnimationDelay: 1
-  invulnerabilityTime: 0.3
+  deathAnimationDelay: 1.25
+  invulnerabilityTime: 0
   hurtTrigger: Hurt
   deathTrigger: Die
   hurtSound: {fileID: 0}
   deathSound: {fileID: 0}
   soundPitchRange: {x: 0.9, y: 1.1}
+  hurtParticleSystem: {fileID: 2124110727802433656, guid: 1967005340d4b0043a35fb153e19fde7,
+    type: 3}
+  particleSpawnPoint: {fileID: 4102447887577833998}
+  spawnParticleAtHitPoint: 0
+  particleDestroyDelay: 2
+  particlePoolSize: 5
+  prewarmParticlePool: 1
   useKnockback: 1
   knockbackResistance: 0.2
   consumeAttackerStamina: 1
   staminaCostPercent: 0.2
-  attacker: {fileID: 0}
+  enableHitstop: 0
+  hitstopDuration: 0.08
+  enableCameraShake: 1
+  cameraShakeIntensity: 1
+  cameraShakeDuration: 0.2
+  deathCameraShakeIntensity: 2
+  deathCameraShakeDuration: 0.3
+  cameraShake: {fileID: 0}
 --- !u!114 &4186921041648837099
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -281,14 +296,14 @@ MonoBehaviour:
   firePoint: {fileID: 3082741777645297496}
   attackCooldown: 2
   recoilStrength: 2
-  minDistance: 3
+  minDistance: 1.5
   idealDistance: 7
   moveSpeed: 3
   retreatSpeed: 5
   deactivateRange: 20
   stunDuration: 10
   hurtTrigger: Hurt
-  stunBool: Stunned
+  stunBool: Stun
   enemyRepelForce: 500
   enemyRepelRadius: 3
   enemyLayer:
@@ -324,3 +339,34 @@ MonoBehaviour:
   shakeDuration: 0.15
   shakeIntensity: 0.3
   recoverySpeed: 5
+--- !u!1 &4155842904139835247
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4102447887577833998}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4102447887577833998
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4155842904139835247}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.17, y: -0.51, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1887640843623546755}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

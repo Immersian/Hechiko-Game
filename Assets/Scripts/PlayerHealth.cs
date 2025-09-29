@@ -236,6 +236,12 @@ public class PlayerHealth : MonoBehaviour
         currentHealth = maxHealth;
         UpdateHealthBars();
 
+        // REFILL POTIONS ON RESPAWN
+        if (playerController != null)
+        {
+            playerController.RefillAllPotionsWithFade();
+        }
+
         // Re-enable everything
         isDead = false;
 
@@ -257,12 +263,12 @@ public class PlayerHealth : MonoBehaviour
         }
 
         // Re-enable the PlayerController component
-        // Re-enable the PlayerController component
         if (playerController != null)
         {
             playerController.ResetControllerState(); // Add this line
             playerController.enabled = true;
         }
+
         // Re-enable attack components
         PlayerAttack playerAttack = GetComponentInChildren<PlayerAttack>();
         if (playerAttack != null)

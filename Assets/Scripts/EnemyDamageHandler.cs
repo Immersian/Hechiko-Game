@@ -2,6 +2,7 @@ using SupanthaPaul;
 using UnityEditor;
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(Animator))]
 public class EnemyDamageHandler : MonoBehaviour
@@ -29,6 +30,10 @@ public class EnemyDamageHandler : MonoBehaviour
     [SerializeField] private bool spawnParticleAtHitPoint = false;
     [SerializeField] private float particleDestroyDelay = 2f;
 
+    [Header("Particle Pooling")]
+    [SerializeField] private int particlePoolSize = 5;
+    [SerializeField] private bool prewarmParticlePool = true;
+
     [Header("Knockback")]
     [SerializeField] private bool useKnockback = true;
     [SerializeField] private float knockbackResistance = 0.5f;
@@ -52,6 +57,10 @@ public class EnemyDamageHandler : MonoBehaviour
     private static bool isGlobalHitstopActive = false;
     private static Coroutine activeGlobalHitstopCoroutine;
     private static float originalTimeScale = 1f;
+
+    // Particle pooling system
+    private Queue<ParticleSystem> particlePool;
+    private Transform particlePoolParent;
 
     // Private reference that will be auto-assigned
     private PlayerController attacker;
@@ -77,6 +86,74 @@ public class EnemyDamageHandler : MonoBehaviour
         {
             particleSpawnPoint = transform;
         }
+
+        // Initialize particle pool
+        InitializeParticlePool();
+    }
+
+    private void InitializeParticlePool()
+    {
+        if (hurtParticleSystem == null) return;
+
+        // Create parent object for pooled particles
+        GameObject poolParent = new GameObject("ParticlePool_" + gameObject.name);
+        particlePoolParent = poolParent.transform;
+        particlePoolParent.SetParent(null); // Keep in root to avoid being destroyed with enemy
+
+        particlePool = new Queue<ParticleSystem>();
+
+        for (int i = 0; i < particlePoolSize; i++)
+        {
+            ParticleSystem particleSystem = CreatePooledParticle();
+            particlePool.Enqueue(particleSystem);
+        }
+
+        if (prewarmParticlePool)
+        {
+            Debug.Log($"Particle pool initialized with {particlePoolSize} particles for {gameObject.name}");
+        }
+    }
+
+    private ParticleSystem CreatePooledParticle()
+    {
+        ParticleSystem newParticle = Instantiate(hurtParticleSystem, particlePoolParent);
+        newParticle.gameObject.SetActive(false);
+
+        // Ensure the particle system doesn't destroy on completion
+        var main = newParticle.main;
+        main.stopAction = ParticleSystemStopAction.None;
+
+        return newParticle;
+    }
+
+    private ParticleSystem GetPooledParticle()
+    {
+        // Try to get from pool
+        if (particlePool.Count > 0)
+        {
+            ParticleSystem particle = particlePool.Dequeue();
+            if (particle != null)
+            {
+                return particle;
+            }
+        }
+
+        // If pool is empty or particle is destroyed, create a new one
+        Debug.LogWarning("Particle pool empty, creating new particle system");
+        return CreatePooledParticle();
+    }
+
+    private void ReturnParticleToPool(ParticleSystem particleSystem)
+    {
+        if (particleSystem == null) return;
+
+        // Reset particle system
+        particleSystem.Stop(true);
+        particleSystem.Clear();
+        particleSystem.gameObject.SetActive(false);
+
+        // Return to pool
+        particlePool.Enqueue(particleSystem);
     }
 
     // Automatically find the player controller
@@ -155,7 +232,7 @@ public class EnemyDamageHandler : MonoBehaviour
     public void ResetEnemy()
     {
         isDead = false;
-        currentHealth = maxHealth;
+        currentHealth = maxHealth; // This resets health to full
 
         if (animator != null)
         {
@@ -294,8 +371,12 @@ public class EnemyDamageHandler : MonoBehaviour
             spawnPosition = particleSpawnPoint.position;
         }
 
-        // Instantiate and play the particle system
-        ParticleSystem particles = Instantiate(hurtParticleSystem, spawnPosition, Quaternion.identity);
+        // Get particle from pool instead of instantiating
+        ParticleSystem particles = GetPooledParticle();
+
+        // Set position and activate
+        particles.transform.position = spawnPosition;
+        particles.gameObject.SetActive(true);
 
         // Flip particles based on hit direction (player's facing direction)
         float xScale = 1f;
@@ -313,16 +394,19 @@ public class EnemyDamageHandler : MonoBehaviour
 
         particles.Play();
 
-        // Destroy the particle system after it finishes playing
-        if (particleDestroyDelay > 0)
-        {
-            Destroy(particles.gameObject, particleDestroyDelay);
-        }
-        else
-        {
-            // Auto-destroy when the particle system finishes
-            Destroy(particles.gameObject, particles.main.duration + particles.main.startLifetime.constantMax);
-        }
+        // Start coroutine to return particle to pool after use
+        StartCoroutine(ReturnParticleAfterPlay(particles));
+    }
+
+    private IEnumerator ReturnParticleAfterPlay(ParticleSystem particleSystem)
+    {
+        if (particleSystem == null) yield break;
+
+        // Wait for the particle system to finish playing
+        yield return new WaitForSeconds(particleSystem.main.duration + particleSystem.main.startLifetime.constantMax);
+
+        // Return to pool
+        ReturnParticleToPool(particleSystem);
     }
 
     private void TriggerGlobalHitstop()
@@ -438,7 +522,7 @@ public class EnemyDamageHandler : MonoBehaviour
         {
             spawnManager.OnEnemyDeath(gameObject);
         }
-
+        NotifyRespawnManager();
         animator.ResetTrigger(hurtTrigger);
         animator.ResetTrigger(deathTrigger);
         animator.SetBool("Stun", false);
@@ -508,6 +592,12 @@ public class EnemyDamageHandler : MonoBehaviour
         {
             EndGlobalHitstopImmediately();
         }
+
+        // Clean up particle pool
+        if (particlePoolParent != null)
+        {
+            Destroy(particlePoolParent.gameObject);
+        }
     }
 
     // Public method to manually set camera shake reference
@@ -526,12 +616,35 @@ public class EnemyDamageHandler : MonoBehaviour
     public void SetHurtParticleSystem(ParticleSystem particleSystem)
     {
         hurtParticleSystem = particleSystem;
+        // Reinitialize pool if particle system changes
+        if (particlePool != null)
+        {
+            InitializeParticlePool();
+        }
     }
 
     // Public method to set the particle spawn point at runtime
     public void SetParticleSpawnPoint(Transform spawnPoint)
     {
         particleSpawnPoint = spawnPoint;
+    }
+
+    // Add this to the EnemyDamageHandler class
+    private void NotifyRespawnManager()
+    {
+        // Try to notify the flying enemy respawn manager through the wrapper
+        FlyingEnemyRespawnWrapper wrapper = GetComponent<FlyingEnemyRespawnWrapper>();
+        if (wrapper != null)
+        {
+            wrapper.NotifyEnemyDeath();
+            return;
+        }
+
+        // Fallback to regular spawn manager
+        if (spawnManager != null)
+        {
+            spawnManager.OnEnemyDeath(gameObject);
+        }
     }
 
     public interface IEnemyController

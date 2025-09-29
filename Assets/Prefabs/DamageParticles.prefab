@@ -4909,7 +4909,7 @@ GameObject:
   - component: {fileID: 2124110727802433656}
   - component: {fileID: 5524734325114071197}
   m_Layer: 0
-  m_Name: DamageParticlesPopcorn
+  m_Name: DamageParticles
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
