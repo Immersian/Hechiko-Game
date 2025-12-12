@@ -108,7 +108,11 @@ public class InputManager : MonoBehaviour
             }
         }
     }
-
+    public bool ShouldProcessGameplayInput()
+    {
+        // Don't process gameplay input when inventory/pause menu is active
+        return !InventoryManager.MenuActivated;
+    }
     // Helper method to check current device
     public bool IsGamepad()
     {

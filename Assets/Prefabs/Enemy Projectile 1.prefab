@@ -207,6 +207,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1024
   destroyDelay: 0
+  impactParticlesPrefab: {fileID: 0}
+  spawnParticlesOnDestroy: 1
+  particleLifetime: 1
 --- !u!114 &-5515842016454822338
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -224,7 +227,9 @@ MonoBehaviour:
   rightProjectilePrefab: {fileID: 4579984132463885031, guid: 7b80834dee235b843b35435f4bb183f3,
     type: 3}
   spawnOffset: {x: 0.5, y: 0.5}
-  destroyEffect: {fileID: 0}
+  destroyEffect: {fileID: 6794304397428248125, guid: 8919479a3a50fd646ac9139b1eec4869,
+    type: 3}
+  spinSpeed: 180
 --- !u!95 &4619539094505069657
 Animator:
   serializedVersion: 5

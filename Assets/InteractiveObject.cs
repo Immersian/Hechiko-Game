@@ -41,6 +41,28 @@ public class InteractiveObject : MonoBehaviour
     public float restShakeIntensity = 1f; // Smaller shake for rest
     public float restShakeDuration = 0.3f; // Shorter shake for rest
 
+    [Header("Checkpoint Activation Sound")]
+    [SerializeField] private AudioClip checkpointActivationSound;
+    [SerializeField] private AudioSource activationAudioSource; // Separate AudioSource for activation sound
+    [SerializeField] private float activationSoundVolume = 1.0f;
+    [SerializeField] private float activationFadeOutDuration = 1.0f;
+    private Coroutine activationSoundFadeCoroutine;
+
+    [Header("Delayed Statue Sound")]
+    [SerializeField] private AudioClip delayedStatueSound;
+    [SerializeField] private AudioSource delayedAudioSource; // Separate AudioSource for delayed sound
+    [SerializeField] private float delayedSoundDelay = 0.5f; // Delay after activation
+    [SerializeField] private float delayedSoundVolume = 0.8f;
+
+    [Header("Rest Sound")]
+    [SerializeField] private AudioClip restSound;
+    [SerializeField] private AudioSource restAudioSource; // Separate AudioSource for rest sound
+    [SerializeField] private float restSoundVolume = 0.7f;
+    [SerializeField] private float restSoundFadeDelay = 0.5f; // NEW: Delay before fade out starts
+    [SerializeField] private float restSoundFadeDuration = 1.0f; // NEW: Duration of fade out
+    [SerializeField] private float restSoundStartDelay = 0.3f; // Delay before rest sound starts
+    private Coroutine restSoundFadeCoroutine;
+
     private bool _playerInTrigger = false;
     private bool _isConquered = false;
     private bool _isHealing = false;
@@ -61,6 +83,9 @@ public class InteractiveObject : MonoBehaviour
 
         // Hide all UI prompts initially
         SetAllUIPromptsVisible(false, true); // Force immediate hide
+
+        // Initialize audio sources
+        InitializeAudioSources();
 
         // Subscribe to device changes
         if (InputManager.instance != null)
@@ -90,12 +115,49 @@ public class InteractiveObject : MonoBehaviour
         return canvasGroup;
     }
 
+    private void InitializeAudioSources()
+    {
+        // Create separate AudioSource for activation sound
+        if (activationAudioSource == null)
+        {
+            activationAudioSource = gameObject.AddComponent<AudioSource>();
+            activationAudioSource.playOnAwake = false;
+            activationAudioSource.spatialBlend = 0f; // 2D sound
+        }
+
+        // Create separate AudioSource for delayed sound
+        if (delayedAudioSource == null)
+        {
+            delayedAudioSource = gameObject.AddComponent<AudioSource>();
+            delayedAudioSource.playOnAwake = false;
+            delayedAudioSource.spatialBlend = 0f; // 2D sound
+        }
+
+        // Create separate AudioSource for rest sound
+        if (restAudioSource == null)
+        {
+            restAudioSource = gameObject.AddComponent<AudioSource>();
+            restAudioSource.playOnAwake = false;
+            restAudioSource.spatialBlend = 0f; // 2D sound
+        }
+    }
+
     private void OnDestroy()
     {
         // Unsubscribe from device changes to prevent memory leaks
         if (InputManager.instance != null)
         {
             InputManager.instance.onDeviceChanged -= OnInputDeviceChanged;
+        }
+
+        // Stop any running coroutines
+        if (activationSoundFadeCoroutine != null)
+        {
+            StopCoroutine(activationSoundFadeCoroutine);
+        }
+        if (restSoundFadeCoroutine != null)
+        {
+            StopCoroutine(restSoundFadeCoroutine);
         }
     }
 
@@ -147,12 +209,15 @@ public class InteractiveObject : MonoBehaviour
         _isConquered = true;
         SetAllUIPromptsVisible(false, false); // Smooth fade out
 
+        // Play activation sound (Sound 1)
+        PlayCheckpointActivationSound();
+
         PlayerController playerController = _player?.GetComponent<PlayerController>();
         if (playerController != null)
         {
             playerController.enabled = false;
 
-            // ADD THIS: Stop any movement immediately
+            // Stop any movement immediately
             Rigidbody2D rb = _player.GetComponent<Rigidbody2D>();
             if (rb != null)
             {
@@ -172,11 +237,72 @@ public class InteractiveObject : MonoBehaviour
             cameraShake.ShakeCamera(shakeIntensity, shakeDuration);
         }
 
+        // Play delayed statue sound (Sound 2) after specified delay
+        if (delayedStatueSound != null && delayedAudioSource != null)
+        {
+            Invoke("PlayDelayedStatueSound", delayedSoundDelay);
+        }
+
         // Play conquering animation
         if (animator != null)
         {
             animator.SetTrigger("Conquer");
         }
+    }
+
+    private void PlayCheckpointActivationSound()
+    {
+        if (checkpointActivationSound == null || activationAudioSource == null) return;
+
+        // Stop any existing sound fade
+        if (activationSoundFadeCoroutine != null)
+        {
+            StopCoroutine(activationSoundFadeCoroutine);
+        }
+
+        // Reset volume in case it was faded out previously
+        activationAudioSource.volume = activationSoundVolume;
+
+        // Play the activation sound at full volume
+        activationAudioSource.clip = checkpointActivationSound;
+        activationAudioSource.Play();
+    }
+
+    private void PlayDelayedStatueSound()
+    {
+        if (delayedStatueSound == null || delayedAudioSource == null) return;
+
+        // Play the delayed statue sound using its own AudioSource
+        delayedAudioSource.clip = delayedStatueSound;
+        delayedAudioSource.volume = delayedSoundVolume;
+        delayedAudioSource.Play();
+    }
+
+    private void FadeOutActivationSound()
+    {
+        if (activationAudioSource == null || !activationAudioSource.isPlaying || activationFadeOutDuration <= 0f) return;
+
+        // Start fading out ONLY the activation sound
+        activationSoundFadeCoroutine = StartCoroutine(FadeOutSoundCoroutine(activationAudioSource, activationFadeOutDuration));
+    }
+
+    private IEnumerator FadeOutSoundCoroutine(AudioSource source, float duration)
+    {
+        float startVolume = source.volume;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / duration;
+            source.volume = Mathf.Lerp(startVolume, 0f, t);
+            yield return null;
+        }
+
+        // Ensure volume is 0 and stop the sound
+        source.volume = 0f;
+        source.Stop();
+        source.volume = startVolume; // Reset volume for next use
     }
 
     private void HandleRestInteraction()
@@ -189,7 +315,7 @@ public class InteractiveObject : MonoBehaviour
         {
             playerController.enabled = false;
 
-            // ADD THIS: Stop any movement immediately
+            // Stop any movement immediately
             Rigidbody2D rb = _player.GetComponent<Rigidbody2D>();
             if (rb != null)
             {
@@ -221,6 +347,12 @@ public class InteractiveObject : MonoBehaviour
 
         // Wait for the camera shake to finish
         yield return new WaitForSeconds(restShakeDuration);
+
+        // Play rest sound (Sound 3) after a short delay
+        if (restSound != null && restAudioSource != null)
+        {
+            Invoke("PlayRestSound", restSoundStartDelay);
+        }
 
         // Then fade in to black
         if (crossFade2 != null)
@@ -265,6 +397,50 @@ public class InteractiveObject : MonoBehaviour
         {
             UpdateUIPrompts();
         }
+    }
+
+    private void PlayRestSound()
+    {
+        if (restSound == null || restAudioSource == null) return;
+
+        // Stop any existing sound fade
+        if (restSoundFadeCoroutine != null)
+        {
+            StopCoroutine(restSoundFadeCoroutine);
+        }
+
+        // Reset volume and play the rest sound
+        restAudioSource.volume = restSoundVolume;
+        restAudioSource.clip = restSound;
+        restAudioSource.Play();
+
+        // Start fading out the rest sound with delay
+        restSoundFadeCoroutine = StartCoroutine(FadeOutRestSoundWithDelay());
+    }
+
+    private IEnumerator FadeOutRestSoundWithDelay()
+    {
+        if (restAudioSource == null) yield break;
+
+        // Wait for the fade delay before starting to fade out
+        yield return new WaitForSeconds(restSoundFadeDelay);
+
+        // Now fade out the rest sound
+        float startVolume = restAudioSource.volume;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < restSoundFadeDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / restSoundFadeDuration;
+            restAudioSource.volume = Mathf.Lerp(startVolume, 0f, t);
+            yield return null;
+        }
+
+        // Ensure volume is 0 and stop the sound
+        restAudioSource.volume = 0f;
+        restAudioSource.Stop();
+        restAudioSource.volume = restSoundVolume; // Reset volume for next use
     }
 
     private IEnumerator HealPlayerOverTime()
@@ -471,6 +647,9 @@ public class InteractiveObject : MonoBehaviour
     // Called by animation event at end of conquering animation
     public void OnConqueringComplete()
     {
+        // Fade out ONLY the activation sound (Sound 1)
+        FadeOutActivationSound();
+
         StartCoroutine(FadeSequence());
     }
 
@@ -557,6 +736,30 @@ public class InteractiveObject : MonoBehaviour
             animator.Play("Idle", 0, 0f);
         }
 
+        // Cancel any delayed sounds
+        CancelInvoke("PlayDelayedStatueSound");
+        CancelInvoke("PlayRestSound");
+
+        // Stop any sound fades
+        if (activationSoundFadeCoroutine != null)
+        {
+            StopCoroutine(activationSoundFadeCoroutine);
+        }
+        if (restSoundFadeCoroutine != null)
+        {
+            StopCoroutine(restSoundFadeCoroutine);
+        }
+
+        // Stop ALL audio sources
+        if (activationAudioSource != null) activationAudioSource.Stop();
+        if (delayedAudioSource != null) delayedAudioSource.Stop();
+        if (restAudioSource != null) restAudioSource.Stop();
+
+        // Reset volumes
+        if (activationAudioSource != null) activationAudioSource.volume = activationSoundVolume;
+        if (delayedAudioSource != null) delayedAudioSource.volume = delayedSoundVolume;
+        if (restAudioSource != null) restAudioSource.volume = restSoundVolume;
+
         // Update UI if player is in trigger
         if (_playerInTrigger)
         {
@@ -574,5 +777,27 @@ public class InteractiveObject : MonoBehaviour
     public bool IsHealing()
     {
         return _isHealing;
+    }
+
+    // Public methods to set sounds at runtime
+    public void SetCheckpointActivationSound(AudioClip sound, float volume = 1.0f)
+    {
+        checkpointActivationSound = sound;
+        activationSoundVolume = volume;
+    }
+
+    public void SetDelayedStatueSound(AudioClip sound, float volume = 0.8f, float delay = 0.5f)
+    {
+        delayedStatueSound = sound;
+        delayedSoundVolume = volume;
+        delayedSoundDelay = delay;
+    }
+
+    public void SetRestSound(AudioClip sound, float volume = 0.7f, float fadeDelay = 0.5f, float fadeDuration = 1.0f)
+    {
+        restSound = sound;
+        restSoundVolume = volume;
+        restSoundFadeDelay = fadeDelay;
+        restSoundFadeDuration = fadeDuration;
     }
 }

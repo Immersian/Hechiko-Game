@@ -21,6 +21,9 @@ public class DialogueManager : MonoBehaviour
     [Header("Params")]
     [SerializeField] private float typingSpeed = 0.04f;
 
+    [Header("Sound")]
+    [SerializeField] private DialogueSoundManager soundManager;
+
     private Story currentStory;
     public bool dialogueIsPlaying { get; private set; }
     private bool canContinueToNextLine = false;
@@ -34,6 +37,10 @@ public class DialogueManager : MonoBehaviour
     private TextMeshProUGUI[] currentChoicesText;
     public bool isTyping = false;
     private bool isDisplayingChoices = false;
+    private bool hasPlayedStartSound = false; // Track if we've played the start sound for this dialogue
+
+    // Button references for choice selection
+    private Button[] currentChoiceButtonComponents;
 
     private void Awake()
     {
@@ -44,6 +51,17 @@ public class DialogueManager : MonoBehaviour
         // Ensure canvases are disabled at start
         leftDialogueCanvas?.SetActive(false);
         rightDialogueCanvas?.SetActive(false);
+
+        // Get or create sound manager
+        if (soundManager == null)
+        {
+            soundManager = GetComponent<DialogueSoundManager>();
+            if (soundManager == null)
+            {
+                // Create a default sound manager if none exists
+                soundManager = gameObject.AddComponent<DialogueSoundManager>();
+            }
+        }
     }
 
     private void InitializeChoiceButtons(GameObject[] buttons, out TextMeshProUGUI[] choicesText)
@@ -66,6 +84,9 @@ public class DialogueManager : MonoBehaviour
 
     public void StartDialogue(TextAsset inkJSON, string npcID, bool playerIsLeft)
     {
+        // Reset start sound flag for new dialogue
+        hasPlayedStartSound = false;
+
         // Set up the appropriate UI based on player position
         if (playerIsLeft)
         {
@@ -82,9 +103,17 @@ public class DialogueManager : MonoBehaviour
 
         // Initialize choices text
         currentChoicesText = new TextMeshProUGUI[currentChoiceButtons.Length];
+        currentChoiceButtonComponents = new Button[currentChoiceButtons.Length];
+
         for (int i = 0; i < currentChoiceButtons.Length; i++)
         {
             currentChoicesText[i] = currentChoiceButtons[i].GetComponentInChildren<TextMeshProUGUI>();
+            currentChoiceButtonComponents[i] = currentChoiceButtons[i].GetComponent<Button>();
+
+            // Setup button click events
+            int index = i; // Capture index for closure
+            currentChoiceButtonComponents[i].onClick.RemoveAllListeners(); // Clear existing listeners
+            currentChoiceButtonComponents[i].onClick.AddListener(() => MakeChoice(index));
         }
 
         // Initialize interaction count
@@ -107,10 +136,22 @@ public class DialogueManager : MonoBehaviour
         dialogueIsPlaying = true;
         currentDialogueCanvas.SetActive(true);
 
+        // Play start sound
+        PlayDialogueStartSound();
+
         // Reset input state to prevent immediate skipping
         ResetInputState();
 
         ContinueStory();
+    }
+
+    private void PlayDialogueStartSound()
+    {
+        if (!hasPlayedStartSound && soundManager != null)
+        {
+            soundManager.PlayDialogueStartSound();
+            hasPlayedStartSound = true;
+        }
     }
 
     private void ResetInputState()
@@ -302,6 +343,12 @@ public class DialogueManager : MonoBehaviour
     {
         if (isDisplayingChoices)
         {
+            // Play choice selection sound before proceeding
+            if (soundManager != null)
+            {
+                soundManager.PlayChoiceSelectSound();
+            }
+
             currentStory.ChooseChoiceIndex(choiceIndex);
             isDisplayingChoices = false;
             HideChoices();
@@ -331,5 +378,25 @@ public class DialogueManager : MonoBehaviour
 
         PlayerController player = FindObjectOfType<PlayerController>();
         player?.EnableMovement();
+
+        // Reset start sound flag for next dialogue
+        hasPlayedStartSound = false;
+    }
+
+    // Public method to configure sound manager from other scripts if needed
+    public void ConfigureSoundManager(AudioClip[] startSounds, AudioClip[] choiceSounds,
+                                     float startPitchMin = 0.9f, float startPitchMax = 1.1f,
+                                     float choicePitchMin = 0.95f, float choicePitchMax = 1.05f,
+                                     float startVolume = 0.8f, float choiceVolume = 0.7f)
+    {
+        if (soundManager != null)
+        {
+            soundManager.SetDialogueStartSounds(startSounds);
+            soundManager.SetChoiceSelectSounds(choiceSounds);
+            soundManager.SetStartPitchRange(startPitchMin, startPitchMax);
+            soundManager.SetChoicePitchRange(choicePitchMin, choicePitchMax);
+            soundManager.SetStartVolume(startVolume);
+            soundManager.SetChoiceVolume(choiceVolume);
+        }
     }
 }

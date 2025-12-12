@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+
 public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 {
     [Header("Patrol Settings")]
@@ -75,6 +76,21 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     public bool EnemyFacingLeft => facingLeft;
     public bool EnemyFacingRight => !facingLeft;
 
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private bool enablePitchShift = true;
+    [SerializeField] private float minPitch = 0.9f;
+    [SerializeField] private float maxPitch = 1.1f;
+
+    [Header("Tutorial Settings")]
+    [SerializeField] private bool enableTutorial = true;
+    [SerializeField] private string tutorialObjectTag = "parrytutorial";
+    [SerializeField] private float tutorialAlphaNormal = 0.5f;
+    [SerializeField] private float tutorialAlphaHighlight = 1f;
+    private GameObject tutorialObject;
+    private CanvasGroup tutorialCanvasGroup;
+    private bool isTutorialActive = false;
+
     private bool isDetectingPlayer = false;
     private float currentDetectionTime;
     private float detectionTimer;
@@ -99,6 +115,40 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+
+        // Initialize tutorial object
+        if (enableTutorial)
+        {
+            tutorialObject = GameObject.FindGameObjectWithTag(tutorialObjectTag);
+            if (tutorialObject != null)
+            {
+                tutorialCanvasGroup = tutorialObject.GetComponent<CanvasGroup>();
+                if (tutorialCanvasGroup == null)
+                {
+                    tutorialCanvasGroup = tutorialObject.AddComponent<CanvasGroup>();
+                }
+                // Set initial alpha to normal
+                tutorialCanvasGroup.alpha = tutorialAlphaNormal;
+                isTutorialActive = false;
+                Debug.Log($"{gameObject.name}: Found tutorial object: {tutorialObject.name}");
+            }
+            else
+            {
+                Debug.LogWarning($"{gameObject.name}: No tutorial object found with tag: {tutorialObjectTag}");
+            }
+        }
+
+        // Initialize audio source if not assigned
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+                audioSource.spatialBlend = 0f; // 2D sound
+            }
+        }
 
         if (detectionZone == null)
         {
@@ -134,6 +184,9 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
     void Update()
     {
+        // Update tutorial state
+        UpdateTutorialState();
+
         if (isStunned || isRecovering)
         {
             HandleStunState();
@@ -193,6 +246,12 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
             if (isAttacking && !isInAttackAnimation)
             {
                 isAttacking = false;
+                // When attack animation ends, deactivate tutorial
+                if (isTutorialActive)
+                {
+                    SetTutorialAlphaNormal();
+                    isTutorialActive = false;
+                }
             }
 
             if (!isAttacking && CanAttackPlayer())
@@ -242,6 +301,99 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
         UpdateAnimations();
         UpdateFacingDirection();
+    }
+
+    private void UpdateTutorialState()
+    {
+        if (!enableTutorial || tutorialCanvasGroup == null) return;
+
+        // If we're attacking and tutorial is active, keep it highlighted
+        if (isAttacking && isTutorialActive)
+        {
+            tutorialCanvasGroup.alpha = tutorialAlphaHighlight;
+        }
+        // If we're not attacking and tutorial is active, deactivate it
+        else if (!isAttacking && isTutorialActive)
+        {
+            SetTutorialAlphaNormal();
+            isTutorialActive = false;
+        }
+    }
+
+    // ANIMATION EVENT METHOD - Use this for animation events
+    public void PlaySoundWithPitchShift(AudioClip clip)
+    {
+        PlaySoundWithPitchShiftCustom(clip, 1.0f);
+    }
+
+    // ANIMATION EVENT METHOD with volume control
+    public void PlaySoundWithPitchShiftCustom(AudioClip clip, float volume = 1.0f)
+    {
+        if (clip == null || audioSource == null) return;
+
+        float pitch = 1.0f;
+
+        if (enablePitchShift)
+        {
+            pitch = Random.Range(minPitch, maxPitch);
+        }
+
+        // Store original pitch
+        float originalPitch = audioSource.pitch;
+
+        // Apply new pitch
+        audioSource.pitch = pitch;
+
+        // Play the sound
+        audioSource.PlayOneShot(clip, volume);
+
+        // Reset pitch after playing
+        StartCoroutine(ResetPitchAfterSound(originalPitch));
+    }
+
+    // ANIMATION EVENT METHOD - Activate tutorial highlight
+    public void ActivateTutorial()
+    {
+        if (!enableTutorial || tutorialCanvasGroup == null) return;
+
+        SetTutorialAlphaHighlighted();
+        isTutorialActive = true;
+        Debug.Log($"{gameObject.name}: Tutorial activated and will stay active during attack");
+    }
+
+    private IEnumerator ResetPitchAfterSound(float originalPitch)
+    {
+        // Wait one frame to ensure sound has started playing
+        yield return null;
+
+        // Reset pitch to original
+        if (audioSource != null)
+        {
+            audioSource.pitch = originalPitch;
+        }
+    }
+
+    // Method to play sound without pitch shift (for specific cases)
+    public void PlaySound(AudioClip clip, float volume = 1.0f)
+    {
+        if (clip == null || audioSource == null) return;
+        audioSource.PlayOneShot(clip, volume);
+    }
+
+    private void SetTutorialAlphaHighlighted()
+    {
+        if (tutorialCanvasGroup != null)
+        {
+            tutorialCanvasGroup.alpha = tutorialAlphaHighlight;
+        }
+    }
+
+    private void SetTutorialAlphaNormal()
+    {
+        if (tutorialCanvasGroup != null)
+        {
+            tutorialCanvasGroup.alpha = tutorialAlphaNormal;
+        }
     }
 
     private void HandleAlertedState()
@@ -438,12 +590,28 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         rb.velocity = Vector2.zero; // Stop moving
         animator.SetTrigger(IS_ATTACKING);
         lastAttackTime = Time.time; // Reset cooldown timer
+
+        // Reset tutorial state - will be activated by animation event
+        if (isTutorialActive)
+        {
+            SetTutorialAlphaNormal();
+            isTutorialActive = false;
+        }
+
         Debug.Log($"{gameObject.name}: Starting attack");
     }
 
     public void OnAttackEnd()
     {
         isAttacking = false;
+
+        // Deactivate tutorial when attack ends
+        if (isTutorialActive)
+        {
+            SetTutorialAlphaNormal();
+            isTutorialActive = false;
+        }
+
         Debug.Log($"{gameObject.name}: Attack ended");
         CheckFacePlayerAfterAttack(); // Add this line
     }
@@ -679,6 +847,13 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
         isWaiting = false;
         isAlerted = false; // Also cancel alerted state
 
+        // Deactivate tutorial if active
+        if (isTutorialActive)
+        {
+            SetTutorialAlphaNormal();
+            isTutorialActive = false;
+        }
+
         // NEW: Set back to normal radius when stunned
         if (detectionZone != null)
         {
@@ -711,6 +886,14 @@ public class EnemyMovement : MonoBehaviour, EnemyDetectionZone.IEnemyController
 
         // Reset attack animation if needed
         animator.ResetTrigger(IS_ATTACKING);
+
+        // Deactivate tutorial when attack is cancelled
+        if (isTutorialActive)
+        {
+            SetTutorialAlphaNormal();
+            isTutorialActive = false;
+        }
+
         Debug.Log($"{gameObject.name}: Attack cancelled");
     }
 

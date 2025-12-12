@@ -185,6 +185,7 @@ GameObject:
   - component: {fileID: 3019146654973426862}
   - component: {fileID: 7097489069024948454}
   - component: {fileID: 6684090285155267849}
+  - component: {fileID: 3023762428104876158}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Enemy
@@ -403,6 +404,15 @@ MonoBehaviour:
   recoveredTrigger: Recovered
   facingLeft: 1
   flipCooldown: 0.5
+  audioSource: {fileID: 3023762428104876158}
+  enablePitchShift: 1
+  minPitch: 0.7
+  maxPitch: 0.9
+  enableTutorial: 1
+  tutorialObjectTag: parrytutorial
+  tutorialAlphaNormal: 0.5
+  tutorialAlphaHighlight: 1
+  overrideExistingAlpha: 1
   detectionZone: {fileID: 0}
 --- !u!114 &5661276478200981222
 MonoBehaviour:
@@ -419,6 +429,7 @@ MonoBehaviour:
   flashTime: 0.25
   damageFlashColor: {r: 1, g: 0, b: 0, a: 1}
   dashedFlashColor: {r: 0, g: 1, b: 1, a: 1}
+  stunnedFlashColor: {r: 1, g: 1, b: 1, a: 1}
   dashFlashColor: {r: 1, g: 1, b: 1, a: 1}
   noDashColor: {r: 0.243, g: 0.749, b: 0.769, a: 1}
   defaultColor: {r: 0.878, g: 0.094, b: 0.051, a: 1}
@@ -535,6 +546,13 @@ MonoBehaviour:
   cameraShakeDuration: 0.2
   deathCameraShakeIntensity: 2
   deathCameraShakeDuration: 0.3
+  enableRumble: 1
+  hitRumbleLowFrequency: 0.5
+  hitRumbleHighFrequency: 0.5
+  hitRumbleDuration: 0.15
+  deathRumbleLowFrequency: 0.8
+  deathRumbleHighFrequency: 0.9
+  deathRumbleDuration: 0.2
   cameraShake: {fileID: 0}
 --- !u!114 &6684090285155267849
 MonoBehaviour:
@@ -551,6 +569,102 @@ MonoBehaviour:
   shakeDuration: 0.15
   shakeIntensity: 0.15
   recoverySpeed: 5
+--- !u!82 &3023762428104876158
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7657866772306624162}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 0.5
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &8622771775982826914
 GameObject:
   m_ObjectHideFlags: 0

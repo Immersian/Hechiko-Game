@@ -1697,12 +1697,12 @@ MonoBehaviour:
   fadeDuration: 1
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   pressedColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
-  textFadeDuration: 0.5
+  textFadeDuration: 0.1
   buttonFadeDuration: 0.3
   inputHoldTime: 0.1
   delayBetweenButtons: 0.05
   embarkToLoadDelay: 0.5
-  initialImageFadeDuration: 1
+  initialImageFadeDuration: 0.5
   interactActionReference: {fileID: 2570475656801038885, guid: 57666385c99f3924a84f28772288832c,
     type: 3}
 --- !u!1 &1230540802
@@ -2694,8 +2694,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 31.3, y: -439.4}
-  m_SizeDelta: {x: 313.33, y: 50}
+  m_AnchoredPosition: {x: 29.3, y: -439.4}
+  m_SizeDelta: {x: 401, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1631917260
 MonoBehaviour:
@@ -2717,7 +2717,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Press E to Embark
+  m_text: Press a button to Embark
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ce6501f23b04fad4db0791ce03d76cf4, type: 2}
   m_sharedMaterial: {fileID: -2819351219155855831, guid: ce6501f23b04fad4db0791ce03d76cf4,
@@ -3502,7 +3502,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -163.2, y: -449.3}
+  m_AnchoredPosition: {x: -251, y: -449.3}
   m_SizeDelta: {x: 4961, y: 2814.786}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1870315906

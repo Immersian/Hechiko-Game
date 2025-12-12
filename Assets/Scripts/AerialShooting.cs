@@ -24,6 +24,16 @@ public class AerialEnemy : MonoBehaviour
     private float stunTimer = 0f;
     private bool hasPlayedHurtAnimation = false;
 
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private bool enablePitchShift = true;
+    [SerializeField] private float minPitch = 0.9f;
+    [SerializeField] private float maxPitch = 1.1f;
+
+    [Header("Attack Sound")]
+    [SerializeField] private AudioClip attackSound;
+    [SerializeField] private float attackSoundVolume = 0.8f;
+
     [Header("Enemy Repulsion")]
     [SerializeField] private float enemyRepelForce = 5f;
     [SerializeField] private float enemyRepelRadius = 3f;
@@ -67,6 +77,18 @@ public class AerialEnemy : MonoBehaviour
         if (enemyLayer == 0)
         {
             enemyLayer = LayerMask.GetMask("Default");
+        }
+
+        // Initialize audio source if not assigned
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+                audioSource.spatialBlend = 0f; // 2D sound
+            }
         }
     }
 
@@ -114,6 +136,95 @@ public class AerialEnemy : MonoBehaviour
         HandleEnemyRepulsion();
         UpdateFacing();
         HandleGroundRepulsion();
+    }
+
+    // ANIMATION EVENT METHOD: Play attack sound with pitch shift
+    public void OnAttackAnimationEvent()
+    {
+        // Don't execute attack while stunned or dead
+        if (isStunned || IsDead()) return;
+
+        // Play attack sound
+        PlayAttackSound();
+
+        // Execute the attack
+        Vector2 attackDir = (player.position - transform.position).normalized;
+        ExecuteAttack(attackDir);
+    }
+
+    // ANIMATION EVENT METHOD: Play sound with pitch shift
+    public void PlaySoundWithPitchShift(AudioClip clip)
+    {
+        PlaySoundWithPitchShiftCustom(clip, 1.0f);
+    }
+
+    // ANIMATION EVENT METHOD with custom volume
+    public void PlaySoundWithPitchShiftCustom(AudioClip clip, float volume = 1.0f)
+    {
+        if (clip == null || audioSource == null) return;
+
+        float pitch = 1.0f;
+
+        if (enablePitchShift)
+        {
+            pitch = Random.Range(minPitch, maxPitch);
+        }
+
+        // Store original pitch
+        float originalPitch = audioSource.pitch;
+
+        // Apply new pitch
+        audioSource.pitch = pitch;
+
+        // Play the sound
+        audioSource.PlayOneShot(clip, volume);
+
+        // Reset pitch after playing
+        StartCoroutine(ResetPitchAfterSound(originalPitch));
+    }
+
+    private System.Collections.IEnumerator ResetPitchAfterSound(float originalPitch)
+    {
+        // Wait one frame to ensure sound has started playing
+        yield return null;
+
+        // Reset pitch to original
+        if (audioSource != null)
+        {
+            audioSource.pitch = originalPitch;
+        }
+    }
+
+    // Method to play sound without pitch shift
+    public void PlaySound(AudioClip clip, float volume = 1.0f)
+    {
+        if (clip == null || audioSource == null) return;
+        audioSource.PlayOneShot(clip, volume);
+    }
+
+    // Play the specific attack sound
+    private void PlayAttackSound()
+    {
+        if (attackSound == null || audioSource == null) return;
+
+        float pitch = 1.0f;
+
+        if (enablePitchShift)
+        {
+            pitch = Random.Range(minPitch, maxPitch);
+        }
+
+        // Store original pitch
+        float originalPitch = audioSource.pitch;
+
+        // Apply new pitch
+        audioSource.pitch = pitch;
+
+        // Play the attack sound
+        audioSource.PlayOneShot(attackSound, attackSoundVolume);
+
+        // Reset pitch after playing
+        StartCoroutine(ResetPitchAfterSound(originalPitch));
     }
 
     // Helper method to check if enemy is dead
@@ -284,26 +395,18 @@ public class AerialEnemy : MonoBehaviour
         // Don't attack while stunned or dead
         if (isStunned || IsDead()) return;
 
-        Vector2 attackDir = (player.position - transform.position).normalized;
-
         if (animator != null)
         {
             animator.SetTrigger(attackAnimTrigger);
         }
         else
         {
+            // Play attack sound even without animation
+            PlayAttackSound();
+
+            Vector2 attackDir = (player.position - transform.position).normalized;
             ExecuteAttack(attackDir);
         }
-    }
-
-    // Call this from animation event
-    public void OnAttackAnimationEvent()
-    {
-        // Don't execute attack while stunned or dead
-        if (isStunned || IsDead()) return;
-
-        Vector2 attackDir = (player.position - transform.position).normalized;
-        ExecuteAttack(attackDir);
     }
 
     private void ExecuteAttack(Vector2 direction)

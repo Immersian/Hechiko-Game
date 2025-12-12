@@ -141,6 +141,9 @@ namespace SupanthaPaul
         [SerializeField] private float potionFadeDuration = 0.5f;
         [SerializeField] private float potionFadeDelay = 0.2f;
 
+        [Header("Controller Deadzone Settings")]
+        [SerializeField] private float joystickDeadzone = 0.2f;
+
         private Rigidbody2D m_rb;
         private ParticleSystem m_dustParticle;
         public bool m_facingRight = true;
@@ -231,13 +234,24 @@ namespace SupanthaPaul
         {
             if (!isCurrentlyPlayable) return;
 
+            // Check if we should process gameplay input
+            if (!InputManager.instance.ShouldProcessGameplayInput())
+            {
+                // Clear any buffered inputs when menu is active
+                m_dashBufferTimer = 0f;
+                m_dashInputBuffered = false;
+                return;
+            }
+
             Vector2 moveInputVector = moveAction.ReadValue<Vector2>();
-            moveInput = moveInputVector.x;
+
+            // Apply deadzone to joystick input - player won't move in deadzone
+            moveInput = ApplyDeadzone(moveInputVector.x);
 
             ParryScript parryScript = GetComponentInChildren<ParryScript>();
             if (parryScript != null && parryScript.IsBlocking)
             {
-                moveInput = 0f; // Zero out movement input while blocking
+                moveInput = 0f;
             }
 
             m_groundedRemember -= Time.deltaTime;
@@ -309,8 +323,23 @@ namespace SupanthaPaul
             }
         }
 
+        private float ApplyDeadzone(float input)
+        {
+            // Simple deadzone - if input is within deadzone range, return 0 (no movement)
+            if (Mathf.Abs(input) < joystickDeadzone)
+            {
+                return 0f;
+            }
+
+            // Return the original input if outside deadzone
+            return input;
+        }
         private void FixedUpdate()
         {
+            if (!InputManager.instance.ShouldProcessGameplayInput())
+            {
+                return;
+            }
             // Check if player is on either ground or effector
             bool onGround = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, whatIsGround);
             bool onEffector = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, whatIsEffector);

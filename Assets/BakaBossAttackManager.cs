@@ -35,9 +35,9 @@ public class BakaBossAttackManager : MonoBehaviour
     private AttackType[] phase2Attacks = { AttackType.GroundSlam, AttackType.GroundSlamVariation, AttackType.ClawAttack, AttackType.TailEye };
     private Coroutine attackRoutine;
     private float lastAttackTime;
-    private AttackType lastAttackUsed;
+    private AttackType lastAttackUsed = AttackType.None;
 
-    private enum AttackType { GroundSlam, ClawAttack, TailEye, GroundSlamVariation }
+    private enum AttackType { None, GroundSlam, ClawAttack, TailEye, GroundSlamVariation }
 
     #region Attack Functions
     private void GroundSlamAttack()
@@ -83,7 +83,7 @@ public class BakaBossAttackManager : MonoBehaviour
     #region Core System
     private void OnEnable()
     {
-        lastAttackUsed = (AttackType)(-1);
+        lastAttackUsed = AttackType.None;
         StartAttackCycle();
     }
 
@@ -128,14 +128,31 @@ public class BakaBossAttackManager : MonoBehaviour
         AttackType[] availableAttacks = BakaBossSM.currentStateName == "Phase2BakaState" ?
             phase2Attacks : phase1Attacks;
 
+        // If there's only one attack available, we have to use it
         if (availableAttacks.Length == 1)
             return availableAttacks[0];
 
-        AttackType selectedAttack;
-        do
+        // Create a list of attacks that are NOT the last used attack
+        System.Collections.Generic.List<AttackType> validAttacks = new System.Collections.Generic.List<AttackType>();
+
+        foreach (AttackType attack in availableAttacks)
         {
-            selectedAttack = availableAttacks[Random.Range(0, availableAttacks.Length)];
-        } while (selectedAttack == lastAttackUsed && availableAttacks.Length > 1);
+            if (attack != lastAttackUsed)
+            {
+                validAttacks.Add(attack);
+            }
+        }
+
+        // If all attacks are the same as last used (shouldn't happen with multiple attacks), fall back to all available
+        if (validAttacks.Count == 0)
+        {
+            Debug.LogWarning("No valid attacks found, falling back to all available attacks");
+            validAttacks.AddRange(availableAttacks);
+        }
+
+        // Randomly select from valid attacks
+        AttackType selectedAttack = validAttacks[Random.Range(0, validAttacks.Count)];
+        Debug.Log($"Selected attack: {selectedAttack} (last was: {lastAttackUsed})");
 
         return selectedAttack;
     }

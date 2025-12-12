@@ -53,10 +53,24 @@ public class EnemyDamageHandler : MonoBehaviour
     [SerializeField] private float deathCameraShakeIntensity = 2f;
     [SerializeField] private float deathCameraShakeDuration = 0.3f;
 
+    [Header("Rumble Settings")]
+    [SerializeField] private bool enableRumble = true;
+    [SerializeField] private float hitRumbleLowFrequency = 0.4f;
+    [SerializeField] private float hitRumbleHighFrequency = 0.6f;
+    [SerializeField] private float hitRumbleDuration = 0.1f;
+    [SerializeField] private float deathRumbleLowFrequency = 0.8f;
+    [SerializeField] private float deathRumbleHighFrequency = 0.9f;
+    [SerializeField] private float deathRumbleDuration = 0.2f;
+
     // Static variables for global hitstop management
     private static bool isGlobalHitstopActive = false;
     private static Coroutine activeGlobalHitstopCoroutine;
     private static float originalTimeScale = 1f;
+
+    // Static variable for rumble cooldown to prevent multiple triggers
+    private static bool isRumbleActive = false;
+    private static float lastRumbleTime = 0f;
+    private static float rumbleCooldown = 0.05f; // 50ms cooldown between rumbles
 
     // Particle pooling system
     private Queue<ParticleSystem> particlePool;
@@ -315,6 +329,12 @@ public class EnemyDamageHandler : MonoBehaviour
             TriggerCameraShake(cameraShakeIntensity, cameraShakeDuration);
         }
 
+        // Trigger rumble for hit (with cooldown to prevent multiple triggers)
+        if (enableRumble)
+        {
+            TriggerHitRumble();
+        }
+
         // Play hurt particle effect with direction
         PlayHurtParticles(hitDirection, hitPoint);
 
@@ -352,6 +372,56 @@ public class EnemyDamageHandler : MonoBehaviour
         {
             Die();
         }
+    }
+
+    private void TriggerHitRumble()
+    {
+        // Check if rumble is on cooldown to prevent multiple triggers
+        if (isRumbleActive || Time.time < lastRumbleTime + rumbleCooldown)
+            return;
+
+        // Check if the attacker is dashing - if so, skip the hit rumble
+        // since dash already has its own rumble
+        PlayerController actualAttacker = attacker;
+        if (actualAttacker != null && actualAttacker.isDashing)
+        {
+            return; // Skip hit rumble during dash
+        }
+
+        // Check if RumbleManager exists and call rumble
+        if (RumbleManager.instance != null)
+        {
+            isRumbleActive = true;
+            lastRumbleTime = Time.time;
+
+            RumbleManager.instance.RumblePulse(
+                hitRumbleLowFrequency,
+                hitRumbleHighFrequency,
+                hitRumbleDuration
+            );
+
+            // Start coroutine to reset the rumble active flag
+            StartCoroutine(ResetRumbleActiveFlag());
+        }
+    }
+
+    private void TriggerDeathRumble()
+    {
+        // Death rumble doesn't use cooldown since it's more important
+        if (RumbleManager.instance != null)
+        {
+            RumbleManager.instance.RumblePulse(
+                deathRumbleLowFrequency,
+                deathRumbleHighFrequency,
+                deathRumbleDuration
+            );
+        }
+    }
+
+    private IEnumerator ResetRumbleActiveFlag()
+    {
+        yield return new WaitForSeconds(rumbleCooldown);
+        isRumbleActive = false;
     }
 
     private void PlayHurtParticles(Vector2 hitDirection, Vector2? hitPoint = null)
@@ -509,6 +579,12 @@ public class EnemyDamageHandler : MonoBehaviour
         if (enableCameraShake)
         {
             TriggerCameraShake(deathCameraShakeIntensity, deathCameraShakeDuration);
+        }
+
+        // Trigger death rumble (no cooldown for death)
+        if (enableRumble)
+        {
+            TriggerDeathRumble();
         }
 
         // End any active global hitstop immediately when dying

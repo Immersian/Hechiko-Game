@@ -38,7 +38,12 @@ public class PlayerAttack : MonoBehaviour
     public AudioClip downwardAttackSound;
     public AudioClip groundSlamImpactSound;
     public GameObject groundSlamEffect;
-    //[SerializeField] private Vector2 soundPitchRange = new Vector2(0.9f, 1.1f);
+
+    [Header("Shockwave Sound")]
+    [SerializeField] private AudioClip shockwaveSound;
+    [SerializeField] private float shockwaveVolume = 1f;
+    [SerializeField] private AudioClip shockwaveChargeSound; // New sound for charging/anticipation
+    [SerializeField] private float shockwaveChargeVolume = 0.8f;
 
     [Header("References")]
     [SerializeField] private PlayerController playerController;
@@ -56,6 +61,8 @@ public class PlayerAttack : MonoBehaviour
 
     // Component references
     private Coroutine currentPitchShiftCoroutine;
+    private AudioSource shockwaveAudioSource; // Separate AudioSource for shockwave sounds
+    private AudioSource attackAudioSource; // AudioSource for attack sounds
 
     private Animator animator;
     private AudioSource audioSource;
@@ -70,6 +77,24 @@ public class PlayerAttack : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         audioSource = GetComponent<AudioSource>();
+
+        // Set up separate AudioSources if needed
+        attackAudioSource = audioSource;
+
+        // Create separate AudioSource for shockwave sounds if not already set up
+        AudioSource[] allAudioSources = GetComponents<AudioSource>();
+        if (allAudioSources.Length > 1)
+        {
+            // Use the second AudioSource for shockwave
+            shockwaveAudioSource = allAudioSources[1];
+        }
+        else
+        {
+            // Create a new AudioSource for shockwave sounds
+            shockwaveAudioSource = gameObject.AddComponent<AudioSource>();
+            shockwaveAudioSource.playOnAwake = false;
+            shockwaveAudioSource.spatialBlend = 0f; // 2D sound
+        }
 
         currentAttack = 0;
         timeSinceAttack = attackCooldowns[0];
@@ -170,8 +195,7 @@ public class PlayerAttack : MonoBehaviour
 
         if (downwardAttackSound != null)
         {
-            //audioSource.pitch = Random.Range(soundPitchRange.x, soundPitchRange.y);
-            audioSource.PlayOneShot(downwardAttackSound);
+            PlayWithRandomPitch(downwardAttackSound, attackAudioSource);
         }
 
         animator.SetBool("FallingGroundSlam", true);
@@ -193,8 +217,7 @@ public class PlayerAttack : MonoBehaviour
 
         if (groundSlamImpactSound != null)
         {
-            //audioSource.pitch = Random.Range(soundPitchRange.x, soundPitchRange.y);
-            audioSource.PlayOneShot(groundSlamImpactSound);
+            PlayWithRandomPitch(groundSlamImpactSound, attackAudioSource);
         }
 
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(
@@ -236,13 +259,7 @@ public class PlayerAttack : MonoBehaviour
 
         if (upwardLaunchSound != null)
         {
-            PlayWithRandomPitch(upwardLaunchSound);
-        }
-
-        if (upwardLaunchSound != null)
-        {
-            //audioSource.pitch = Random.Range(soundPitchRange.x, soundPitchRange.y);
-            audioSource.PlayOneShot(upwardLaunchSound);
+            PlayWithRandomPitch(upwardLaunchSound, attackAudioSource);
         }
 
         yield return new WaitForSeconds(launchDelay);
@@ -291,6 +308,7 @@ public class PlayerAttack : MonoBehaviour
         int cooldownIndex = Mathf.Clamp(currentAttack - 1, 0, attackCooldowns.Length - 1);
         return timeSinceAttack >= attackCooldowns[cooldownIndex];
     }
+
     private void PerformGroundAttack()
     {
         if (!playerController.isGrounded)
@@ -303,6 +321,7 @@ public class PlayerAttack : MonoBehaviour
         string triggerName = attackTriggerPrefix + currentAttack;
         animator.SetTrigger(triggerName);
     }
+
     public bool IsInPostAttackDashCooldown
     {
         get { return timeSinceLastAttack < postAttackDashCooldown; }
@@ -320,14 +339,13 @@ public class PlayerAttack : MonoBehaviour
         // Play attack sound with randomized pitch
         if (attackSounds.Length >= currentAttack && attackSounds[currentAttack - 1] != null)
         {
-            PlayWithRandomPitch(attackSounds[currentAttack - 1]);
+            PlayWithRandomPitch(attackSounds[currentAttack - 1], attackAudioSource);
         }
-
-
     }
-    private void PlayWithRandomPitch(AudioClip clip)
+
+    private void PlayWithRandomPitch(AudioClip clip, AudioSource source)
     {
-        // Stop any existing pitch shift
+        // Stop any existing pitch shift for this source
         if (currentPitchShiftCoroutine != null)
         {
             StopCoroutine(currentPitchShiftCoroutine);
@@ -335,16 +353,17 @@ public class PlayerAttack : MonoBehaviour
 
         // Set random pitch and play sound
         float randomPitch = Random.Range(pitchRange.x, pitchRange.y);
-        audioSource.pitch = randomPitch;
-        audioSource.PlayOneShot(clip);
+        source.pitch = randomPitch;
+        source.PlayOneShot(clip);
 
         // Start coroutine to reset pitch
-        currentPitchShiftCoroutine = StartCoroutine(ResetPitch());
+        currentPitchShiftCoroutine = StartCoroutine(ResetPitch(source));
     }
-    private IEnumerator ResetPitch()
+
+    private IEnumerator ResetPitch(AudioSource source)
     {
         yield return new WaitForSeconds(pitchShiftDuration);
-        audioSource.pitch = 1.0f; // Reset to default pitch
+        source.pitch = 1.0f; // Reset to default pitch
         currentPitchShiftCoroutine = null;
     }
 
@@ -383,9 +402,45 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
+    // ANIMATION EVENT: Play shockwave sound (from animation)
     public void TriggerShockwave()
     {
         shockWaveManager.CallShockwave(true);
+        PlayShockwaveSound();
+    }
+
+    // ANIMATION EVENT: Play shockwave charge/anticipation sound (from animation)
+    public void PlayShockwaveChargeSound()
+    {
+        if (shockwaveChargeSound != null)
+        {
+            shockwaveAudioSource.PlayOneShot(shockwaveChargeSound, shockwaveChargeVolume);
+        }
+    }
+
+    // ANIMATION EVENT: Play shockwave sound (from animation)
+    public void PlayShockwaveSound()
+    {
+        if (shockwaveSound != null)
+        {
+            shockwaveAudioSource.PlayOneShot(shockwaveSound, shockwaveVolume);
+        }
+    }
+
+    // ANIMATION EVENT: Stop all shockwave sounds (from animation)
+    public void StopAllShockwaveSounds()
+    {
+        if (shockwaveAudioSource != null && shockwaveAudioSource.isPlaying)
+        {
+            shockwaveAudioSource.Stop();
+        }
+    }
+
+    // Public method to set shockwave sounds at runtime
+    public void SetShockwaveSounds(AudioClip chargeSound = null, AudioClip shockSound = null)
+    {
+        if (chargeSound != null) shockwaveChargeSound = chargeSound;
+        if (shockSound != null) shockwaveSound = shockSound;
     }
 
     private void OnDrawGizmosSelected()

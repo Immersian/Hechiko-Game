@@ -733,6 +733,28 @@ AnimationClip:
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
   m_Events:
+  - time: 0.41666666
+    functionName: SetTutorialAlphaHighlighted
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.56666666
+    functionName: PlaySoundWithPitchShift
+    data: 
+    objectReferenceParameter: {fileID: 8300000, guid: 64150d5518b415f45a2a99655d50b555,
+      type: 3}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 1.1
+    functionName: SetTutorialAlphaNormal
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
   - time: 1.25
     functionName: OnAttackEnd
     data: 

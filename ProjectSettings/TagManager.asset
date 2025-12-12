@@ -16,6 +16,10 @@ TagManager:
   - BossBorder
   - Claw
   - Enemy
+  - Main Camera
+  - BossMainParticles
+  - BossSecondaryParticles
+  - parrytutorial
   layers:
   - Default
   - TransparentFX

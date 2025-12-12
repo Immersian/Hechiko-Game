@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: -2176317215518472193}
   m_Layer: 21
   m_Name: Claw Projectile
-  m_TagString: SpecialAttack
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -131,7 +131,7 @@ MonoBehaviour:
   destroyOnContact: 0
   continuousDamage: 0
   damageInterval: 1
-  applyKnockback: 1
+  applyKnockback: 0
   knockbackForce: 10
   knockbackDirection: {x: 0.5, y: 1}
   hitEffect: {fileID: 0}
@@ -208,3 +208,4 @@ MonoBehaviour:
   clawLayer:
     serializedVersion: 2
     m_Bits: 2097152
+  lifespan: 15

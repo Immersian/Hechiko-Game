@@ -8,6 +8,10 @@ public class TutorialPopUp : MonoBehaviour
     [SerializeField] private Animator tutorialAnimator;
     [SerializeField] private BoxCollider2D triggerCollider;
 
+    [Header("Device-Specific Objects")]
+    [SerializeField] private GameObject keyboardMouseObjects;
+    [SerializeField] private GameObject gamepadObjects;
+
     [Header("Settings")]
     [SerializeField] private string playerTag = "Player";
 
@@ -37,6 +41,15 @@ public class TutorialPopUp : MonoBehaviour
         {
             tutorialAnimator.SetBool(inTriggerParameter, false);
         }
+
+        // Subscribe to device changes
+        if (InputManager.instance != null)
+        {
+            InputManager.instance.onDeviceChanged += OnInputDeviceChanged;
+        }
+
+        // Set initial device display
+        UpdateDeviceDisplay();
     }
 
     private void InitializeComponents()
@@ -70,6 +83,32 @@ public class TutorialPopUp : MonoBehaviour
         }
     }
 
+    private void OnInputDeviceChanged(InputManager.CurrentDevice newDevice)
+    {
+        UpdateDeviceDisplay();
+    }
+
+    private void UpdateDeviceDisplay()
+    {
+        if (InputManager.instance == null) return;
+
+        bool isGamepad = InputManager.instance.IsGamepad();
+        bool isKeyboardMouse = InputManager.instance.IsKeyboardMouse();
+
+        // Show/hide device-specific objects
+        if (keyboardMouseObjects != null)
+        {
+            keyboardMouseObjects.SetActive(isKeyboardMouse);
+        }
+
+        if (gamepadObjects != null)
+        {
+            gamepadObjects.SetActive(isGamepad);
+        }
+
+        Debug.Log($"Tutorial device display updated - Gamepad: {isGamepad}, Keyboard/Mouse: {isKeyboardMouse}");
+    }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag(playerTag))
@@ -92,6 +131,9 @@ public class TutorialPopUp : MonoBehaviour
     {
         if (tutorialCanvas != null && tutorialAnimator != null)
         {
+            // Update device display before showing
+            UpdateDeviceDisplay();
+
             // Make sure canvas is enabled
             tutorialCanvas.enabled = true;
 
@@ -134,6 +176,21 @@ public class TutorialPopUp : MonoBehaviour
         if (tutorialAnimator != null)
         {
             tutorialAnimator.SetBool(inTriggerParameter, false);
+        }
+
+        // Unsubscribe from device changes
+        if (InputManager.instance != null)
+        {
+            InputManager.instance.onDeviceChanged -= OnInputDeviceChanged;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Unsubscribe from device changes
+        if (InputManager.instance != null)
+        {
+            InputManager.instance.onDeviceChanged -= OnInputDeviceChanged;
         }
     }
 }

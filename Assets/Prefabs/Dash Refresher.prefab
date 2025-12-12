@@ -102,10 +102,28 @@ MonoBehaviour:
   respawnTime: 3
   canRefreshAerialDash: 1
   checkRadius: 0.5
+  refreshOnlyWhenNeeded: 1
+  collectEffect: {fileID: 0}
+  effectDuration: 1
+  collectSound: {fileID: 8300000, guid: e5d145c77b729074fa3e518023bd5a9a, type: 3}
+  respawnSound: {fileID: 0}
+  collectSoundVolume: 0.8
+  respawnSoundVolume: 0.6
+  audioSource: {fileID: 0}
+  enablePitchShift: 1
+  basePitch: 1
+  collectPitchMin: 1
+  collectPitchMax: 1.2
+  respawnPitchMin: 0.8
+  respawnPitchMax: 1
+  randomizeCollectPitch: 1
+  randomizeRespawnPitch: 1
+  useProgressivePitch: 0
+  progressivePitchIncrement: 0.05
+  maxProgressivePitch: 1.5
   animator: {fileID: 1178215974006211022}
   hitTrigger: Hit
   respawnTrigger: Respawn
-  idleState: Idle
 --- !u!61 &1733935360475896300
 BoxCollider2D:
   m_ObjectHideFlags: 0

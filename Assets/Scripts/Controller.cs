@@ -48,17 +48,6 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                     ""action"": ""RumbleAction"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""c1238d53-bff7-41eb-aeda-b973a1d7c4ec"",
-                    ""path"": ""<Keyboard>/ctrl"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard"",
-                    ""action"": ""RumbleAction"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -490,17 +479,6 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""cdfa9854-bcc4-414d-ab95-1f7fee220a72"",
-                    ""path"": ""<XInputController>/buttonNorth"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""Special"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""b01a45e2-223e-40be-a7f3-ef63128faf0f"",
                     ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",
@@ -550,6 +528,17 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard"",
+                    ""action"": ""Heal"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c3a58751-bbfe-4df9-b90f-d543fa967b97"",
+                    ""path"": ""<XInputController>/dpad/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
                     ""action"": ""Heal"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -705,6 +694,17 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""390d47e0-644d-466b-b463-0969164c0746"",
+                    ""path"": """",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""612c13c0-23d3-46f6-8389-47e253ccf68c"",
                     ""path"": ""<Keyboard>/escape"",
                     ""interactions"": """",
@@ -727,6 +727,17 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""7e8e9226-bf3a-4848-94eb-730d628efc77"",
+                    ""path"": ""<XInputController>/start"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Tab"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""1f7e5590-cde5-479b-85f8-d74b937a64f3"",
                     ""path"": ""<Mouse>/rightButton"",
                     ""interactions"": """",
@@ -738,11 +749,11 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""d4515bde-72df-4520-946d-bbb1ea19feb7"",
-                    ""path"": ""<Keyboard>/p"",
+                    ""id"": ""74167420-4eed-4979-ba13-c0f877277161"",
+                    ""path"": ""<XInputController>/rightShoulder"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": ""Keyboard"",
+                    ""groups"": ""Gamepad"",
                     ""action"": ""RB"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -760,11 +771,11 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""c7f34db1-92da-4c8e-b161-a7d129f7a578"",
-                    ""path"": ""<Keyboard>/o"",
+                    ""id"": ""50d38114-4671-4ac4-a83f-6f862db33c39"",
+                    ""path"": ""<XInputController>/leftShoulder"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": ""Keyboard"",
+                    ""groups"": """",
                     ""action"": ""LB"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -793,6 +804,17 @@ public partial class @Controller: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
+                    ""action"": ""Exit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5ec7dc71-2afa-40bc-9c6b-c05fd6b1cd3a"",
+                    ""path"": ""<XInputController>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
                     ""action"": ""Exit"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false

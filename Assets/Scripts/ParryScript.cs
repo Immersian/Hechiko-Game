@@ -27,6 +27,11 @@ public class ParryScript : MonoBehaviour
     [SerializeField] private float hitstopDuration = 0.1f;
     [SerializeField] private float hitstopTimeScale = 0.1f;
 
+    [Header("Rumble Settings")]
+    [SerializeField] private float parryRumbleLowFrequency = 0.5f;
+    [SerializeField] private float parryRumbleHighFrequency = 0.5f;
+    [SerializeField] private float parryRumbleDuration = 0.15f;
+
     [Header("Sound Effects")]
     [SerializeField] private AudioClip parrySound;
     [SerializeField] private AudioClip blockSound;
@@ -212,6 +217,9 @@ public class ParryScript : MonoBehaviour
             cameraShake.ShakeCamera(shakeIntensity, shakeTime);
         }
 
+        // Add rumble feedback for successful parry
+        TriggerParryRumble();
+
         // Add a charge when successfully parrying
         if (parryChargeSystem != null)
         {
@@ -223,6 +231,19 @@ public class ParryScript : MonoBehaviour
         {
             // Pass the parry target transform to position the shockwave
             ShockWaveManager.Instance.CallSmallShockwave(parryTarget);
+        }
+    }
+
+    private void TriggerParryRumble()
+    {
+        // Check if RumbleManager exists and call rumble
+        if (RumbleManager.instance != null)
+        {
+            RumbleManager.instance.RumblePulse(
+                parryRumbleLowFrequency,
+                parryRumbleHighFrequency,
+                parryRumbleDuration
+            );
         }
     }
 

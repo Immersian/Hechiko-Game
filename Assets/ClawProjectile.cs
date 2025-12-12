@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class ClawProjectile : MonoBehaviour
 {
@@ -14,10 +15,12 @@ public class ClawProjectile : MonoBehaviour
     public string borderTag = "BossBorder";
     public string playerTag = "Player";
     public LayerMask clawLayer;
+    public float lifespan = 15f; // 15 second lifespan
 
     private int reflectionCount = 0;
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
+    private Coroutine lifespanCoroutine;
 
     void Start()
     {
@@ -46,6 +49,9 @@ public class ClawProjectile : MonoBehaviour
 
         // Set initial sprite flip based on direction
         UpdateSpriteFlip();
+
+        // Start lifespan countdown
+        lifespanCoroutine = StartCoroutine(LifespanCountdown());
     }
 
     void Update()
@@ -69,23 +75,44 @@ public class ClawProjectile : MonoBehaviour
         // Check if hit another claw projectile using layer mask
         if ((clawLayer.value & (1 << other.gameObject.layer)) != 0)
         {
-            Destroy(gameObject);
+            DestroyProjectile();
             return;
         }
 
         // Check if hit player
         if (other.CompareTag(playerTag))
         {
-            Destroy(gameObject);
+            DestroyProjectile();
 
-            // You can add player damage logic here if needed
-            PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
-            if (playerHealth != null)
-            {
-                playerHealth.TakeDamage(10); // Adjust damage as needed
-            }
-            return;
+            //// You can add player damage logic here if needed
+            //PlayerHealth playerHealth = other.GetComponent<PlayerHealth>();
+            //if (playerHealth != null)
+            //{
+            //    playerHealth.TakeDamage(10); // Adjust damage as needed
+            //}
+            //return;
         }
+    }
+
+    private IEnumerator LifespanCountdown()
+    {
+        // Wait for the specified lifespan
+        yield return new WaitForSeconds(lifespan);
+
+        // Destroy the projectile after lifespan expires
+        DestroyProjectile();
+    }
+
+    private void DestroyProjectile()
+    {
+        // Stop the lifespan coroutine if it's running
+        if (lifespanCoroutine != null)
+        {
+            StopCoroutine(lifespanCoroutine);
+            lifespanCoroutine = null;
+        }
+
+        Destroy(gameObject);
     }
 
     private void HandleBorderCollision(Collider2D borderCollider)
@@ -95,7 +122,7 @@ public class ClawProjectile : MonoBehaviour
         // Destroy if reached max reflections
         if (reflectionCount >= maxReflections)
         {
-            Destroy(gameObject);
+            DestroyProjectile();
             return;
         }
 
@@ -152,12 +179,34 @@ public class ClawProjectile : MonoBehaviour
         }
     }
 
+    // Public method to set lifespan (optional, in case you want to change it dynamically)
+    public void SetLifespan(float newLifespan)
+    {
+        lifespan = newLifespan;
+
+        // Restart the countdown with new lifespan
+        if (lifespanCoroutine != null)
+        {
+            StopCoroutine(lifespanCoroutine);
+        }
+        lifespanCoroutine = StartCoroutine(LifespanCountdown());
+    }
+
     // Public method to manually set sprite flip if needed
     public void SetSpriteFlip(bool shouldFlip)
     {
         if (spriteRenderer != null)
         {
             spriteRenderer.flipX = shouldFlip;
+        }
+    }
+
+    void OnDestroy()
+    {
+        // Clean up coroutine when object is destroyed
+        if (lifespanCoroutine != null)
+        {
+            StopCoroutine(lifespanCoroutine);
         }
     }
 }

@@ -6,9 +6,10 @@ public class SimpleFlash : MonoBehaviour
     [Header("Flash Settings")]
     [SerializeField] private float flashTime = 0.25f;
 
-    [Header("Damage Flash")]
+    [Header("Flash Colors")]
     [SerializeField] private Color damageFlashColor = Color.red;
     [SerializeField] private Color dashedFlashColor = Color.cyan;
+    [SerializeField] private Color stunnedFlashColor = Color.white;
 
     [Header("Dash Colors")]
     [SerializeField] private Color dashFlashColor = Color.white;
@@ -53,6 +54,7 @@ public class SimpleFlash : MonoBehaviour
         flashCoroutine = StartCoroutine(FlashRoutine());
     }
 
+    // Dashed flash effect (cyan)
     public void CallDashFlash()
     {
         if (flashMaterial == null) return;
@@ -61,6 +63,18 @@ public class SimpleFlash : MonoBehaviour
             StopCoroutine(flashCoroutine);
 
         currentFlashColor = dashedFlashColor;
+        flashCoroutine = StartCoroutine(FlashRoutine());
+    }
+
+    // Stunned flash effect (white)
+    public void CallStunnedFlash()
+    {
+        if (flashMaterial == null) return;
+
+        if (flashCoroutine != null)
+            StopCoroutine(flashCoroutine);
+
+        currentFlashColor = stunnedFlashColor;
         flashCoroutine = StartCoroutine(FlashRoutine());
     }
 

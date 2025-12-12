@@ -52,6 +52,7 @@ public class StartScreenManager : MonoBehaviour
     private InputAction pointAction; // To detect mouse movement/click
     private bool buttonsActive = false;
     private Button lastSelectedButton;
+    private bool isInIdleState = false; // Track when animator is in idle state
 
     private void Start()
     {
@@ -170,7 +171,7 @@ public class StartScreenManager : MonoBehaviour
 
     private void OnButtonPointerEnter(Button button)
     {
-        if (buttonsActive && !isTransitioning)
+        if (buttonsActive && !isTransitioning && isInIdleState)
         {
             // Select the button when mouse hovers over it
             EventSystem.current.SetSelectedGameObject(button.gameObject);
@@ -185,7 +186,7 @@ public class StartScreenManager : MonoBehaviour
 
     private void OnButtonPointerClick(Button button)
     {
-        if (buttonsActive && !isTransitioning)
+        if (buttonsActive && !isTransitioning && isInIdleState)
         {
             // Ensure the clicked button remains selected
             EventSystem.current.SetSelectedGameObject(button.gameObject);
@@ -202,7 +203,7 @@ public class StartScreenManager : MonoBehaviour
     {
         // If this button is being deselected and it was the last selected one,
         // try to prevent the deselection or immediately reselect it
-        if (lastSelectedButton == button && buttonsActive && !isTransitioning)
+        if (lastSelectedButton == button && buttonsActive && !isTransitioning && isInIdleState)
         {
             // Check if we're deselecting because of a mouse click elsewhere
             if (IsMouseOverUI())
@@ -221,7 +222,7 @@ public class StartScreenManager : MonoBehaviour
         yield return null; // Wait one frame
 
         // If after one frame no other button is selected, reselect this one
-        if (EventSystem.current.currentSelectedGameObject == null && buttonsActive && !isTransitioning)
+        if (EventSystem.current.currentSelectedGameObject == null && buttonsActive && !isTransitioning && isInIdleState)
         {
             EventSystem.current.SetSelectedGameObject(button.gameObject);
             lastSelectedButton = button;
@@ -355,6 +356,12 @@ public class StartScreenManager : MonoBehaviour
 
     private void Update()
     {
+        // Check if we're now in the idle state
+        if (screenAnimator != null && screenAnimator.GetBool("Idle") && !isInIdleState)
+        {
+            isInIdleState = true;
+        }
+
         if (waitingForInput && !inputDetected && !isTransitioning)
         {
             CheckForInput();
@@ -376,7 +383,7 @@ public class StartScreenManager : MonoBehaviour
         Cursor.visible = false;
 
         // Check for interact button press to activate selected button
-        if (!waitingForInput && !isTransitioning && interactAction != null && interactAction.triggered)
+        if (!waitingForInput && !isTransitioning && interactAction != null && interactAction.triggered && isInIdleState)
         {
             // Check if a button is currently selected
             if (EventSystem.current.currentSelectedGameObject != null)
@@ -389,8 +396,8 @@ public class StartScreenManager : MonoBehaviour
             }
         }
 
-        // Ensure a button is always selected when buttons are active
-        if (buttonsActive && !isTransitioning && EventSystem.current.currentSelectedGameObject == null)
+        // Ensure a button is always selected when buttons are active and in idle state
+        if (buttonsActive && !isTransitioning && isInIdleState && EventSystem.current.currentSelectedGameObject == null)
         {
             // If nothing is selected, select the last selected button or the first button
             GameObject buttonToSelect = lastSelectedButton != null ? lastSelectedButton.gameObject : menuButtons[0].gameObject;
@@ -398,7 +405,7 @@ public class StartScreenManager : MonoBehaviour
         }
 
         // Detect navigation input and ensure selection stays on buttons
-        if (buttonsActive && !isTransitioning && navigateAction != null && navigateAction.triggered)
+        if (buttonsActive && !isTransitioning && navigateAction != null && navigateAction.triggered && isInIdleState)
         {
             // Navigation input detected, ensure something is selected
             if (EventSystem.current.currentSelectedGameObject == null)
@@ -467,15 +474,11 @@ public class StartScreenManager : MonoBehaviour
         {
             screenAnimator.SetTrigger("Pressed");
 
-            // Wait for the animation to complete (you might need to adjust this based on your animation)
-            // This assumes your animation has an exit time that determines its length
+            // Wait for the animation to complete
             yield return new WaitForSeconds(screenAnimator.GetCurrentAnimatorStateInfo(0).length);
-
-            // Set Idle to true after the Pressed animation completes
-            screenAnimator.SetBool("Idle", true);
         }
 
-        // Fade out the "Press Any Button" text and image using CanvasGroup
+        // Fade out the "Press Any Button" text and image using CanvasGroup - DO THIS FIRST
         float timer = 0f;
 
         while (timer < textFadeDuration)
@@ -500,6 +503,19 @@ public class StartScreenManager : MonoBehaviour
             pressAnyButtonImage.gameObject.SetActive(false);
         }
 
+        // NOW set the idle state after text is completely faded out
+        if (screenAnimator != null)
+        {
+            screenAnimator.SetBool("Idle", true);
+            yield return new WaitForSeconds(1);
+            isInIdleState = true; // Set our tracking variable
+        }
+        else
+        {
+            // Fallback if no animator
+            isInIdleState = true;
+        }
+
         // Fade in buttons one by one with delay
         for (int i = 0; i < menuButtons.Length; i++)
         {
@@ -508,7 +524,7 @@ public class StartScreenManager : MonoBehaviour
         }
 
         // Set first button as selected for controller navigation
-        if (menuButtons.Length > 0 && EventSystem.current != null)
+        if (menuButtons.Length > 0 && EventSystem.current != null && isInIdleState)
         {
             EventSystem.current.SetSelectedGameObject(menuButtons[0].gameObject);
             lastSelectedButton = menuButtons[0];
@@ -520,8 +536,9 @@ public class StartScreenManager : MonoBehaviour
 
     private IEnumerator FadeInButton(Button button, CanvasGroup canvasGroup)
     {
-        button.interactable = true;
-        canvasGroup.blocksRaycasts = true;
+        // Only make button interactable if we're in the idle state
+        button.interactable = isInIdleState;
+        canvasGroup.blocksRaycasts = isInIdleState;
 
         float timer = 0f;
         while (timer < buttonFadeDuration)
@@ -537,7 +554,7 @@ public class StartScreenManager : MonoBehaviour
     // BUTTON FUNCTIONS
     public void OnStartGameButtonClicked()
     {
-        if (isTransitioning) return;
+        if (isTransitioning || !isInIdleState) return;
 
         isTransitioning = true;
         buttonsActive = false;
@@ -548,6 +565,7 @@ public class StartScreenManager : MonoBehaviour
         {
             screenAnimator.SetTrigger("Embark");
             screenAnimator.SetBool("Idle", false);
+            isInIdleState = false; // Reset idle state
 
             // Start coroutine to load scene after animation completes
             StartCoroutine(LoadSceneAfterAnimation(gameSceneName));
@@ -561,7 +579,7 @@ public class StartScreenManager : MonoBehaviour
 
     public void OnCreditsButtonClicked()
     {
-        if (isTransitioning) return;
+        if (isTransitioning || !isInIdleState) return;
 
         isTransitioning = true;
         buttonsActive = false;
@@ -572,6 +590,7 @@ public class StartScreenManager : MonoBehaviour
         {
             screenAnimator.SetTrigger("Embark"); // Use same animation or create a specific one
             screenAnimator.SetBool("Idle", false);
+            isInIdleState = false; // Reset idle state
             StartCoroutine(LoadSceneAfterAnimation(creditsSceneName));
         }
         else
@@ -582,7 +601,7 @@ public class StartScreenManager : MonoBehaviour
 
     public void OnQuitGameButtonClicked()
     {
-        if (isTransitioning) return;
+        if (isTransitioning || !isInIdleState) return;
 
         isTransitioning = true;
         buttonsActive = false;
@@ -593,6 +612,7 @@ public class StartScreenManager : MonoBehaviour
         {
             screenAnimator.SetTrigger("Embark");
             screenAnimator.SetBool("Idle", false);
+            isInIdleState = false; // Reset idle state
             StartCoroutine(QuitGameAfterAnimation());
         }
         else
@@ -738,6 +758,7 @@ public class StartScreenManager : MonoBehaviour
 
     public void OnPlaceholderButtonClicked()
     {
+        if (!isInIdleState) return;
         Debug.Log("Placeholder button clicked! This button doesn't do anything yet.");
     }
 
@@ -749,6 +770,7 @@ public class StartScreenManager : MonoBehaviour
         isTransitioning = false;
         buttonsActive = false;
         lastSelectedButton = null;
+        isInIdleState = false;
 
         // Reset text
         textCanvasGroup.alpha = 1f;
